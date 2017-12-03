@@ -30,9 +30,7 @@ float convert_canvas_to_ndc(int canvas)
 
 void Canvas::put_pixel(const color& _color, int w, int h)
 {
-    canvas[w][h].x = _color.r;
-    canvas[w][h].y = _color.g; 
-    canvas[w][h].z = _color.b; 
+    canvas[w][h] = _color;
 }
 
 void Canvas::draw_line(vec3& p0, vec3& p1, const color& _color)
@@ -96,9 +94,9 @@ void Canvas::reset_canvas(const color& _color)
     {
         for (int w = 0; w < width; ++w)
         {
-            canvas[w][h].x = _color.r;  
-            canvas[w][h].y = _color.g;  
-            canvas[w][h].z = _color.b;  
+            canvas[w][h].r = _color.r;  
+            canvas[w][h].g = _color.g;  
+            canvas[w][h].b = _color.b;  
         }
     }
 }
@@ -111,9 +109,9 @@ void Canvas::print_canvas()
     {
         for (int x = 0; x < width; ++x)
         {
-            int r = (int)(canvas[x][y].x * 255.99f);
-            int g = (int)(canvas[x][y].y * 255.99f);
-            int b = (int)(canvas[x][y].z * 255.99f);
+            int r = (int)(canvas[x][y].r * 255.99f);
+            int g = (int)(canvas[x][y].g * 255.99f);
+            int b = (int)(canvas[x][y].b * 255.99f);
 
             // TODO print out to a file instead of to terminal 
             std::cout << r << " " 
@@ -134,9 +132,9 @@ void Canvas::print_canvas(std::string _title)
     {
         for (int x = 0; x < width; ++x)
         {
-            int r = (int)(canvas[x][y].x * 255.99f);
-            int g = (int)(canvas[x][y].y * 255.99f);
-            int b = (int)(canvas[x][y].z * 255.99f);
+            int r = (int)(canvas[x][y].r * 255.99f);
+            int g = (int)(canvas[x][y].g * 255.99f);
+            int b = (int)(canvas[x][y].b * 255.99f);
 
             image_file << r << " " 
                        << g << " " 
