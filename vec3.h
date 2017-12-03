@@ -11,12 +11,13 @@ public:
         x(v.x), y(v.y), z(v.z) {}
 
     vec3() {} 
-
+    
     float x; 
     float y;
     float z; 
 };
 
+/*
 void swap(vec3& p0, vec3& p1) 
 {
     //vec3 temp(p0.x, p0.y, p0.z);
@@ -30,5 +31,6 @@ void swap(vec3& p0, vec3& p1)
     p1.y = temp.y;
     p1.z = temp.z;
 }
+*/
 
 #endif // VEC3_H
