@@ -16,4 +16,4 @@ build:
 	$(CPP) $(CPPFLAGS) $(OFLAGS) graffitica canvas.o main.o
 
 clean: 
-	$(RM) *.o main
+	$(RM) *.o graffitica
