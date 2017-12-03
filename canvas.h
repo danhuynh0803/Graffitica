@@ -22,6 +22,7 @@ public:
     // Drawing functions 
     void put_pixel(const color& _color, int w, int h); 
     void draw_line(vec3& p0, vec3& p1, const color& _color); 
+    void draw_line_point_slope(vec3& p0, float slope, const color& _color, bool isVertical);
     void reset_canvas(const color& _color = color(1.0f, 1.0f, 1.0f)); 
     void print_canvas(); 
 
@@ -30,7 +31,7 @@ public:
 private:  
     int width; 
     int height; 
-    std::vector<std::vector<vec3>> canvas;
+    std::vector<std::vector<vec3> > canvas;
 };
 
 #endif // CANVAS_H

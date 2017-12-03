@@ -1,13 +1,19 @@
-CC = g++
-CFLAGS = -g -std=gnu++11
+CPP = g++
+CPPFLAGS = -lstdc++
+OFLAGS = -o
 
-all: main canvas 
+RM = rm -rf
 
-canvas: 
-	$(CC) $(CFLAGS) canvas.cpp -o canvas.o
+all: canvas main build
 
-main: 
-	$(CC) $(CFLAGS) main.cpp -o main.o
+canvas: canvas.o
+	$(CPP) $(CPPFLAGS) -c canvas.cpp 
+
+main: main.o
+	$(CPP) $(CPPFLAGS) -c main.cpp 
+
+build: 
+	$(CPP) $(CPPFLAGS) $(OFLAGS) graffitica canvas.o main.o
 
 clean: 
-	rm -rf *.o
+	$(RM) *.o main
