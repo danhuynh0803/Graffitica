@@ -25,7 +25,7 @@ public:
     int get_height() { return height; }
 
     // Drawing functions 
-    void put_pixel(const color& _color, int w, int h); 
+    void put_pixel(int w, int h, const color& _color);
     void draw_line(vec3& p0, vec3& p1, const color& _color); 
     void draw_line_point_slope(vec3& p0, float slope, const color& _color, bool isVertical);
     void reset_canvas(const color& _color = color(1.0f, 1.0f, 1.0f)); 

@@ -1,5 +1,5 @@
 CPP = g++
-CPPFLAGS = -lstdc++
+CPPFLAGS = -lstdc++ -std=c++11
 OFLAGS = -o
 
 RM = rm -rf

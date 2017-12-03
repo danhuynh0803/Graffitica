@@ -28,7 +28,7 @@ float convert_canvas_to_ndc(int canvas)
     return 0.0f;
 }
 
-void Canvas::put_pixel(const color& _color, int w, int h)
+void Canvas::put_pixel(int w, int h, const color& _color)
 {
     canvas[w][h] = _color;
 }
@@ -59,7 +59,7 @@ void Canvas::draw_line(vec3& p0, vec3& p1, const color& _color)
     // Draw line
     for (; x < x_end; ++x) 
     {
-        put_pixel(_color, x, (int)y);
+        put_pixel(x, (int)y, _color);
         y += m; 
     } 
 }
@@ -73,8 +73,8 @@ void Canvas::draw_line_point_slope(vec3& p0, float slope, const color& _color, b
 			if (y < -1.0f || y > 1.0f) {
 				continue;
 			}
-			float finaly= convert_ndc_to_canvas(y, height);
-			put_pixel(_color, i, (int)finaly);
+			float y_end= convert_ndc_to_canvas(y, height);
+			put_pixel(i, (int)y_end, _color);
 		}
 	}
 	else
@@ -82,7 +82,7 @@ void Canvas::draw_line_point_slope(vec3& p0, float slope, const color& _color, b
 		if (p0.x >= -1 && p0.x <= 1) {
 			int x = convert_ndc_to_canvas(p0.x, width);
 			for (int y = 0; y < height; ++y) {
-				put_pixel(_color, x, y);
+				put_pixel(x, y, _color);
 			}
 		}
 	}

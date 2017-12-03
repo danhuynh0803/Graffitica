@@ -3,6 +3,7 @@
 #include "canvas.h"
 #include "vec3.h"
 #include "color.h"
+#include "noise.h"
 
 int main()
 {
@@ -29,6 +30,13 @@ int main()
     c.reset_canvas(bg_color);
     c.draw_line(p0, p1, RED);
     c.print_canvas("test.ppm");
+
+    Canvas white(512, 512);
+    white.reset_canvas(WHITE);
+
+    // Noise function ( # samples, Canvas to draw to, color of noise )
+    gen_2D_white_noise(1024, white, BLACK);
+    white.print_canvas("white_noise.ppm");
 
     return 0;
 }
