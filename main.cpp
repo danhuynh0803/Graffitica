@@ -28,7 +28,7 @@ int main()
     Canvas c(512, 512);
     c.reset_canvas(bg_color);
     c.draw_line(p0, p1, RED);
-    c.print_canvas();
+    c.print_canvas("test.ppm");
 
     return 0;
 }

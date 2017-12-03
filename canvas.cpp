@@ -1,5 +1,6 @@
 #include <fstream> 
 #include <iostream>
+#include <string>
 #include "canvas.h"
 
 void swap(vec3& p0, vec3& p1) 
@@ -120,6 +121,30 @@ void Canvas::print_canvas()
                       << b << std::endl;
         }
     }
+}
+
+void Canvas::print_canvas(std::string _title)
+{
+    // Output canvas into ppm file
+    std::ofstream image_file; 
+    image_file.open (_title.c_str()); 
+
+    image_file << "P3\n" << width << " " << height << "\n255\n";
+    for (int y = height-1; y >= 0; --y)
+    {
+        for (int x = 0; x < width; ++x)
+        {
+            int r = (int)(canvas[x][y].x * 255.99f);
+            int g = (int)(canvas[x][y].y * 255.99f);
+            int b = (int)(canvas[x][y].z * 255.99f);
+
+            image_file << r << " " 
+                       << g << " " 
+                       << b << "\n";
+        }
+    }
+
+    image_file.close();
 }
 
 

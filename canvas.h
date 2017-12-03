@@ -15,6 +15,11 @@ public:
         canvas.resize(w, std::vector<vec3>(h));
     }
     
+    Canvas(int w, int h, std::string t) : width(w), height(h), title(t)
+    {
+        canvas.resize(w, std::vector<vec3>(h));
+    }
+    
     // Canvas dimensions
     int get_width() { return width; }
     int get_height() { return height; }
@@ -25,6 +30,7 @@ public:
     void draw_line_point_slope(vec3& p0, float slope, const color& _color, bool isVertical);
     void reset_canvas(const color& _color = color(1.0f, 1.0f, 1.0f)); 
     void print_canvas(); 
+    void print_canvas(std::string _title);
 
     std::string title; 
 
