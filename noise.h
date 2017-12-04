@@ -7,10 +7,12 @@
 void gen_2D_white_noise(int samples, Canvas& canvas, const color& _color)
 {
     int x, y;
+    std::default_random_engine generator; 
+    std::uniform_real_distribution<double> distribution(0.0, 1.0);
     for (int i = 0; i < samples; ++i)
     {   
-        x = drand48() * canvas.get_width();
-        y = drand48() * canvas.get_height(); 
+        x = distribution(generator) * canvas.get_width();
+        y = distribution(generator) * canvas.get_height();
         canvas.put_pixel(x, y, _color); 
     }
 }
@@ -23,7 +25,18 @@ void gen_2D_blue_noise(int samples, Canvas& canvas, const color& _color)
 // Using golden set
 void gen_2D_gold_noise(int samples, Canvas& canvas, const color& _color)
 {
-    // TODO
+    int x, y;
+    float c = 0.618034; // golden ratio approximation
+
+    float s = 0;
+    for (int i = 0; i < samples; ++i)
+    {
+        s = fmod((s + c), 1.0f);
+        x = s * canvas.get_width();
+        y = i % canvas.get_height(); 
+        canvas.put_pixel(x, y, _color);
+    }
+
 }
 
 #endif // NOISE_H

@@ -29,14 +29,17 @@ int main()
     Canvas c(512, 512);
     c.reset_canvas(bg_color);
     c.draw_line(p0, p1, RED);
-    c.print_canvas("test.ppm");
 
     Canvas white(512, 512);
     white.reset_canvas(WHITE);
-
     // Noise function ( # samples, Canvas to draw to, color of noise )
-    gen_2D_white_noise(1024, white, BLACK);
+    gen_2D_white_noise(2048, white, BLACK);
     white.print_canvas("white_noise.ppm");
+
+    Canvas gold(512, 512);
+    gold.reset_canvas(WHITE); 
+    gen_2D_gold_noise(4096, gold, BLACK);
+    gold.print_canvas("gold_noise.ppm");
 
     return 0;
 }
