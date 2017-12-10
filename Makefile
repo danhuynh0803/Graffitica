@@ -2,7 +2,13 @@ CPP = g++
 CPPFLAGS = -lstdc++ -std=c++11
 OFLAGS = -o
 
-RM = rm -rf
+ifeq ($(OS), Windows_NT)
+	BUILDEXE := graffitica.exe
+	RM := del
+else 
+	BUILDEXE := graffitica 
+	RM := rm -rf	
+endif
 
 all: canvas main build
 
@@ -13,7 +19,10 @@ main: main.o
 	$(CPP) $(CPPFLAGS) -c main.cpp 
 
 build: 
-	$(CPP) $(CPPFLAGS) $(OFLAGS) graffitica canvas.o main.o
+	$(CPP) $(CPPFLAGS) $(OFLAGS) $(BUILDEXE) canvas.o main.o
 
 clean: 
 	$(RM) *.o graffitica
+
+clean_out: 
+	$(RM) *.ppm

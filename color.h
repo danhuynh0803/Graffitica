@@ -1,17 +1,8 @@
 #ifndef COLOR_H
 #define COLOR_H
 
-struct color 
-{
-    color(float _r, float _g, float _b) : 
-        r(_r), g(_g), b(_b) {}
-    
-    color() {}
+#include "vec3.h"
 
-    float r;
-    float g;
-    float b;
-
-};
-
+typedef vec3 color;
+ 
 #endif // COLOR_H

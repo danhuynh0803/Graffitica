@@ -5,19 +5,18 @@
 #include "color.h"
 #include "noise.h"
 
+// Color lib
+color WHITE(1.0f, 1.0f, 1.0f); 
+color BLACK(0.0f, 0.0f, 0.0f); 
+color RED(1.0f, 0.0f, 0.0f); 
+color GREEN(0.0f, 1.0f, 0.0f); 
+color BLUE(0.0f, 0.0f, 1.0f); 
+color PURPLE(1.0f, 0.0f, 1.0f); 
+color CYAN(0.0f, 1.0f, 1.0f); 
+color YELLOW(1.0f, 1.0f, 0.0f); 
+
 int main()
 {
-    // Color lib
-    color bg_color(0.0f, 0.3f, 0.5f);
-    color WHITE(1.0f, 1.0f, 1.0f); 
-    color BLACK(0.0f, 0.0f, 0.0f); 
-    color RED(1.0f, 0.0f, 0.0f); 
-    color GREEN(0.0f, 1.0f, 0.0f); 
-    color BLUE(0.0f, 0.0f, 1.0f); 
-    color PURPLE(1.0f, 0.0f, 1.0f); 
-    color CYAN(0.0f, 1.0f, 1.0f); 
-    color YELLOW(1.0f, 1.0f, 0.0f); 
-
     // Test points
     vec3 p0(-1.0f, -1.0f, 0.0f); 
     vec3 p1(1.0f, 1.0f, 0.0f);
@@ -27,8 +26,11 @@ int main()
     vec3 p5(0.2f, 1.0f, 0.0f);
 
     Canvas c(512, 512);
-    c.reset_canvas(bg_color);
-    c.draw_line(p0, p1, RED);
+    c.reset_canvas(WHITE);
+    c.draw_line(p0, p1, BLACK);
+    c.draw_line(p0, p4, RED);
+    c.draw_line(p3, p1, BLUE);
+    c.print_canvas("single_line.ppm");
 
     Canvas white(512, 512);
     white.reset_canvas(WHITE);
