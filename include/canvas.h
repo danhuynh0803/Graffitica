@@ -4,7 +4,6 @@
 #include <string> 
 #include <vector>
 #include "vec3.h"
-#include "color.h" 
 
 class Canvas 
 {

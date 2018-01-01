@@ -2,7 +2,6 @@
 #include <fstream>
 #include "canvas.h"
 #include "vec3.h"
-#include "color.h"
 #include "noise.h"
 
 // Color lib

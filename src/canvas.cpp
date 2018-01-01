@@ -116,7 +116,8 @@ void Canvas::print_canvas(std::string _title)
 {
     // Output canvas into ppm file
     std::ofstream image_file; 
-    image_file.open (_title.c_str()); 
+    std::string output_dir = "../renders/";
+    image_file.open (output_dir + _title.c_str()); 
 
     image_file << "P3\n" << width << " " << height << "\n255\n";
     for (int y = height-1; y >= 0; --y)

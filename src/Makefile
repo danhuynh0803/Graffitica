@@ -1,5 +1,6 @@
+INC = -I../include
 CPP = g++
-CPPFLAGS = -lstdc++ -std=c++11
+CPPFLAGS = $(INC) -lstdc++ -std=c++11
 OFLAGS = -o
 
 ifeq ($(OS), Windows_NT)
