@@ -22,6 +22,7 @@ public:
     // Canvas dimensions
     int get_width() { return width; }
     int get_height() { return height; }
+    vec3 convert_ndc_to_canvas(const vec3& p);
 
     // Drawing functions 
     void put_pixel(int w, int h, const color& _color);
