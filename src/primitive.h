@@ -8,10 +8,15 @@
 
 /// Function prototypes
 void swap(vec3& p0, vec3& p1);
+// Lines
 void draw_line(vec3 p0, vec3 p1, const color& _color, std::vector<std::vector<color> > &canvas);
-void draw_triangle(vec3 p0, vec3 p1, vec3 p2, const color& _color, bool is_filled);
+// Triangles
+void draw_triangle(vec3 p0, vec3 p1, vec3 p2, const color& _color, bool = true);
+void draw_triangle_filled(vec3 p0, vec3 p1, vec3 p2, const color& _color);
+void draw_triangle_wireframe(vec3 p0, vec3 p1, vec3 p2, const color& _color);
 void fill_flat_bottom_triangle(vec3 p0, vec3 p1, vec3 p2, const color& _color); 
 void fill_flat_top_triangle(vec3 p0, vec3 p1, vec3 p2, const color& _color); 
+
 ////////////////
 
 void swap(vec3 &p0, vec3 &p1) 
@@ -67,6 +72,13 @@ namespace graff
         }
     }
 
+    void draw_triangle_filled(vec3 p0, vec3 p1, vec3 p2, const color &_color)
+    {
+    }
+
+    void draw_triangle_wireframe(vec3 p0, vec3 p1, vec3 p2, const color &_color)
+    {
+    }
 
     void draw_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_color, bool is_filled)
     {
