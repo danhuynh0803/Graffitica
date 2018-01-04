@@ -25,8 +25,8 @@ public:
     vec3 convert_ndc_to_canvas(const vec3& p);
 
     // Primitives
-    void draw_line(vec3& p0, vec3& p1, const color& _color); 
-    void draw_triangle(vec3& p0, vec3& p1, vec3& p2, const color& _color, bool = true);
+    void draw_line(const vec3 &p0, const vec3 &p1, const color& _color); 
+    void draw_triangle(const vec3 &p0, const vec3 &p1, const vec3 &p2, const color& _color, bool = true);
 
     void reset_canvas(const color& _color = color(1.0f, 1.0f, 1.0f)); 
     void print_canvas(); 

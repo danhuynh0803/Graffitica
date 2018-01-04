@@ -29,9 +29,8 @@ int main()
 
     Canvas c(2048, 2048);
     c.reset_canvas(WHITE);
-    //c.draw_triangle(p7, p8, p6, PURPLE, false);
-    c.draw_line(p0, p1, BLACK);
-    c.print_canvas("line2.ppm");
+    c.draw_triangle(p7, p8, p6, PURPLE, false);
+    c.print_canvas("tri3.ppm");
 
     return 0;
 }

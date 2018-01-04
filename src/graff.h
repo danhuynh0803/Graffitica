@@ -1,5 +1,5 @@
-#ifndef PRIMITIVE_H
-#define PRIMITIVE_H
+#ifndef GRAFF_H 
+#define GRAFF_H
 
 #include <vector>
 #include <cmath>
@@ -12,12 +12,12 @@ void swap(vec3& p0, vec3& p1);
 void draw_line(vec3 p0, vec3 p1, const color& _color, std::vector<std::vector<color> > &canvas);
 // Triangles
 void draw_triangle(vec3 p0, vec3 p1, vec3 p2, const color& _color, bool = true);
-void draw_triangle_filled(vec3 p0, vec3 p1, vec3 p2, const color& _color);
-void draw_triangle_wireframe(vec3 p0, vec3 p1, vec3 p2, const color& _color);
-void fill_flat_bottom_triangle(vec3 p0, vec3 p1, vec3 p2, const color& _color); 
-void fill_flat_top_triangle(vec3 p0, vec3 p1, vec3 p2, const color& _color); 
+void draw_triangle_filled(vec3 p0, vec3 p1, vec3 p2, const color& _color, std::vector<std::vector<color> > &canvas);
+void draw_triangle_wireframe(vec3 p0, vec3 p1, vec3 p2, const color& _color, std::vector<std::vector<color> > &canvas);
+void fill_flat_bottom_triangle(vec3 p0, vec3 p1, vec3 p2, const color& _color, std::vector<std::vector<color> > &canvas); 
+void fill_flat_top_triangle(vec3 p0, vec3 p1, vec3 p2, const color& _color, std::vector<std::vector<color> > &canvas); 
 
-////////////////
+////////////////////////////////
 
 void swap(vec3 &p0, vec3 &p1) 
 {
@@ -36,7 +36,6 @@ namespace graff
         // Draw line using y = f(x)
         if (abs(dx) > abs(dy))
         {
-            // Swap the x values if p0 is to the right of p1
             if (p0.x() > p1.x()) 
             {
                 swap(p0, p1);
@@ -72,35 +71,39 @@ namespace graff
         }
     }
 
-    void draw_triangle_filled(vec3 p0, vec3 p1, vec3 p2, const color &_color)
+    void draw_triangle_filled(vec3 p0, vec3 p1, vec3 p2, const color &_color, std::vector<std::vector<color> > &canvas)
     {
     }
 
-    void draw_triangle_wireframe(vec3 p0, vec3 p1, vec3 p2, const color &_color)
+    void draw_triangle_wireframe(vec3 p0, vec3 p1, vec3 p2, const color &_color, std::vector<std::vector<color> > &canvas)
     {
+        graff::draw_line(p0, p1, _color, canvas);
+        graff::draw_line(p1, p2, _color, canvas);
+        graff::draw_line(p2, p0, _color, canvas);
     }
 
-    void draw_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_color, bool is_filled)
+    void draw_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_color, bool is_filled, std::vector<std::vector<color> > &canvas)
     {
         if (is_filled)
         {
-
+            graff::draw_triangle_filled(p0, p1, p2, _color, canvas);
         }
         else 
         {
-
+            graff::draw_triangle_wireframe(p0, p1, p2, _color, canvas);
         }
     }
 
-    void fill_flat_bottom_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_color)
+    void fill_flat_bottom_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_color, std::vector<std::vector<color> > &canvas)
     {
 
     }
 
-    void fill_flat_top_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_color)
+    void fill_flat_top_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_color, std::vector<std::vector<color> > &canvas)
     {
 
     }
 
-}
-#endif // PRIMITIVE_H
+} // Namespace graff
+
+#endif // GRAFF_H
