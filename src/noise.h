@@ -2,9 +2,11 @@
 #define NOISE_H
 
 #include <random>
+#include <vector>
 #include "vec3.h"
 
-void gen_2D_white_noise(int samples, Canvas& canvas, const color& _color)
+/*
+void gen_2D_white_noise(int samples, const color &_color, std::vector<std::vector<color> > &canvas)
 {
     int x, y;
     std::default_random_engine generator; 
@@ -13,17 +15,17 @@ void gen_2D_white_noise(int samples, Canvas& canvas, const color& _color)
     {   
         x = distribution(generator) * canvas.get_width();
         y = distribution(generator) * canvas.get_height();
-        canvas.put_pixel(x, y, _color); 
+        canvas[x][y] = _color; 
     }
 }
 
-void gen_2D_blue_noise(int samples, Canvas& canvas, const color& _color)
+void gen_2D_blue_noise(int samples, Canvas& _canvas, const color& _color)
 {
     // TODO
 }
 
 // Using golden set
-void gen_2D_gold_noise(int samples, Canvas& canvas, const color& _color)
+void gen_2D_gold_noise(int samples, const color& _color, std::vector<std::vector<color> > &canvas)
 {
     int x, y;
     float c = 0.618034; // golden ratio approximation
@@ -34,9 +36,10 @@ void gen_2D_gold_noise(int samples, Canvas& canvas, const color& _color)
         s = fmod((s + c), 1.0f);
         x = s * canvas.get_width();
         y = i % canvas.get_height(); 
-        canvas.put_pixel(x, y, _color);
-    }
+        canvas[x][y] = _color; 
+    } 
 
 }
+*/
 
 #endif // NOISE_H

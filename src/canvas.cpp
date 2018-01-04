@@ -4,13 +4,7 @@
 #include <cmath>
 #include "canvas.h"
 #include "vec3.h"
-
-void swap(vec3& p0, vec3& p1) 
-{
-    vec3 temp(p0);
-    p0 = p1; 
-    p1 = temp; 
-}
+#include "primitive.h"
 
 vec3 Canvas::convert_ndc_to_canvas(const vec3& p)
 {
@@ -28,66 +22,20 @@ float convert_canvas_to_ndc(int canvas, int canvas_max)
     return 0.0f;
 }
 
-void Canvas::put_pixel(int w, int h, const color& _color)
-{
-    canvas[w][h] = _color;
-}
-
 void Canvas::draw_line(vec3& p0, vec3& p1, const color& _color)
 {
-    int dx = p1.x() - p0.x(); 
-    int dy = p1.y() - p0.y(); 
+    graff::draw_line(convert_ndc_to_canvas(p0), 
+              convert_ndc_to_canvas(p1), 
+              _color, 
+              canvas);
+}
 
-    // Draw line using y = f(x)
-    if (abs(dx) > abs(dy))
-    {
-        // Swap the x values if p0 is to the right of p1
-        if (p0.x() > p1.x()) 
-        {
-            swap(p0, p1);
-        }    
-
-        vec3 p0_canvas = convert_ndc_to_canvas(p0);
-        vec3 p1_canvas = convert_ndc_to_canvas(p1);
-        // Convert NDC to canvas coordinates
-        int x = p0_canvas.x();
-        int x_end = p1_canvas.x();
-        float y = p0_canvas.y();
-
-        // Get slope of line 
-        float m = (p1.y() - p0.y())/(p1.x() - p0.x());  
-
-        for (; x < x_end; ++x) 
-        {
-            put_pixel(x, (int)y, _color);
-            y += m; 
-        } 
-    }
-    // Draw line using x = f(y)
-    else 
-    {
-        if (p0.y() > p1.y())
-        {
-            swap(p0, p1); 
-        }
-
-        vec3 p0_canvas = convert_ndc_to_canvas(p0);
-        vec3 p1_canvas = convert_ndc_to_canvas(p1);
-
-        int y = p0_canvas.y();
-        int y_end = p1_canvas.y(); 
-        float x = p0_canvas.x(); 
-
-        float m = (p1.x() - p0.x())/(p1.y() - p0.y()); 
-
-        for (; y < y_end; ++y)
-        {
-            put_pixel((int)x, y, _color);
-            x += m;
-        }
-    }
+void Canvas::draw_triangle(vec3& p0, vec3& p1, vec3& p2, const color& _color, bool is_filled)
+{
 
 }
+
+
 
 /*
 void Canvas::draw_line_point_slope(vec3& p0, float slope, const color& _color, bool isVertical)

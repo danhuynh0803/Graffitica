@@ -23,12 +23,15 @@ int main()
     vec3 p3(1.0f, 0.0f, 0.0f);      // center left
     vec3 p4(0.0f, -1.0f, 0.0f);     // bottom center
     vec3 p5(0.0f, 1.0f, 0.0f);      // top center     
+    vec3 p6(-0.5f, 0.5f, 0.0f);     
+    vec3 p7(0.0f, -0.5f, 0.0f);    
+    vec3 p8(0.5f, 0.7f, 0.0f);   
 
     Canvas c(2048, 2048);
     c.reset_canvas(WHITE);
-    c.draw_line(p4, p5, PURPLE);
-    c.draw_line(p4, p1, CYAN);
-    c.print_canvas("lines.ppm");
+    //c.draw_triangle(p7, p8, p6, PURPLE, false);
+    c.draw_line(p0, p1, BLACK);
+    c.print_canvas("line2.ppm");
 
     return 0;
 }

@@ -24,10 +24,10 @@ public:
     int get_height() { return height; }
     vec3 convert_ndc_to_canvas(const vec3& p);
 
-    // Drawing functions 
-    void put_pixel(int w, int h, const color& _color);
+    // Primitives
     void draw_line(vec3& p0, vec3& p1, const color& _color); 
-    void draw_line_point_slope(vec3& p0, float slope, const color& _color, bool isVertical);
+    void draw_triangle(vec3& p0, vec3& p1, vec3& p2, const color& _color, bool = true);
+
     void reset_canvas(const color& _color = color(1.0f, 1.0f, 1.0f)); 
     void print_canvas(); 
     void print_canvas(std::string _title);
