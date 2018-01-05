@@ -1,5 +1,5 @@
 CPP = g++
-CPPFLAGS = -lstdc++ -std=c++11
+CPPFLAGS = -lstdc++ -std=c++11 -g
 OFLAGS = -o
 
 ifeq ($(OS), Windows_NT)
