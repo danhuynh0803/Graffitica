@@ -31,6 +31,7 @@ int main()
     c.reset_canvas(WHITE);
     c.draw_triangle(p0, p5, p4, CYAN, true);
     c.draw_triangle(p6, p7, p8, BLUE, true);
+    c.draw_triangle(p2, p3, p1, RED, true);
     c.print_canvas("tri4.ppm");
 
     return 0;

@@ -97,7 +97,7 @@ namespace graff
     // bottom-most point p1/p2 to the top-most 
     // point p0.
     //
-    // precondition: p0.y >= p1.y == p2.y
+    // precondition: p0.y > p1.y == p2.y
     // ==========================================
     void fill_flat_bottom_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_color, std::vector<std::vector<color> > &canvas)
     {
@@ -118,14 +118,29 @@ namespace graff
 
     // =====================================
     // Fills triangle by drawing lines from 
-    // bottom most point p0/p1 to the 
-    // top-most point p2.
+    // bottom most point p2 to the 
+    // top-most points p0 and p1.
     //
-    // precondition: p0.y == p1.y <= p2.y
+    // precondition: p0.y == p1.y > p2.y
     // =====================================
     void fill_flat_top_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_color, std::vector<std::vector<color> > &canvas)
     {
-        int dy = p2.y() - p0.y();
+        int dy = p0.y() - p2.y();
+        float slope_p2_p0 = (p0.x() - p2.x())/(p0.y() - p2.y());
+        float slope_p2_p1 = (p1.x() - p2.x())/(p1.y() - p2.y());
+
+        vec3 pa = p2;
+        vec3 pb = p2;
+       
+        for (int i = 0; i < dy; ++i) 
+        {
+            pa.e[0] += slope_p2_p0; 
+            pa.e[1] ++;
+            pb.e[0] += slope_p2_p1; 
+            pb.e[1] ++;
+
+            graff::draw_line(pa, pb, _color, canvas);
+        }
     }
 
     //==========================================
@@ -151,6 +166,13 @@ namespace graff
         else if ((int)p0.y() == (int)p1.y())
         {
             graff::fill_flat_top_triangle(p0, p1, p2, _color, canvas); 
+        }
+        else 
+        {
+            // Split the triangle into 2 triangles 
+            // one with a flat top and one with a flat bottom part
+           
+             
         }
     }
 

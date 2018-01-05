@@ -9,8 +9,8 @@
 vec3 Canvas::convert_ndc_to_canvas(const vec3 &p)
 {
     vec3 canvas_coords(
-        (int)(0.499f * (width * p.x() + width)),  
-        (int)(0.499f * (height * p.y() + height)), 0
+        (int)(0.49999f * (width * p.x() + width)),  
+        (int)(0.49999f * (height * p.y() + height)), 0
     ); 
 
     return canvas_coords;
