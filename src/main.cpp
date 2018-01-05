@@ -23,15 +23,11 @@ int main()
     vec3 p3(1.0f, 0.0f, 0.0f);      // center left
     vec3 p4(1.0f, -1.0f, 0.0f);     // bottom right 
     vec3 p5(0.0f, 1.0f, 0.0f);      // top center     
-    vec3 p6(-0.5f, 0.5f, 0.0f);     
-    vec3 p7(0.1f, 0.0f, 0.0f);    
-    vec3 p8(0.5f, 0.0f, 0.0f);   
+    vec3 p6(1.0f, 0.0f, 0.0f);      // center right
 
     Canvas c(2048, 2048);
     c.reset_canvas(WHITE);
-    c.draw_triangle(p0, p5, p4, CYAN, true);
-    c.draw_triangle(p6, p7, p8, BLUE, true);
-    c.draw_triangle(p2, p3, p1, RED, true);
+    c.draw_triangle(p0, p5, p6, CYAN, true);
     c.print_canvas("tri4.ppm");
 
     return 0;

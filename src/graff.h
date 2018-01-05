@@ -171,8 +171,19 @@ namespace graff
         {
             // Split the triangle into 2 triangles 
             // one with a flat top and one with a flat bottom part
-           
-             
+            // 
+            // precondition: p0.y > p1.y > p2.y
+            //
+            
+            // slope from p0 to p2
+            float mx = (p2.x() - p0.x())/(p2.y() - p0.y());
+            // Get pa using pa = p0 + t(p2 - p0)
+            vec3 pa(p0.x() + (p1.y() - p0.y())*mx, p1.y(), 0.0f);
+
+            // Current use requires that p0.y > p1.y == pa.y
+            //                           p1.y == pa.y > p2.y
+            graff::fill_flat_bottom_triangle(p0, p1, pa, _color, canvas);
+            graff::fill_flat_top_triangle(p1, pa, p2, _color, canvas);
         }
     }
 
