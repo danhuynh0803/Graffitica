@@ -6,8 +6,9 @@
 #include <thread>
 #include "vec3.h"
 
-/// Function prototypes
-void swap(vec3& p0, vec3& p1);
+/// Function prototypes ////////
+void swap(vec3 &p0, vec3 &p1);
+void sort_desc(std::vector<vec3> &verts);
 // Lines
 void draw_line(vec3 p0, vec3 p1, const color& _color, std::vector<std::vector<color> > &canvas);
 // Triangles
@@ -16,7 +17,6 @@ void draw_triangle_filled(vec3 p0, vec3 p1, vec3 p2, const color& _color, std::v
 void draw_triangle_wireframe(vec3 p0, vec3 p1, vec3 p2, const color& _color, std::vector<std::vector<color> > &canvas);
 void fill_flat_bottom_triangle(vec3 p0, vec3 p1, vec3 p2, const color& _color, std::vector<std::vector<color> > &canvas); 
 void fill_flat_top_triangle(vec3 p0, vec3 p1, vec3 p2, const color& _color, std::vector<std::vector<color> > &canvas); 
-
 ////////////////////////////////
 
 void swap(vec3 &p0, vec3 &p1) 
@@ -26,12 +26,33 @@ void swap(vec3 &p0, vec3 &p1)
     p1 = temp; 
 }
 
+void sort_desc(std::vector<vec3> &verts)
+{
+    for (int i = 0; i < verts.size(); ++i) 
+    {
+        for (int j = i + 1; j < verts.size(); ++j) 
+        {
+            if (verts[i].y() < verts[j].y())
+            {
+                swap(verts[i], verts[j]);
+            }
+        }
+    }
+}
+
 namespace graff
 { 
     void draw_line(vec3 p0, vec3 p1, const color& _color, std::vector<std::vector<color> > &canvas)
     {
         int dx = p1.x() - p0.x(); 
         int dy = p1.y() - p0.y(); 
+
+        // Check if p0 == p1, then just paint just that point
+        if (dx == 0 && dy == 0) 
+        {
+            canvas[p0.x()][p0.y()] = _color;
+            return; 
+        }
 
         // Draw line using y = f(x)
         if (abs(dx) > abs(dy))
@@ -71,8 +92,66 @@ namespace graff
         }
     }
 
+    // ==========================================
+    // Fills triangle by drawing lines from 
+    // bottom-most point p1/p2 to the top-most 
+    // point p0.
+    //
+    // precondition: p0.y >= p1.y == p2.y
+    // ==========================================
+    void fill_flat_bottom_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_color, std::vector<std::vector<color> > &canvas)
+    {
+        int dy = p0.y() - p1.y(); 
+        float slope_p1_p0 = (p0.x() - p1.x())/(p0.y() - p1.y());
+        float slope_p2_p0 = (p0.x() - p2.x())/(p0.y() - p2.y());
+       
+        for (int i = 0; i < dy; ++i) 
+        {
+            p1.e[0] += slope_p1_p0; 
+            p1.e[1] ++;
+            p2.e[0] += slope_p2_p0; 
+            p2.e[1] ++;
+
+            graff::draw_line(p1, p2, _color, canvas);
+        }
+    }
+
+    // =====================================
+    // Fills triangle by drawing lines from 
+    // bottom most point p0/p1 to the 
+    // top-most point p2.
+    //
+    // precondition: p0.y == p1.y <= p2.y
+    // =====================================
+    void fill_flat_top_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_color, std::vector<std::vector<color> > &canvas)
+    {
+        int dy = p2.y() - p0.y();
+    }
+
+    //==========================================
+    // Draws a filled triangle, by splitting 
+    // a triangle into a flat bottom part and 
+    // flat top part. Then fills each line 
+    // horizontally.
+    // =========================================
     void draw_triangle_filled(vec3 p0, vec3 p1, vec3 p2, const color &_color, std::vector<std::vector<color> > &canvas)
     {
+        // sort vertices on descending y 
+        std::vector<vec3> verts = {p0, p1, p2};
+        sort_desc(verts);  
+
+        p0 = verts[0]; 
+        p1 = verts[1];
+        p2 = verts[2];
+
+        if ((int)p1.y() == (int)p2.y())
+        {
+            graff::fill_flat_bottom_triangle(p0, p1, p2, _color, canvas); 
+        }
+        else if ((int)p0.y() == (int)p1.y())
+        {
+            graff::fill_flat_top_triangle(p0, p1, p2, _color, canvas); 
+        }
     }
 
     void draw_triangle_wireframe(vec3 p0, vec3 p1, vec3 p2, const color &_color, std::vector<std::vector<color> > &canvas)
@@ -93,17 +172,6 @@ namespace graff
             graff::draw_triangle_wireframe(p0, p1, p2, _color, canvas);
         }
     }
-
-    void fill_flat_bottom_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_color, std::vector<std::vector<color> > &canvas)
-    {
-
-    }
-
-    void fill_flat_top_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_color, std::vector<std::vector<color> > &canvas)
-    {
-
-    }
-
 } // Namespace graff
 
 #endif // GRAFF_H
