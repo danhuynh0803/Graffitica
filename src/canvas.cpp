@@ -9,8 +9,8 @@
 vec3 Canvas::convert_ndc_to_canvas(const vec3 &p)
 {
     vec3 canvas_coords(
-        (int)(0.49999f * (width * p.x() + width)),  
-        (int)(0.49999f * (height * p.y() + height)), 0
+        (int)(0.5f * (width * p.x() + width)),  
+        (int)(0.5f * (height * p.y() + height)), 0
     ); 
 
     return canvas_coords;
@@ -38,6 +38,11 @@ void Canvas::draw_triangle(const vec3 &p0, const vec3 &p1, const vec3 &p2, const
                          _color, 
                          is_filled, 
                          canvas);
+}
+
+void Canvas::enable_depth(bool is_depth_on) 
+{
+    has_depth = is_depth_on;
 }
 
 void Canvas::reset_canvas(const color& _color)

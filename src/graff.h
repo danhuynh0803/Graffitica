@@ -7,6 +7,7 @@
 #include "vec3.h"
 
 /// Function prototypes ////////
+void put_pixel(int x, int y, const color& _color, std::vector<std::vector<color> > &canvas);
 void swap(vec3 &p0, vec3 &p1);
 void sort_desc(std::vector<vec3> &verts);
 // Lines
@@ -18,6 +19,19 @@ void draw_triangle_wireframe(vec3 p0, vec3 p1, vec3 p2, const color& _color, std
 void fill_flat_bottom_triangle(vec3 p0, vec3 p1, vec3 p2, const color& _color, std::vector<std::vector<color> > &canvas); 
 void fill_flat_top_triangle(vec3 p0, vec3 p1, vec3 p2, const color& _color, std::vector<std::vector<color> > &canvas); 
 ////////////////////////////////
+
+void put_pixel(int x, int y, const color& _color, std::vector<std::vector<color> > &canvas)
+{
+    // Only color the pixel if it is within the bounds of the canvas
+    if (x >= canvas.size() || 
+        y >= canvas[0].size() || 
+        x < 0 || y < 0)
+    {
+        return;
+    }
+
+    canvas[x][y] = _color; 
+}
 
 void swap(vec3 &p0, vec3 &p1) 
 {
@@ -50,7 +64,7 @@ namespace graff
         // Check if p0 == p1, then just paint just that point
         if (dx == 0 && dy == 0) 
         {
-            canvas[p0.x()][p0.y()] = _color;
+            put_pixel(p0.x(), p0.y(), _color, canvas);
             return; 
         }
 
@@ -68,7 +82,7 @@ namespace graff
 
             for (int x = p0.x(); x < x_end; ++x) 
             {
-                canvas[x][(int)y] = _color;
+                put_pixel(x, (int)y, _color, canvas);
                 y += m; 
             } 
         }
@@ -86,7 +100,7 @@ namespace graff
 
             for (int y = p0.y(); y < y_end; ++y)
             {
-                canvas[(int)x][y] = _color;
+                put_pixel((int)x, y, _color, canvas);
                 x += m;
             }
         }

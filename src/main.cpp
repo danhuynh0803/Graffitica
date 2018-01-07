@@ -17,7 +17,7 @@ color YELLOW(1.0f, 1.0f, 0.0f);
 int main()
 {
     // Test points
-    vec3 p0(-1.0f, -1.0f, 0.0f);    // bottom left
+    vec3 p0(-1.5f, -1.5f, 0.0f);    // bottom left
     vec3 p1(1.0f, 1.0f, 0.0f);      // top right 
     vec3 p2(-1.0f, 1.0f, 0.0f);     // top left 
     vec3 p3(1.0f, 0.0f, 0.0f);      // center left
@@ -27,8 +27,8 @@ int main()
 
     Canvas c(2048, 2048);
     c.reset_canvas(WHITE);
-    c.draw_triangle(p0, p5, p6, CYAN, true);
-    c.print_canvas("tri4.ppm");
+    c.draw_triangle(p5, p0, p6, BLUE, true);
+    c.print_canvas("tri_outofbounds.ppm");
 
     return 0;
 }
