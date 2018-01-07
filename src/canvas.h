@@ -28,6 +28,7 @@ public:
     void draw_line(const vec3 &p0, const vec3 &p1, const color& _color); 
     void draw_triangle(const vec3 &p0, const vec3 &p1, const vec3 &p2, const color& _color, bool = true);
 
+    void enable_depth(bool depth_on);
     void reset_canvas(const color& _color = color(1.0f, 1.0f, 1.0f)); 
     void print_canvas(); 
     void print_canvas(std::string _title);
@@ -35,8 +36,9 @@ public:
     std::string title; 
 
 private:  
-    int width; 
+    int width;    
     int height; 
+    bool has_depth = false;  // Enables 3D perspective if true
     std::vector<std::vector<color> > canvas;
 };
 
