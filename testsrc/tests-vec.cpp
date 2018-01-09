@@ -3,12 +3,15 @@
 
 TEST_CASE("Vec3 Add", "[vec3_add]")
 {
-    vec3 zero(0, 0, 0); 
-    vec3 one(1, 1, 1);
-    vec3 result = zero + one; 
+    REQUIRE( vec3(0,0,0) + vec3(1,1,1) == vec3(1,1,1) );
+    REQUIRE( vec3(1,2,3) + vec3(1,1,1) == vec3(2,3,4) );
+    REQUIRE( vec3(-1,-2,-3) + vec3(1,1,1) == vec3(0,-1,-2) );
+}
 
-    REQUIRE(result.x() == 1); 
-    REQUIRE(result.y() == 1); 
-    REQUIRE(result.z() == 1); 
+TEST_CASE("vec3 Multiply", "[vec3_multiply]")
+{
+    REQUIRE( vec3(0,0,0) * 1 == vec3(0,0,0) );
+    REQUIRE( vec3(1,1,1) * 2 == vec3(2,2,2) );
+    REQUIRE( vec3(1,1,1) *-1 == vec3(-1,-1,-1) );
 }
 
