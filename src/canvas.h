@@ -4,7 +4,7 @@
 #include <string> 
 #include <vector>
 #include "vec3.h"
-#include "shape.h"
+#include "shapes.h"
 
 class Canvas 
 {
@@ -29,10 +29,17 @@ public:
     void draw_line(const vec3 &p0, const vec3 &p1, const color& _color); 
     void draw_triangle(const vec3 &p0, const vec3 &p1, const vec3 &p2, const color& _color, bool = true);
 
-    void enable_depth(bool depth_on);
+    // 2D or 3D options
+    void enable_depth() { has_depth = true; }
+    void disable_depth() { has_depth = false; }
+    bool get_depth() { return has_depth; }
+
     void reset_canvas(const color& _color = color(1.0f, 1.0f, 1.0f)); 
     void print_canvas(); 
     void print_canvas(std::string _title);
+
+    // Storing shapes for additional processing
+    void add_shape(shape* prim) { shapes_list.push_back(prim); }
 
     std::string title; 
 
@@ -42,7 +49,7 @@ private:
 
     bool has_depth = false;  // Enables 3D perspective if true
 
-    std::vector<shape> shapes_list;
+    std::vector<shape*> shapes_list;
     std::vector<std::vector<color> > canvas;
 };
 

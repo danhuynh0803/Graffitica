@@ -4,8 +4,8 @@
 #include <random>
 #include <vector>
 #include "vec3.h"
+#include "graff.h"
 
-/*
 void gen_2D_white_noise(int samples, const color &_color, std::vector<std::vector<color> > &canvas)
 {
     int x, y;
@@ -13,8 +13,8 @@ void gen_2D_white_noise(int samples, const color &_color, std::vector<std::vecto
     std::uniform_real_distribution<double> distribution(0.0, 1.0);
     for (int i = 0; i < samples; ++i)
     {   
-        x = distribution(generator) * canvas.get_width();
-        y = distribution(generator) * canvas.get_height();
+        x = distribution(generator) * canvas.size();
+        y = distribution(generator) * canvas[0].size();
         canvas[x][y] = _color; 
     }
 }
@@ -34,12 +34,11 @@ void gen_2D_gold_noise(int samples, const color& _color, std::vector<std::vector
     for (int i = 0; i < samples; ++i)
     {
         s = fmod((s + c), 1.0f);
-        x = s * canvas.get_width();
-        y = i % canvas.get_height(); 
+        x = s * canvas.size();
+        y = i % canvas[0].size(); 
         canvas[x][y] = _color; 
     } 
 
 }
-*/
 
 #endif // NOISE_H

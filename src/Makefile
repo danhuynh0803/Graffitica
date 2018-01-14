@@ -1,8 +1,10 @@
 CPP = g++
-LIBS = -lboost_filesystem -lboost_system
+LIBS = graff.o shapes.o canvas.o main.o 
 BOOSTDIR = L/usr/lib/x86_64-linux-gnu/ 
+BOOST = -lboost_filesystem -lboost_system
 CPPFLAGS = -lstdc++ -std=c++11 -g
 OFLAGS = -o
+
 
 ifeq ($(OS), Windows_NT)
 	BUILDEXE := graffitica.exe
@@ -12,16 +14,22 @@ else
 	RM := rm -rf	
 endif
 
-all: canvas main build
+all: graff shapes canvas main build
+
+graff: graff.o
+	$(CPP) $(CPPFLAGS) -c $(BOOST) graff.cpp 
+
+shapes: shapes.o
+	$(CPP) $(CPPFLAGS) -c $(BOOST) shapes.cpp 
 
 canvas: canvas.o
-	$(CPP) $(CPPFLAGS) -c $(LIBS) canvas.cpp 
+	$(CPP) $(CPPFLAGS) -c $(BOOST) canvas.cpp 
 
 main: main.o
-	$(CPP) $(CPPFLAGS) -c $(LIBS) main.cpp
+	$(CPP) $(CPPFLAGS) -c $(BOOST) main.cpp
 
 build: 
-	$(CPP) $(CPPFLAGS) $(OFLAGS) $(BUILDEXE) canvas.o main.o $(LIBS)
+	$(CPP) $(CPPFLAGS) $(OFLAGS) $(BUILDEXE) $(LIBS) $(BOOST)
 
 clean: 
 	$(RM) *.o graffitica

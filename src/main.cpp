@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include "canvas.h"
+#include "shapes.h"
 #include "vec3.h"
 #include "noise.h"
 
@@ -24,11 +25,14 @@ int main()
     vec3 p4(1.0f, -1.0f, 0.0f);     // bottom right 
     vec3 p5(0.0f, 1.0f, 0.0f);      // top center     
     vec3 p6(1.0f, 0.0f, 0.0f);      // center right
+    vec3 p7(0.0f, -1.0f, 0.0f);      // bottom center 
 
-    Canvas c(2048, 2048);
-    c.reset_canvas(WHITE);
-    c.draw_triangle(p5, p0, p6, BLUE, true);
-    c.print_canvas("tri_outofbounds.ppm");
+    Canvas c(800, 800);
+    c.reset_canvas();
+    c.add_shape(new line(p0, p1, RED));  
+    c.add_shape(new triangle(p2, p1, p7, CYAN, true));
+    c.add_shape(new triangle(p2, p1, p7, BLACK, false));
+    c.print_canvas("wireandfilled.ppm");
 
     return 0;
 }
