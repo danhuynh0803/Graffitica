@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <cmath>
+#include <boost/filesystem.hpp>
 #include "canvas.h"
 #include "vec3.h"
 #include "graff.h"
@@ -80,8 +81,16 @@ void Canvas::print_canvas(std::string _title)
     // Output canvas into ppm file
     std::ofstream image_file; 
     std::string output_dir = "../renders/";
-    image_file.open (output_dir + _title.c_str()); 
 
+    // Create an output directory to store renders
+    // using the boost filesystem lib
+    if (!boost::filesystem::exists(output_dir))
+    {
+        std::cout << "Creating output directory for renders at: " << output_dir << std::endl;
+        boost::filesystem::create_directory(output_dir);
+    }
+
+    image_file.open (output_dir + _title.c_str()); 
     image_file << "P3\n" << width << " " << height << "\n255\n";
     for (int y = height-1; y >= 0; --y)
     {
