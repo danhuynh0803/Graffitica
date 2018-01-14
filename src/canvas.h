@@ -4,6 +4,7 @@
 #include <string> 
 #include <vector>
 #include "vec3.h"
+#include "shape.h"
 
 class Canvas 
 {
@@ -38,7 +39,10 @@ public:
 private:  
     int width;    
     int height; 
+
     bool has_depth = false;  // Enables 3D perspective if true
+
+    std::vector<shape> shapes_list;
     std::vector<std::vector<color> > canvas;
 };
 
