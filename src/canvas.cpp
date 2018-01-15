@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <cmath>
+#include <vector>
 #include <boost/filesystem.hpp>
 #include "canvas.h"
 #include "vec3.h"
@@ -37,13 +38,8 @@ void Canvas::draw_triangle(const vec3 &p0, const vec3 &p1, const vec3 &p2, const
                          convert_ndc_to_canvas(p1), 
                          convert_ndc_to_canvas(p2), 
                          _color, 
-                         is_filled, 
-                         canvas);
-}
-
-void Canvas::enable_depth(bool is_depth_on) 
-{
-    has_depth = is_depth_on;
+                         canvas, 
+                         is_filled);
 }
 
 void Canvas::reset_canvas(const color& _color)
@@ -78,18 +74,24 @@ void Canvas::print_canvas()
 
 void Canvas::print_canvas(std::string _title)
 {
-    // Output canvas into ppm file
-    std::ofstream image_file; 
-    std::string output_dir = "../renders/";
-
     // Create an output directory to store renders
     // using the boost filesystem lib
+    std::string output_dir = "../renders/";
     if (!boost::filesystem::exists(output_dir))
     {
         std::cout << "Creating output directory for renders at: " << output_dir << std::endl;
         boost::filesystem::create_directory(output_dir);
     }
 
+    // Draw all the objects that are stored in the shapes_list 
+    for (std::vector<shape*>::const_iterator it = shapes_list.begin(); 
+           it != shapes_list.end(); ++it) 
+    {
+        (*it)->draw(canvas);    
+    }
+
+    // Output canvas into ppm file
+    std::ofstream image_file; 
     image_file.open (output_dir + _title.c_str()); 
     image_file << "P3\n" << width << " " << height << "\n255\n";
     for (int y = height-1; y >= 0; --y)
