@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "vec3.h"
+#include "vertex.h"
 #include "graff.h"
 
 class shape 

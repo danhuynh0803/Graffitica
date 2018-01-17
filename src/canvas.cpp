@@ -18,10 +18,14 @@ vec3 Canvas::convert_ndc_to_canvas(const vec3 &p)
     return canvas_coords;
 }
 
-float convert_canvas_to_ndc(int canvas, int canvas_max)
+void Canvas::draw_shapes()
 {
-    // TODO
-    return 0.0f;
+    // Draw all the shapes that are stored in the shapes_list 
+    for (std::vector<shape*>::const_iterator it = shapes_list.begin(); 
+           it != shapes_list.end(); ++it) 
+    {
+        (*it)->draw(canvas);    
+    }
 }
 
 void Canvas::draw_line(const vec3 &p0, const vec3 &p1, const color& _color)
@@ -81,13 +85,6 @@ void Canvas::print_canvas(std::string _title)
     {
         std::cout << "Creating output directory for renders at: " << output_dir << std::endl;
         boost::filesystem::create_directory(output_dir);
-    }
-
-    // Draw all the objects that are stored in the shapes_list 
-    for (std::vector<shape*>::const_iterator it = shapes_list.begin(); 
-           it != shapes_list.end(); ++it) 
-    {
-        (*it)->draw(canvas);    
     }
 
     // Output canvas into ppm file

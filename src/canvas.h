@@ -15,15 +15,14 @@ public:
         canvas.resize(w, std::vector<color>(h));
     }
     
-    Canvas(int w, int h, std::string t) : width(w), height(h), title(t)
-    {
-        canvas.resize(w, std::vector<color>(h));
-    }
-    
     // Canvas dimensions
     int get_width() { return width; }
     int get_height() { return height; }
+    std::vector<std::vector<color> >& get_canvas() { return canvas; }
     vec3 convert_ndc_to_canvas(const vec3& p);
+
+    // Draws all the shapes stores within the shapes_list
+    void draw_shapes(); 
 
     // Primitives
     void draw_line(const vec3 &p0, const vec3 &p1, const color& _color); 
@@ -41,16 +40,14 @@ public:
     // Storing shapes for additional processing
     void add_shape(shape* prim) { shapes_list.push_back(prim); }
 
-    std::string title; 
-
 private:  
     int width;    
     int height; 
 
     bool has_depth = false;  // Enables 3D perspective if true
 
-    std::vector<shape*> shapes_list;
     std::vector<std::vector<color> > canvas;
+    std::vector<shape*> shapes_list;
 };
 
 #endif // CANVAS_H

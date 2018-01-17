@@ -6,6 +6,10 @@
 #include "vec3.h"
 #include "graff.h"
 
+/// Function prototypes
+
+///////////////////////
+
 void gen_2D_white_noise(int samples, const color &_color, std::vector<std::vector<color> > &canvas)
 {
     int x, y;
@@ -15,13 +19,8 @@ void gen_2D_white_noise(int samples, const color &_color, std::vector<std::vecto
     {   
         x = distribution(generator) * canvas.size();
         y = distribution(generator) * canvas[0].size();
-        canvas[x][y] = _color; 
+        graff::put_pixel(x, y, _color, canvas);
     }
-}
-
-void gen_2D_blue_noise(int samples, Canvas& _canvas, const color& _color)
-{
-    // TODO
 }
 
 // Using golden set
@@ -36,7 +35,7 @@ void gen_2D_gold_noise(int samples, const color& _color, std::vector<std::vector
         s = fmod((s + c), 1.0f);
         x = s * canvas.size();
         y = i % canvas[0].size(); 
-        canvas[x][y] = _color; 
+        graff::put_pixel(x, y, _color, canvas);
     } 
 
 }

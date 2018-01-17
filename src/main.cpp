@@ -25,14 +25,16 @@ int main()
     vec3 p4(1.0f, -1.0f, 0.0f);     // bottom right 
     vec3 p5(0.0f, 1.0f, 0.0f);      // top center     
     vec3 p6(1.0f, 0.0f, 0.0f);      // center right
-    vec3 p7(0.0f, -1.0f, 0.0f);      // bottom center 
+    vec3 p7(0.0f, -1.0f, 0.0f);     // bottom center 
 
-    Canvas c(800, 800);
+    Canvas c(500, 500);
     c.reset_canvas();
-    c.add_shape(new line(p0, p1, RED));  
+    //c.add_shape(new line(p0, p1, RED));  
     c.add_shape(new triangle(p2, p1, p7, CYAN, true));
-    c.add_shape(new triangle(p2, p1, p7, BLACK, false));
-    c.print_canvas("wireandfilled.ppm");
+    //c.add_shape(new triangle(p2, p1, p7, RED, false));
+    c.draw_shapes();
+    gen_2D_white_noise(2000, BLACK, c.get_canvas());
+    c.print_canvas("noise.ppm");
 
     return 0;
 }
