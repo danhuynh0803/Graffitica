@@ -6,6 +6,12 @@
 #include <vector>
 #include "vec3.h"
 
+template<class T> 
+class matrix; 
+
+template<class T>
+std::ostream& operator <<(std::ostream& os, const matrix<T>& m);
+
 template<class T>
 class matrix
 {
@@ -15,10 +21,12 @@ public:
         entry.resize(w, std::vector<T>(h));
     }
     
+    /*
     matrix operator +(const matrix &rhs);
     matrix operator -(const matrix &rhs);
     matrix operator *(const matrix &rhs);
     matrix operator /(const matrix &rhs);
+    */
 
     inline std::vector<T> operator [](int i) const 
     { 
@@ -30,10 +38,13 @@ public:
         return entry[i]; 
     };
 
+    /*
+    matrix operator ==(const matrix &rhs);
     matrix operator +=(const matrix &rhs);
     matrix operator -=(const matrix &rhs);
     matrix operator *=(const matrix &rhs);
     matrix operator /=(const matrix &rhs);
+    */
 
     /*
     // TODO generalize this to rotate in any axis and any amount of degrees
@@ -51,15 +62,48 @@ public:
 
     int get_width() { return row; }
     int get_height() { return column; }
-    void toString();
-    friend std::ostream& operator<<(std::ostream& os, const matrix& m);
     */
+    friend std::ostream& operator<< <>(std::ostream& os, const matrix& m);
 
 private:
     int row;
     int column;
     std::vector<std::vector<T> > entry;
 };
+
+/*
+matrix matrix::operator+(const matrix &rhs) {
+    matrix sum = matrix(row, column);
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < column; j++) {
+            sum[i][j] = entry[i][j] + rhs[i][j];
+        }
+    }
+    return sum;
+}
+
+matrix matrix::operator-(const matrix &rhs) {
+    matrix sum = matrix(row, column);
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < column; j++) {
+            sum[i][j] = entry[i][j] - rhs[i][j];
+        }
+    }
+    return sum;
+}
+
+matrix matrix::operator*(const matrix &rhs) {
+    matrix product = matrix(row, rhs.column);
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < rhs.column; j++) {
+            for (int k = 0; k < column; k++) {
+                product[i][j] += entry[i][k] * rhs[k][j];
+            }
+        }
+    }
+    return product;
+}
+*/
 
 /*
 matrix matrix::conjuagte(matrix m) {
@@ -71,39 +115,6 @@ matrix matrix::conjuagte(matrix m) {
         }
     }
     return conjuagte;
-}
-
-matrix matrix::operator+(const matrix &rhs) {
-    matrix sum = matrix(row, column);
-    for (int i = 0; i < row; i++) {
-        for (int j = 0; j < column; j++) {
-            sum.entry[i][j] = entry[i][j] + rhs.entry[i][j];
-        }
-    }
-    return sum;
-}
-
-matrix matrix::operator-(const matrix &rhs) {
-    matrix sum = matrix(row, column);
-    for (int i = 0; i < row; i++) {
-        for (int j = 0; j < column; j++) {
-            sum.entry[i][j] = entry[i][j] - rhs.entry[i][j];
-        }
-    }
-    return sum;
-}
-
-matrix matrix::operator*(const matrix &rhs) {
-    matrix product = matrix(row, rhs.column);
-    for (int i = 0; i < row; i++) {
-        for (int j = 0; j < rhs.column; j++) {
-            for (int k = 0; k < column; k++) {
-                product.entry[i][j] += entry[i][k] * rhs.entry[k][j];
-            }
-
-        }
-    }
-    return product;
 }
 
 vec3 matrix::rotate90degree(vec3 rhs) {
@@ -154,7 +165,6 @@ matrix matrix::conjuagteTranspose(matrix m) {
     return conjuagteTranspose;
 }
 
-template <class T>
 T matrix::det(matrix m) 
 {
     if (m.column <= 1 && m.row <= 1) 
@@ -179,15 +189,16 @@ bool matrix::LUDecompose(matrix m, matrix L, matrix U, int n)) {
 matrix matrix::inverse(matrix m) {
     return m;
 }
+*/
 
 template <class T>
-std::ostream& operator<<(std::ostream& os, const matrix& m) 
+std::ostream& operator<<(std::ostream& os, const matrix<T>& m) 
 {
     os << "[";
-    for (std::vector<std::vector<T> >::const_iterator row = m.entry.begin(); row != m.entry.end(); ++row) 
+    for (auto row = m.entry.begin(); row != m.entry.end(); ++row) 
     {
         os << "[";
-        for (std::vector<T>::const_iterator column = (*row).begin(); column != (*row).end(); ++column)
+        for (auto column = (*row).begin(); column != (*row).end(); ++column)
         {
             if (column == (*row).end() - 1)
                 os << *column;
@@ -202,7 +213,6 @@ std::ostream& operator<<(std::ostream& os, const matrix& m)
     os << "]" << std::endl;
     return os;
 }
-*/
 
 #endif // MATRIX_H
 
