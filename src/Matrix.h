@@ -18,15 +18,6 @@ namespace MyMathFuncs {
 		Matrix operator+(const Matrix &rhs);
 		Matrix operator-(const Matrix &rhs);
 		Matrix operator*(const Matrix &rhs);
-		inline std::vector<T> operator [](int i) const
-		{
-			return entry[i];
-		}
-
-		inline std::vector<T>& operator [](int i)
-		{
-			return entry[i];
-		};
 		static vec3 rotate90degree(vec3 rhs);
 		static vec3 rotateNdegreeAboutZ(double angle, vec3 rhs);
 		Matrix conjuagte(Matrix m);
@@ -42,7 +33,6 @@ namespace MyMathFuncs {
 		void toString();
 		std::vector <std::vector<Quaternion>>entry;
 		friend std::ostream& operator<<(std::ostream& os, const Matrix& m);
-
 	private:
 		int row;
 		int column;
@@ -83,7 +73,6 @@ namespace MyMathFuncs {
 				for (int k = 0; k < column; k++) {
 					product.entry[i][j] += entry[i][k] * rhs.entry[k][j];
 				}
-
 			}
 		}
 		return product;
@@ -155,8 +144,6 @@ namespace MyMathFuncs {
 		}
 		return m;
 	}
-
-
 	Quaternion Matrix::det(Matrix m) {
 		if (m.column <= 1 && m.row <= 1) {
 			return m.entry[0][0];
