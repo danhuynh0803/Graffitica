@@ -29,18 +29,9 @@ int main()
     vec3 p6(1.0f, 0.0f, 0.0f);      // center right
     vec3 p7(0.0f, -1.0f, 0.0f);     // bottom center 
 
-    Canvas c(500, 500);
-    c.reset_canvas();
-    //c.add_shape(new line(p0, p1, RED));  
-    c.add_shape(new triangle(p2, p1, p7, CYAN, true));
-    c.add_shape(new triangle(p2, p1, p7, BLACK, false));
-    c.print_canvas("wireandfilled.ppm");
-	
-	MyMathFuncs::Matrix m(2,2);
-	m.entry[0][0] = MyMathFuncs::Quaternion(2,3,0,0);
-	m.entry[0][1] = MyMathFuncs::Quaternion(2,0,0,-5);
-	m.entry[1][0] = MyMathFuncs::Quaternion(2,2,0,0);
-	m.entry[1][1] = MyMathFuncs::Quaternion(-2,0,5,0);
-	std::cout << MyMathFuncs::Matrix::det(m) << std::endl;
+    matrix<int> m(2,2);
+    m[0][0] = 10; 
+    std::cout << m[0][0] << std::endl;
+
     return 0;
 }
