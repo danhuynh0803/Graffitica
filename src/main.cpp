@@ -4,6 +4,8 @@
 #include "shapes.h"
 #include "vec3.h"
 #include "noise.h"
+#include "matrix.h"
+#include "quaternion.h"
 
 // Color lib
 color WHITE(1.0f, 1.0f, 1.0f); 
@@ -33,6 +35,12 @@ int main()
     c.add_shape(new triangle(p2, p1, p7, CYAN, true));
     c.add_shape(new triangle(p2, p1, p7, BLACK, false));
     c.print_canvas("wireandfilled.ppm");
-
+	
+	MyMathFuncs::Matrix m(2,2);
+	m.entry[0][0] = MyMathFuncs::Quaternion(2,3,0,0);
+	m.entry[0][1] = MyMathFuncs::Quaternion(2,0,0,-5);
+	m.entry[1][0] = MyMathFuncs::Quaternion(2,2,0,0);
+	m.entry[1][1] = MyMathFuncs::Quaternion(-2,0,5,0);
+	std::cout << MyMathFuncs::Matrix::det(m) << std::endl;
     return 0;
 }

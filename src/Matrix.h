@@ -4,7 +4,7 @@
 #include <cmath>
 #include <iostream> 
 #include <vector>
-#include "Quaternion.h"
+#include "quaternion.h"
 #include "vec3.h"
 
 namespace MyMathFuncs {
@@ -160,7 +160,7 @@ namespace MyMathFuncs {
 		}
 		return sum;
 	}
-	bool Matrix::LUDecompose(Matrix m, Matrix L, Matrix U, int n)) {
+	bool Matrix::LUDecompose(Matrix m, Matrix L, Matrix U, int n) {
 		return 0;
 	}
 	Matrix Matrix::inverse(Matrix m) {

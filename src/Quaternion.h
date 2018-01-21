@@ -29,6 +29,7 @@ class Quaternion {
 		friend Quaternion operator-(const double &lhs, const Quaternion &rhs);
 		Quaternion operator*(const double &rhs);
 		Quaternion operator*(const Quaternion &rhs);
+		friend bool operator==(const Quaternion &lhs,const Quaternion &rhs);
 		friend Quaternion operator*(const double &lhs, const Quaternion &rhs);
 		static double distance(Quaternion p, Quaternion q);
 		static double dot(Quaternion p, Quaternion q);
@@ -173,6 +174,10 @@ class Quaternion {
 	Quaternion operator*(const double &lhs, const Quaternion &p)
 	{
 		return Quaternion(p.a*lhs, p.b*lhs, p.c*lhs, p.d*lhs);
+	}
+
+	bool operator==(const Quaternion &lhs,const Quaternion &rhs) {
+		return lhs.a == rhs.a && lhs.b == rhs.b && lhs.c == rhs.c && lhs.d == rhs.d;
 	}
 	double Quaternion::distance(Quaternion p, Quaternion q) {
 		return Quaternion(p.a - q.a, p.b - q.b, p.c - q.c, p.d - q.d).norm();
