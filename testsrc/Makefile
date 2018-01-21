@@ -9,7 +9,7 @@ all: tests-main tests
 tests-main: tests-main.o 
 	$(CPP) $(CPPFLAGS) tests-main.cpp -c
 
-tests: 
+tests: $(TESTS)
 	$(CPP) $(CPPFLAGS) tests-main.o $(INCLUDE) $(TESTS) -o tests && ./tests -r compact
 
 clean: 
