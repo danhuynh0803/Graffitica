@@ -18,6 +18,15 @@ namespace MyMathFuncs {
 		Matrix operator+(const Matrix &rhs);
 		Matrix operator-(const Matrix &rhs);
 		Matrix operator*(const Matrix &rhs);
+		inline std::vector<T> operator [](int i) const
+		{
+			return entry[i];
+		}
+
+		inline std::vector<T>& operator [](int i)
+		{
+			return entry[i];
+		};
 		static vec3 rotate90degree(vec3 rhs);
 		static vec3 rotateNdegreeAboutZ(double angle, vec3 rhs);
 		Matrix conjuagte(Matrix m);
