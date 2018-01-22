@@ -37,7 +37,8 @@ int main()
 
     matrix<int> n = m+m;
     std::cout << n << std::endl;
-    std::cout << m+m << std::endl;
+    std::cout << m-m << std::endl;
+    std::cout << m*m << std::endl;
 
     return 0;
 }

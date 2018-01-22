@@ -22,11 +22,11 @@ public:
     }
     
     matrix<T> operator +(const matrix<T> &rhs);
-    /*
-    matrix operator -(const matrix<T> &rhs);
-    matrix operator *(const matrix<T> &rhs);
-    matrix operator /(const matrix<T> &rhs);
-    */
+    matrix<T> operator -(const matrix<T> &rhs);
+    matrix<T> operator *(const matrix<T> &rhs);
+    matrix<T> operator *(float rhs);
+    matrix<T> operator /(const matrix<T> &rhs);
+    matrix<T> operator /(float rhs);
 
     inline std::vector<T> operator [](int i) const 
     { 
@@ -73,6 +73,7 @@ private:
 
 template <class T>
 matrix<T> matrix<T>::operator+(const matrix<T> &rhs) {
+    // TODO first check if the dimension allow for +
     matrix<T> sum(row, column);
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < column; j++) {
@@ -82,9 +83,10 @@ matrix<T> matrix<T>::operator+(const matrix<T> &rhs) {
     return sum;
 }
 
-/*
-matrix matrix::operator-(const matrix &rhs) {
-    matrix sum = matrix(row, column);
+template <class T>
+matrix<T> matrix<T>::operator-(const matrix<T> &rhs) {
+    // TODO first check if the dimension allow for -
+    matrix<T> sum(row, column);
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < column; j++) {
             sum[i][j] = entry[i][j] - rhs[i][j];
@@ -93,8 +95,10 @@ matrix matrix::operator-(const matrix &rhs) {
     return sum;
 }
 
-matrix matrix::operator*(const matrix &rhs) {
-    matrix product = matrix(row, rhs.column);
+template<class T>
+matrix<T> matrix<T>::operator*(const matrix<T> &rhs) {
+    // TODO first check if the dimension allow for *
+    matrix<T> product(row, rhs.column);
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < rhs.column; j++) {
             for (int k = 0; k < column; k++) {
@@ -104,7 +108,6 @@ matrix matrix::operator*(const matrix &rhs) {
     }
     return product;
 }
-*/
 
 /*
 matrix matrix::conjuagte(matrix m) {
