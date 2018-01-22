@@ -33,8 +33,11 @@ int main()
     m[0][0] = 1; 
     m[0][1] = 2; 
     m[1][0] = 3; 
-    m[1][1] = 4.9; 
-    std::cout << m << std::endl;
+    m[1][1] = 4; 
+
+    matrix<int> n = m+m;
+    std::cout << n << std::endl;
+    std::cout << m+m << std::endl;
 
     return 0;
 }

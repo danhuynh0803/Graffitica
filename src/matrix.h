@@ -21,11 +21,11 @@ public:
         entry.resize(w, std::vector<T>(h));
     }
     
+    matrix<T> operator +(const matrix<T> &rhs);
     /*
-    matrix operator +(const matrix &rhs);
-    matrix operator -(const matrix &rhs);
-    matrix operator *(const matrix &rhs);
-    matrix operator /(const matrix &rhs);
+    matrix operator -(const matrix<T> &rhs);
+    matrix operator *(const matrix<T> &rhs);
+    matrix operator /(const matrix<T> &rhs);
     */
 
     inline std::vector<T> operator [](int i) const 
@@ -64,16 +64,16 @@ public:
     int get_height() { return column; }
     */
     friend std::ostream& operator<< <>(std::ostream& os, const matrix& m);
+    std::vector<std::vector<T> > entry;
 
 private:
     int row;
     int column;
-    std::vector<std::vector<T> > entry;
 };
 
-/*
-matrix matrix::operator+(const matrix &rhs) {
-    matrix sum = matrix(row, column);
+template <class T>
+matrix<T> matrix<T>::operator+(const matrix<T> &rhs) {
+    matrix<T> sum(row, column);
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < column; j++) {
             sum[i][j] = entry[i][j] + rhs[i][j];
@@ -82,6 +82,7 @@ matrix matrix::operator+(const matrix &rhs) {
     return sum;
 }
 
+/*
 matrix matrix::operator-(const matrix &rhs) {
     matrix sum = matrix(row, column);
     for (int i = 0; i < row; i++) {
