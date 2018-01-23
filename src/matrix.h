@@ -109,6 +109,30 @@ matrix<T> matrix<T>::operator*(const matrix<T> &rhs) {
     return product;
 }
 
+template<class T>
+matrix<T> matrix<T>::operator*(float rhs) {
+    // TODO first check if the dimension allow for *
+    matrix<T> product(row, column);
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < column; j++) {
+            product[i][j] = entry[i][j] * rhs;
+        }
+    }
+    return product;
+}
+
+template<class T>
+matrix<T> matrix<T>::operator/(float rhs) {
+    // TODO first check if the dimension allow for *
+    float divisor = 1/rhs;
+    matrix<T> quotient(row, column);
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < column; j++) {
+            quotient[i][j] = entry[i][j] * divisor;
+        }
+    }
+    return quotient;
+}
 /*
 matrix matrix::conjuagte(matrix m) {
     matrix conjuagte = matrix(row, column);
