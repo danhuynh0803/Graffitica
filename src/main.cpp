@@ -29,11 +29,13 @@ int main()
     vec3 p6(1.0f, 0.0f, 0.0f);      // center right
     vec3 p7(0.0f, -1.0f, 0.0f);     // bottom center 
 
-    Canvas c(500, 500); 
-    c.reset_canvas();
-    c.add_shape(new triangle(p0, p1, p2, BLUE)); 
-    c.draw_shapes(); 
-    c.print_canvas("tri.ppm");
+    matrix<int> m(2,2); 
+    m[0][0] = 1;
+    m[0][1] = 2;
+    m[1][0] = 3;
+    m[1][1] = 4;
+
+    std::cout << 2 * m * 2 << std::endl;
 
     return 0;
 }

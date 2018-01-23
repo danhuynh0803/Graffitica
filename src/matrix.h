@@ -24,9 +24,9 @@ public:
     matrix<T> operator +(const matrix<T> &rhs);
     matrix<T> operator -(const matrix<T> &rhs);
     matrix<T> operator *(const matrix<T> &rhs);
-    matrix<T> operator *(float rhs);
+    matrix<T> operator *(float);
     matrix<T> operator /(const matrix<T> &rhs);
-    matrix<T> operator /(float rhs);
+    matrix<T> operator /(float);
 
     inline std::vector<T> operator [](int i) const 
     { 
@@ -37,6 +37,9 @@ public:
     { 
         return entry[i]; 
     };
+
+    int get_width() { return row; }
+    int get_height() { return column; }
 
     /*
     matrix operator ==(const matrix &rhs);
@@ -60,8 +63,6 @@ public:
     static bool LUDecompose(matrix m, matrix L, matrix U, int n);
     static matrix inverse(matrix m);
 
-    int get_width() { return row; }
-    int get_height() { return column; }
     */
     friend std::ostream& operator<< <>(std::ostream& os, const matrix& m);
     std::vector<std::vector<T> > entry;
@@ -129,6 +130,38 @@ matrix<T> matrix<T>::operator/(float rhs) {
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < column; j++) {
             quotient[i][j] = entry[i][j] * divisor;
+        }
+    }
+    return quotient;
+}
+
+template<class T>
+matrix<T> operator*(float t, matrix<T> m) {
+    // TODO first check if the dimension allow for *
+    int row = m.get_width();
+    int column = m.get_height();
+    matrix<T> product(row, column);
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < column; j++) {
+            product[i][j] = m[i][j] * t;
+        }
+    }
+    return product;
+}
+
+template<class T>
+matrix<T> operator/(float t, matrix<T> m) {
+    // TODO first check if the dimension allow for *
+    if (t == 0) { 
+        // throw error
+    }
+    float divisor = 1/t;
+    int row = m.get_width();
+    int column = m.get_height();
+    matrix<T> quotient(row, column);
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < column; j++) {
+            quotient[i][j] = m[i][j] * divisor;
         }
     }
     return quotient;
