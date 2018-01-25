@@ -35,7 +35,7 @@ int main()
     m[1][0] = 3;
     m[1][1] = 4;
 
-    std::cout << 2 * m * 2 << std::endl;
+    std::cout << m / 0 << std::endl;
 
     return 0;
 }

@@ -2,7 +2,7 @@ CPP = g++
 CPPFLAGS = -std=c++11
 INCLUDE = -I../src/
 
-TESTS = tests-add.cpp tests-vec.cpp
+TESTS = tests-add.cpp tests-vec.cpp tests-matrix.cpp
 
 all: tests-main tests
 

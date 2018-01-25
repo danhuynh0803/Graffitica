@@ -2,6 +2,7 @@
 #define MATRIX_H
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <stdexcept>
 #include <iostream> 
 #include <vector>
 #include "vec3.h"
@@ -124,7 +125,12 @@ matrix<T> matrix<T>::operator*(float rhs) {
 
 template<class T>
 matrix<T> matrix<T>::operator/(float rhs) {
-    // TODO first check if the dimension allow for *
+    // Divide by zero error
+    if (rhs == 0) 
+    {
+        throw std::invalid_argument("Dividing matrix by zero");
+    }
+
     float divisor = 1/rhs;
     matrix<T> quotient(row, column);
     for (int i = 0; i < row; i++) {
@@ -136,10 +142,10 @@ matrix<T> matrix<T>::operator/(float rhs) {
 }
 
 template<class T>
-matrix<T> operator*(float t, matrix<T> m) {
+matrix<T> operator*(float t, const matrix<T> &m) {
     // TODO first check if the dimension allow for *
-    int row = m.get_width();
-    int column = m.get_height();
+    int row = m.get_height();
+    int column = m.get_row();
     matrix<T> product(row, column);
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < column; j++) {
@@ -149,12 +155,43 @@ matrix<T> operator*(float t, matrix<T> m) {
     return product;
 }
 
+template<class T> 
+inline bool operator==(const matrix<T> &m1, const matrix<T> &m2)
+{
+    // if dimensions don't match then return false
+    if ((m1.get_width()  != m2.get_width()) ||
+        (m1.get_height() != m2.get_height()) ) 
+    {
+        return false; 
+    }
+
+    int row = m1.get_height();
+    int column = m1.get_width();
+
+    for (int i = 0; i < row; ++i) 
+    {
+        for (int j = 0; j < column; ++j) 
+        {
+            if (m1[i][j] != m2[i][j])
+            {
+                // Not equivalent matrices
+                return false;
+            }
+        }
+    }
+
+    return true; 
+}
+
+/*
 template<class T>
 matrix<T> operator/(float t, matrix<T> m) {
     // TODO first check if the dimension allow for *
-    if (t == 0) { 
-        // throw error
+    if (t == 0) 
+    { 
+        throw std::invalid_argument("Dividing by Zero");
     }
+
     float divisor = 1/t;
     int row = m.get_width();
     int column = m.get_height();
@@ -166,6 +203,7 @@ matrix<T> operator/(float t, matrix<T> m) {
     }
     return quotient;
 }
+*/
 /*
 matrix matrix::conjuagte(matrix m) {
     matrix conjuagte = matrix(row, column);
