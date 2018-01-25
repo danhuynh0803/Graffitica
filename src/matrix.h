@@ -22,6 +22,8 @@ public:
         entry.resize(w, std::vector<T>(h));
     }
     
+    matrix<T> operator =(const matrix<T> &rhs);
+    void operator =(const std::vector<T> &rhs);
     matrix<T> operator +(const matrix<T> &rhs);
     matrix<T> operator -(const matrix<T> &rhs);
     matrix<T> operator *(const matrix<T> &rhs);
@@ -72,6 +74,36 @@ private:
     int row;
     int column;
 };
+
+template<class T>
+matrix<T> matrix<T>::operator =(const matrix<T> &rhs)
+{
+    // TODO
+    // Assignment design issues: 
+    // Should it overwrite the matrix completely, 
+    // assigning new dimensions? 
+    //
+    // Or should matrix be immutable when it comes to dimensions?
+    // hence provide an error
+}
+
+template<class T>
+void matrix<T>::operator =(const std::vector<T> &rhs)
+{
+    if (rhs.size() != row * column) 
+    {
+        throw std::invalid_argument("Number of values assigned does not match matrix dimensions");
+    }
+    
+    for (int i = 0; i < row; ++i)
+    {
+        for (int j = 0; j < column; ++j)
+        {
+            entry[i][j] = rhs[(i*column+ j)];
+        }
+    }
+
+}
 
 template <class T>
 matrix<T> matrix<T>::operator+(const matrix<T> &rhs) {
