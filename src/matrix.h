@@ -75,6 +75,23 @@ private:
     int column;
 };
 
+// Returns an NxN zero matrix
+matrix<float> get_zero(int n) 
+{
+
+}
+
+/// 
+// Returns an NxN identity matrix
+matrix<float> get_identity(int N)
+{
+    matrix(N, N); 
+    for (int i = 0; i < N; ++i) 
+    {
+        // Set the diagonals to 1
+    }
+}
+
 template<class T>
 matrix<T> matrix<T>::operator =(const matrix<T> &rhs)
 {
@@ -86,6 +103,26 @@ matrix<T> matrix<T>::operator =(const matrix<T> &rhs)
     // Or should matrix be immutable when it comes to dimensions?
     // hence provide an error
 }
+
+/*
+template<class T>
+void matrix<T>::operator =(const T[] rhs)
+{
+    int size = sizeof(rhs)/sizeof(T);
+    if (size != row * column) 
+    {
+        throw std::invalid_argument("Number of values assigned does not match matrix dimensions");
+    }
+    
+    for (int i = 0; i < row; ++i)
+    {
+        for (int j = 0; j < column; ++j)
+        {
+            entry[i][j] = rhs[(i*column+ j)];
+        }
+    }
+}
+*/
 
 template<class T>
 void matrix<T>::operator =(const std::vector<T> &rhs)
@@ -102,7 +139,6 @@ void matrix<T>::operator =(const std::vector<T> &rhs)
             entry[i][j] = rhs[(i*column+ j)];
         }
     }
-
 }
 
 template <class T>
