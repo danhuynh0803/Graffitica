@@ -7,49 +7,39 @@
 #include <vector>
 #include "vec3.h"
 
-template<class T> 
-class matrix; 
-
-template<class T>
-std::ostream& operator <<(std::ostream& os, const matrix<T>& m);
-
-template<class T>
-class matrix
+class mat4
 {
 public:
-    matrix(int w, int h) : row(w), column(h)
+    mat4() 
     {
-        entry.resize(w, std::vector<T>(h));
+        entry.resize(4, std::vector<float>(4, 0));
     }
     
-    matrix<T> operator =(const matrix<T> &rhs);
-    void operator =(const std::vector<T> &rhs);
-    matrix<T> operator +(const matrix<T> &rhs);
-    matrix<T> operator -(const matrix<T> &rhs);
-    matrix<T> operator *(const matrix<T> &rhs);
-    matrix<T> operator *(float);
-    matrix<T> operator /(const matrix<T> &rhs);
-    matrix<T> operator /(float);
+    mat4 operator =(const mat4 &rhs);
+    void operator =(const std::vector<float> &rhs);
+    mat4 operator +(const mat4 &rhs);
+    mat4 operator -(const mat4 &rhs);
+    mat4 operator *(const mat4 &rhs);
+    mat4 operator *(float);
+    mat4 operator /(const mat4 &rhs);
+    mat4 operator /(float);
 
-    inline std::vector<T> operator [](int i) const 
+    inline std::vector<float> operator [](int i) const 
     { 
         return entry[i]; 
     }
 
-    inline std::vector<T>& operator [](int i) 
+    inline std::vector<float>& operator [](int i) 
     { 
         return entry[i]; 
     };
 
-    int get_width() { return row; }
-    int get_height() { return column; }
-
     /*
-    matrix operator ==(const matrix &rhs);
-    matrix operator +=(const matrix &rhs);
-    matrix operator -=(const matrix &rhs);
-    matrix operator *=(const matrix &rhs);
-    matrix operator /=(const matrix &rhs);
+    mat4 operator ==(const mat4 &rhs);
+    mat4 operator +=(const mat4 &rhs);
+    mat4 operator -=(const mat4 &rhs);
+    mat4 operator *=(const mat4 &rhs);
+    mat4 operator /=(const mat4 &rhs);
     */
 
     /*
@@ -57,61 +47,49 @@ public:
     static vec3 rotate90degree(vec3 rhs);
     static vec3 rotateNdegreeAboutZ(double angle, vec3 rhs);
 
-    matrix conjuagte(matrix m);
-    matrix transpose(matrix m);
-    matrix conjuagteTranspose(matrix m);
-
-    static T det(matrix m);
-
-    static bool LUDecompose(matrix m, matrix L, matrix U, int n);
-    static matrix inverse(matrix m);
+    static bool LUDecompose(mat4 m, mat4 L, mat4 U, int n);
+    static mat4 inverse(mat4 m);
 
     */
-    friend std::ostream& operator<< <>(std::ostream& os, const matrix& m);
-    std::vector<std::vector<T> > entry;
-
-private:
-    int row;
-    int column;
+    friend std::ostream& operator <<(std::ostream& os, const mat4& m);
+    std::vector<std::vector<float> > entry;
 };
 
-// Returns an NxN zero matrix
-matrix<float> get_zero(int n) 
+/*
+// Returns an NxN zero mat4
+mat4<float> get_zero() 
 {
 
 }
 
 /// 
-// Returns an NxN identity matrix
-matrix<float> get_identity(int N)
+// Returns an NxN identity mat4
+mat4<float> get_identity(int N)
 {
-    matrix(N, N); 
+    mat4(N, N); 
     for (int i = 0; i < N; ++i) 
     {
         // Set the diagonals to 1
     }
 }
-
-template<class T>
-matrix<T> matrix<T>::operator =(const matrix<T> &rhs)
+mat4 mat4::operator =(const mat4 &rhs)
 {
     // TODO
     // Assignment design issues: 
-    // Should it overwrite the matrix completely, 
+    // Should it overwrite the mat4 completely, 
     // assigning new dimensions? 
     //
-    // Or should matrix be immutable when it comes to dimensions?
+    // Or should mat4 be immutable when it comes to dimensions?
     // hence provide an error
 }
-
+*/
 /*
-template<class T>
-void matrix<T>::operator =(const T[] rhs)
+void mat4::operator =(const T[] rhs)
 {
     int size = sizeof(rhs)/sizeof(T);
     if (size != row * column) 
     {
-        throw std::invalid_argument("Number of values assigned does not match matrix dimensions");
+        throw std::invalid_argument("Number of values assigned does not match mat4 dimensions");
     }
     
     for (int i = 0; i < row; ++i)
@@ -123,55 +101,55 @@ void matrix<T>::operator =(const T[] rhs)
     }
 }
 */
-
-template<class T>
-void matrix<T>::operator =(const std::vector<T> &rhs)
+void mat4::operator =(const std::vector<float> &rhs)
 {
-    if (rhs.size() != row * column) 
+    if (rhs.size() != 16) 
     {
-        throw std::invalid_argument("Number of values assigned does not match matrix dimensions");
+        throw std::invalid_argument("Number of values assigned does not match mat4 dimensions");
     }
     
+    int row = 4;
+    int col = 4;
     for (int i = 0; i < row; ++i)
     {
-        for (int j = 0; j < column; ++j)
+        for (int j = 0; j < col; ++j)
         {
-            entry[i][j] = rhs[(i*column+ j)];
+            entry[i][j] = rhs[(i*col+ j)];
         }
     }
 }
-
-template <class T>
-matrix<T> matrix<T>::operator+(const matrix<T> &rhs) {
+/*
+mat4 mat4::operator+(const mat4 &rhs) {
     // TODO first check if the dimension allow for +
-    matrix<T> sum(row, column);
+    int row = 4, col = 4;
+    mat4 sum();
     for (int i = 0; i < row; i++) {
-        for (int j = 0; j < column; j++) {
+        for (int j = 0; j < col; j++) {
             sum[i][j] = entry[i][j] + rhs[i][j];
         }
     }
     return sum;
 }
 
-template <class T>
-matrix<T> matrix<T>::operator-(const matrix<T> &rhs) {
+mat4 mat4::operator-(const mat4 &rhs) {
     // TODO first check if the dimension allow for -
-    matrix<T> sum(row, column);
+    mat4 sum();
+    int row = 4, col = 4;
     for (int i = 0; i < row; i++) {
-        for (int j = 0; j < column; j++) {
+        for (int j = 0; j < col; j++) {
             sum[i][j] = entry[i][j] - rhs[i][j];
         }
     }
     return sum;
 }
 
-template<class T>
-matrix<T> matrix<T>::operator*(const matrix<T> &rhs) {
+mat4 mat4::operator*(const mat4 &rhs) {
     // TODO first check if the dimension allow for *
-    matrix<T> product(row, rhs.column);
+    mat4 product();
+    int row = 4, col = 4;
     for (int i = 0; i < row; i++) {
-        for (int j = 0; j < rhs.column; j++) {
-            for (int k = 0; k < column; k++) {
+        for (int j = 0; j < col; j++) {
+            for (int k = 0; k < col; k++) {
                 product[i][j] += entry[i][k] * rhs[k][j];
             }
         }
@@ -179,10 +157,10 @@ matrix<T> matrix<T>::operator*(const matrix<T> &rhs) {
     return product;
 }
 
-template<class T>
-matrix<T> matrix<T>::operator*(float rhs) {
+mat4 mat4::operator*(float rhs) {
     // TODO first check if the dimension allow for *
-    matrix<T> product(row, column);
+    mat4 product();
+    int row = 4, col = 4;
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < column; j++) {
             product[i][j] = entry[i][j] * rhs;
@@ -191,54 +169,44 @@ matrix<T> matrix<T>::operator*(float rhs) {
     return product;
 }
 
-template<class T>
-matrix<T> matrix<T>::operator/(float rhs) {
+mat4 mat4::operator/(float rhs) {
     // Divide by zero error
     if (rhs == 0) 
     {
-        throw std::invalid_argument("Dividing matrix by zero");
+        throw std::invalid_argument("Dividing mat4 by zero");
     }
 
     float divisor = 1/rhs;
-    matrix<T> quotient(row, column);
+    mat4 quotient();
+    int row = 4, col = 4;
     for (int i = 0; i < row; i++) {
-        for (int j = 0; j < column; j++) {
+        for (int j = 0; j < col; j++) {
             quotient[i][j] = entry[i][j] * divisor;
         }
     }
     return quotient;
 }
 
-template<class T>
-matrix<T> operator*(float t, const matrix<T> &m) {
-    // TODO first check if the dimension allow for *
-    int row = m.get_height();
-    int column = m.get_row();
-    matrix<T> product(row, column);
+mat4 operator*(float t, const mat4 &m) {
+    int row = 4;
+    int col = 4;
+    mat4 product();
     for (int i = 0; i < row; i++) {
-        for (int j = 0; j < column; j++) {
+        for (int j = 0; j < col; j++) {
             product[i][j] = m[i][j] * t;
         }
     }
     return product;
 }
 
-template<class T> 
-inline bool operator==(const matrix<T> &m1, const matrix<T> &m2)
+inline bool operator==(const mat4 &m1, const mat4 &m2)
 {
-    // if dimensions don't match then return false
-    if ((m1.get_width()  != m2.get_width()) ||
-        (m1.get_height() != m2.get_height()) ) 
-    {
-        return false; 
-    }
-
-    int row = m1.get_height();
-    int column = m1.get_width();
+    int row = 4;
+    int col = 4;
 
     for (int i = 0; i < row; ++i) 
     {
-        for (int j = 0; j < column; ++j) 
+        for (int j = 0; j < col; ++j) 
         {
             if (m1[i][j] != m2[i][j])
             {
@@ -252,29 +220,8 @@ inline bool operator==(const matrix<T> &m1, const matrix<T> &m2)
 }
 
 /*
-template<class T>
-matrix<T> operator/(float t, matrix<T> m) {
-    // TODO first check if the dimension allow for *
-    if (t == 0) 
-    { 
-        throw std::invalid_argument("Dividing by Zero");
-    }
-
-    float divisor = 1/t;
-    int row = m.get_width();
-    int column = m.get_height();
-    matrix<T> quotient(row, column);
-    for (int i = 0; i < row; i++) {
-        for (int j = 0; j < column; j++) {
-            quotient[i][j] = m[i][j] * divisor;
-        }
-    }
-    return quotient;
-}
-*/
-/*
-matrix matrix::conjuagte(matrix m) {
-    matrix conjuagte = matrix(row, column);
+mat4 mat4::conjuagte(mat4 m) {
+    mat4 conjuagte = mat4(row, column);
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < column; j++)
         {
@@ -284,7 +231,7 @@ matrix matrix::conjuagte(matrix m) {
     return conjuagte;
 }
 
-vec3 matrix::rotate90degree(vec3 rhs) {
+vec3 mat4::rotate90degree(vec3 rhs) {
     vec3 product(-1 * rhs.y(), 1 * rhs.x(), rhs.z());
        product.x = entry[0][0] * rhs.x() + entry[0][1] * rhs.y() + entry[0][2] * rhs.z();
        product.y = entry[1][0] * rhs.x() + entry[1][1] * rhs.y() + entry[1][2] * rhs.z();
@@ -301,7 +248,7 @@ vec3 matrix::rotate90degree(vec3 rhs) {
     return product;
 }
 
-vec3 matrix::rotateNdegreeAboutZ(double angle, vec3 rhs) {
+vec3 mat4::rotateNdegreeAboutZ(double angle, vec3 rhs) {
     vec3 product = vec3();
     product.e[0] = std::cos(angle * M_PI / 180) * rhs.x() - std::sin(angle * M_PI / 180) * rhs.y();
     product.e[1] = std::sin(angle * M_PI / 180) * rhs.x() + std::cos(angle * M_PI / 180) * rhs.y();
@@ -310,8 +257,8 @@ vec3 matrix::rotateNdegreeAboutZ(double angle, vec3 rhs) {
     return product;
 }
 
-matrix matrix::transpose(matrix m) {
-    matrix transpose = matrix(column, row);
+mat4 mat4::transpose(mat4 m) {
+    mat4 transpose = mat4(column, row);
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < column; j++)
         {
@@ -321,8 +268,8 @@ matrix matrix::transpose(matrix m) {
     return transpose;
 }
 
-matrix matrix::conjuagteTranspose(matrix m) {
-    matrix conjuagteTranspose = matrix(column, row);
+mat4 mat4::conjuagteTranspose(mat4 m) {
+    mat4 conjuagteTranspose = mat4(column, row);
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < column; j++)
         {
@@ -332,7 +279,7 @@ matrix matrix::conjuagteTranspose(matrix m) {
     return conjuagteTranspose;
 }
 
-T matrix::det(matrix m) 
+T mat4::det(mat4 m) 
 {
     if (m.column <= 1 && m.row <= 1) 
     {
@@ -341,7 +288,7 @@ T matrix::det(matrix m)
 
     T sum;
     for (int j = 0; j < m.column; j++) {
-        matrix minor = removeColumn(m,j);
+        mat4 minor = removeColumn(m,j);
         minor = removeRow(minor,0);
         sum += pow(-1,1+(j+1))*m.entry[0][j]*det(minor);
     }
@@ -349,23 +296,23 @@ T matrix::det(matrix m)
     return sum;
 }
 
-bool matrix::LUDecompose(matrix m, matrix L, matrix U, int n)) {
+bool mat4::LUDecompose(mat4 m, mat4 L, mat4 U, int n)) {
     return 0;
 }
 
-matrix matrix::inverse(matrix m) {
+mat4 mat4::inverse(mat4 m) {
     return m;
 }
 */
 
-template <class T>
-std::ostream& operator<<(std::ostream& os, const matrix<T>& m) 
+std::ostream& operator<<(std::ostream& os, const mat4& m) 
 {
-    os << "[";
-    for (auto row = m.entry.begin(); row != m.entry.end(); ++row) 
+    for (std::vector<std::vector<float> >::const_iterator row = m.entry.begin(); 
+            row != m.entry.end(); ++row) 
     {
         os << "[";
-        for (auto column = (*row).begin(); column != (*row).end(); ++column)
+        for (std::vector<float>::const_iterator column = (*row).begin(); 
+                column != (*row).end(); ++column)
         {
             if (column == (*row).end() - 1)
                 os << *column;
@@ -377,7 +324,6 @@ std::ostream& operator<<(std::ostream& os, const matrix<T>& m)
         else
             os << "]" << std::endl;
     }
-    os << "]" << std::endl;
     return os;
 }
 
