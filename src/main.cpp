@@ -35,14 +35,15 @@ int main()
       5, 2, 3, 4,
       5, 2, 3, 4 };
 
-    float b[] = 
+    float b[16] = 
     { 5, 2, 3, 4, 
       5, 2, 3, 4, 
       5, 2, 3, 4, 
       5, 2, 3, 4 };
 
-    mat4 m = identity();
-    std::cout << m << std::endl;
+    mat4 m;
+    m = b;
+    std::cout << -m << std::endl;
     m = zero();
     std::cout << m << std::endl;
     m = identity();

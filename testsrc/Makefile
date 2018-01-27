@@ -2,7 +2,7 @@ CPP = g++
 CPPFLAGS = -std=c++11
 INCLUDE = -I../src/
 
-TESTS = tests-add.cpp tests-vec.cpp tests-matrix.cpp
+TESTS = tests-vec.cpp tests-matrix.cpp
 
 all: tests-main tests
 
@@ -13,4 +13,4 @@ tests: $(TESTS)
 	$(CPP) $(CPPFLAGS) tests-main.o $(INCLUDE) $(TESTS) -o tests && ./tests -r compact
 
 clean: 
-	rm -rf tests *.o	
+	rm -rf tests *.o
