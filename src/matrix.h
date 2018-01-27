@@ -15,7 +15,7 @@ public:
         entry.resize(4, std::vector<float>(4, 0));
     }
     
-    mat4 operator =(const mat4 &rhs);
+    void operator =(const mat4 &rhs);
     void operator =(const std::vector<float> &rhs);
     mat4 operator +(const mat4 &rhs);
     mat4 operator -(const mat4 &rhs);
@@ -55,34 +55,36 @@ public:
     std::vector<std::vector<float> > entry;
 };
 
-/*
 // Returns an NxN zero mat4
-mat4<float> get_zero() 
+mat4 get_zero() 
 {
-
+    return mat4();
 }
 
-/// 
 // Returns an NxN identity mat4
-mat4<float> get_identity(int N)
+mat4 get_identity()
 {
-    mat4(N, N); 
-    for (int i = 0; i < N; ++i) 
+    mat4 m; 
+    for (int i = 0; i < 4; ++i) 
     {
         // Set the diagonals to 1
+        m.entry[i][i] = 1;
+    }
+    return m;
+}
+
+void mat4::operator =(const mat4 &rhs)
+{
+    int row = 4, col = 4;
+    for (int i = 0; i < row; ++i) 
+    {
+        for (int j = 0; j < col; ++j)
+        {
+            entry[i][j] = rhs[i][j];
+        }
     }
 }
-mat4 mat4::operator =(const mat4 &rhs)
-{
-    // TODO
-    // Assignment design issues: 
-    // Should it overwrite the mat4 completely, 
-    // assigning new dimensions? 
-    //
-    // Or should mat4 be immutable when it comes to dimensions?
-    // hence provide an error
-}
-*/
+
 /*
 void mat4::operator =(const T[] rhs)
 {
@@ -324,6 +326,7 @@ std::ostream& operator<<(std::ostream& os, const mat4& m)
         else
             os << "]" << std::endl;
     }
+    os << std::endl;
     return os;
 }
 

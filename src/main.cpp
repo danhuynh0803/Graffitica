@@ -35,9 +35,12 @@ int main()
       5, 2, 3, 4,
       5, 2, 3, 4 };
 
-    mat4 m; 
+    mat4 m;
     m = a;
-
+    std::cout << m << std::endl;
+    m = get_zero();
+    std::cout << m << std::endl;
+    m = get_identity();
     std::cout << m << std::endl;
 
     return 0;
