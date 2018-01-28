@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <iostream> 
 #include <vector>
-#include "vec3.h"
+#include "vector.h"
 
 class mat4; 
 
@@ -39,7 +39,8 @@ public:
         return negated;
     }
 
-    inline mat4 operator *(const mat4 &rhs);
+    inline mat4 operator *(const mat4& rhs);
+    inline vec4 operator *(const vec4& rhs);
     inline mat4 operator *(float);
 
     inline std::vector<float> operator [](int i) const 
@@ -57,6 +58,10 @@ public:
     //mat4 operator -=(const mat4 &rhs);
     //mat4 operator *=(const mat4 &rhs);
 
+    inline mat4 translate(const mat4& m_transform, const vec3& new_position);
+    inline mat4 scale(const mat4& m_transform, float angle, const vec3& axis);
+    inline mat4 rotate(const mat4& m_transform, float angle, const vec3& axis);
+
     /*
     // TODO generalize this to rotate in any axis and any amount of degrees
     static vec3 rotate90degree(vec3 rhs);
@@ -64,8 +69,8 @@ public:
 
     static bool LUDecompose(mat4 m, mat4 L, mat4 U, int n);
     static mat4 inverse(mat4 m);
-
     */
+
     inline friend std::ostream& operator <<(std::ostream& os, const mat4& m);
 
     std::vector<std::vector<float> > entry;
@@ -136,7 +141,7 @@ inline void mat4::operator =(const std::vector<float> &rhs)
     }
 }
 
-inline mat4 mat4::operator+(const mat4 &rhs) {
+inline mat4 mat4::operator+(const mat4& rhs) {
     // TODO first check if the dimension allow for +
     int row = 4, col = 4;
     mat4 sum;
@@ -148,7 +153,7 @@ inline mat4 mat4::operator+(const mat4 &rhs) {
     return sum;
 }
 
-inline mat4 mat4::operator-(const mat4 &rhs) {
+inline mat4 mat4::operator-(const mat4& rhs) {
     // TODO first check if the dimension allow for -
     mat4 sum;
     int row = 4, col = 4;
@@ -160,7 +165,7 @@ inline mat4 mat4::operator-(const mat4 &rhs) {
     return sum;
 }
 
-inline mat4 mat4::operator*(const mat4 &rhs) {
+inline mat4 mat4::operator*(const mat4& rhs) {
     // TODO first check if the dimension allow for *
     mat4 product;
     int row = 4, col = 4;
@@ -169,6 +174,18 @@ inline mat4 mat4::operator*(const mat4 &rhs) {
             for (int k = 0; k < col; k++) {
                 product[i][j] += entry[i][k] * rhs[k][j];
             }
+        }
+    }
+    return product;
+}
+
+inline vec4 mat4::operator*(const vec4& rhs) {
+    // TODO first check if the dimension allow for *
+    vec4 product;
+    int row = 4, col = 4;
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < col; j++) {
+            product[i] += entry[i][j] * rhs[j];
         }
     }
     return product;

@@ -3,7 +3,7 @@
 
 #include <random>
 #include <vector>
-#include "vec3.h"
+#include "vector.h"
 #include "graff.h"
 
 /// Function prototypes

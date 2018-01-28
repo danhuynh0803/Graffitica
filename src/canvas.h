@@ -3,7 +3,7 @@
 
 #include <string> 
 #include <vector>
-#include "vec3.h"
+#include "vector.h"
 #include "shapes.h"
 
 class Canvas 

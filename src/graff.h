@@ -4,7 +4,7 @@
 #include <vector>
 #include <cmath>
 #include <thread>
-#include "vec3.h"
+#include "vector.h"
 
 /// Function prototypes ///
 namespace graff

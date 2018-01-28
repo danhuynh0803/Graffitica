@@ -1,7 +1,7 @@
 #include <vector>
 #include <thread>
 #include "graff.h"
-#include "vec3.h"
+#include "vector.h"
 
 vec3 graff::convert_ndc_to_canvas(const vec3 &p, const std::vector<std::vector<color> > &canvas)
 {

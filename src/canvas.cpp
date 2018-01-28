@@ -5,7 +5,7 @@
 #include <vector>
 #include <boost/filesystem.hpp>
 #include "canvas.h"
-#include "vec3.h"
+#include "vector.h"
 #include "graff.h"
 
 vec3 Canvas::convert_ndc_to_canvas(const vec3 &p)

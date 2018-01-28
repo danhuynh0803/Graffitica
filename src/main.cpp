@@ -2,7 +2,7 @@
 #include <fstream>
 #include "canvas.h"
 #include "shapes.h"
-#include "vec3.h"
+#include "vector.h"
 #include "noise.h"
 #include "matrix.h"
 #include "quaternion.h"

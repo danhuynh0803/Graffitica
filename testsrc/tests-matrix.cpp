@@ -44,6 +44,8 @@ TEST_CASE("Matrix Multiplication", "[mat4 Mult]")
     REQUIRE((I * I) == I);
     REQUIRE((A * I) == A);
     REQUIRE((A * Z) == Z);
+    REQUIRE((A * 2) == B);
+    REQUIRE((2 * A) == B);
 }
 
 

@@ -1,7 +1,7 @@
 #ifndef VERTEX_H
 #define VERTEX_H
 
-#include "vec3.h"
+#include "vector.h"
 
 struct vertex 
 {

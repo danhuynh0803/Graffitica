@@ -17,7 +17,7 @@ public:
        v = cross(w, u);                       // +y
     }
 
-    matrix get_view_matrix(bool is_perspective, float fov)
+    mat4 get_view()
     {
         // return a perspective view matrix
         if (is_perspective)
@@ -31,6 +31,11 @@ public:
         }
 
         return new matrix(0, 0);
+    }
+        
+    mat4 get_perspective()
+    {
+
     }
 
     vec3 look_from;

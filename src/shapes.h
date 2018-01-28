@@ -2,7 +2,7 @@
 #define SHAPES_H
 
 #include <vector>
-#include "vec3.h"
+#include "vector.h"
 #include "vertex.h"
 #include "graff.h"
 
