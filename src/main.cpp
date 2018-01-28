@@ -30,10 +30,10 @@ int main()
     vec3 p7(0.0f, -1.0f, 0.0f);     // bottom center 
 
     std::vector<float> a = 
-    { 5, 2, 3, 4,
-      5, 2, 3, 4,
-      5, 2, 3, 4,
-      5, 2, 3, 4 };
+    { -5, 2, 3, 4,
+      5, -2, 3, 4,
+      5, 2, -3, 4,
+      5, 2, 3, -4 };
 
     float b[16] = 
     { 5, 2, 3, 4, 
@@ -42,7 +42,7 @@ int main()
       5, 2, 3, 4 };
 
     mat4 m;
-    m = b;
+    m = identity();
     std::cout << -m << std::endl;
     m = zero();
     std::cout << m << std::endl;

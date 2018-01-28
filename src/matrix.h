@@ -33,7 +33,7 @@ public:
         {
             for (int j = 0; j < 4; ++j)
             {
-                negated[i][j] = entry[i][j] * -1;
+                negated[i][j] = -entry[i][j];
             }
         }
         return negated;

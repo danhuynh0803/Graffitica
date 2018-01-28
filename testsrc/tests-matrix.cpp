@@ -1,6 +1,7 @@
 #include "catch.hpp"
-#include "matrix.h"
 #include <vector>
+#include "matrix.h"
+#include "vector.h"
 
 std::vector<float> vA = {
     1, 2, 3, 4,
@@ -37,7 +38,7 @@ TEST_CASE("Matrix Subtraction", "[mat4 Sub]")
     REQUIRE((A - B) == -A);
 }
 
-TEST_CASE("Matrix Multiplication", "[mat4 Mult]")
+TEST_CASE("Matrix-Matrix Multiplication", "[mat4-mat4 Mult]")
 {
     A = vA; 
     B = vB;
@@ -48,7 +49,11 @@ TEST_CASE("Matrix Multiplication", "[mat4 Mult]")
     REQUIRE((2 * A) == B);
 }
 
-
-
-
+TEST_CASE("Matrix-Vector Multiplication", "[mat4-vec4 Mult]")
+{
+    vec4 v0(0,0,0,0);
+    vec4 v1(1,2,3,4);
+    REQUIRE((I * v1) == v1);
+    REQUIRE((Z * v1) == v0);
+}
 
