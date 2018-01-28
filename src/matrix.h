@@ -62,14 +62,13 @@ public:
     inline mat4 scale(const mat4& m_transform, float angle, const vec3& axis);
     inline mat4 rotate(const mat4& m_transform, float angle, const vec3& axis);
 
-    /*
-    // TODO generalize this to rotate in any axis and any amount of degrees
-    static vec3 rotate90degree(vec3 rhs);
-    static vec3 rotateNdegreeAboutZ(double angle, vec3 rhs);
 
-    static bool LUDecompose(mat4 m, mat4 L, mat4 U, int n);
-    static mat4 inverse(mat4 m);
-    */
+	static mat4 affine_matrix(float k_x, float k_y, float k_z, float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy, float t_x, float t_y, float t_z);
+	static float det(mat4 m);
+	static float tr(mat4 m);
+    static bool inverse(mat4 m, mat4& inverse);
+
+	
 
     inline friend std::ostream& operator <<(std::ostream& os, const mat4& m);
 
@@ -250,92 +249,63 @@ inline bool operator ==(const mat4 &m1, const mat4 &m2)
     }
     return true; 
 }
-
-/*
-mat4 mat4::conjuagte(mat4 m) {
-    mat4 conjuagte = mat4(row, column);
-    for (int i = 0; i < row; i++) {
-        for (int j = 0; j < column; j++)
-        {
-            conjuagte.entry[i][j] = entry[i][j].conjugation();
-        }
-    }
-    return conjuagte;
+inline mat4 mat4::affine_matrix(float k_x, float k_y, float k_z, float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy, float t_x, float t_y, float t_z) {
+	mat4 m;
+	m[3][0] = 0;
+	m[3][1] = 0;
+	m[3][2] = 0;
+	m[3][3] = 1;
+	//scale
+	m[0][0] = k_x;
+	m[1][1] = k_y;
+	m[2][2] = k_z;
+	//shear
+	m[0][1] = h_xy;
+	m[0][2] = h_xz;
+	m[1][0] = h_yx;
+	m[1][2] = h_yz;
+	m[2][0] = h_zx;
+	m[2][1] = h_zy;
+	//translation
+	m[0][3] = t_x;
+	m[1][3] = t_y;
+	m[2][3] = t_z;
+	return m;
 }
 
-vec3 mat4::rotate90degree(vec3 rhs) {
-    vec3 product(-1 * rhs.y(), 1 * rhs.x(), rhs.z());
-       product.x = entry[0][0] * rhs.x() + entry[0][1] * rhs.y() + entry[0][2] * rhs.z();
-       product.y = entry[1][0] * rhs.x() + entry[1][1] * rhs.y() + entry[1][2] * rhs.z();
-       product.z = entry[2][0] * rhs.x() + entry[2][1] * rhs.y() + entry[2][2] * rhs.z();
-       
-    
-       product.x = -1 * rhs.x();
-       product.y = -1 * rhs.y();
-       product.z = rhs.z();
+inline float mat4::det(mat4 m) {
 
-    product.e[0] = -1 * rhs.x();
-    product.e[1] = -1 * rhs.y();
-    product.e[2] = rhs.z();
-    return product;
+	return ( ( m[0][3] * m[1][2] - m[0][2] * m[1][3] ) * m[2][1] +
+			 ( m[0][1] * m[1][3] - m[0][3] * m[1][1] ) * m[2][2] +
+			 ( m[0][2] * m[1][1] - m[0][1] * m[1][2] ) * m[2][3] ) * m[3][0] + 
+		   ( ( m[0][2] * m[1][3] - m[0][3] * m[1][2] ) * m[2][0] +
+		     ( m[0][3] * m[1][0] - m[0][0] * m[1][3] ) * m[2][2] + 
+		     ( m[0][0] * m[1][2] - m[0][2] * m[1][0] ) * m[2][3] ) * m[3][1] +
+		   ( ( m[0][3] * m[1][1] - m[0][1] * m[1][3] ) * m[2][0] + 
+		     ( m[0][0] * m[1][3] - m[0][3] * m[1][0] ) * m[2][1] +
+		     ( m[0][1] * m[1][0] - m[0][0] * m[1][1] ) * m[2][3] ) * m[3][2] +
+		   ( ( m[0][1] * m[1][2] - m[0][2] * m[1][1] ) * m[2][0] +
+		     ( m[0][2] * m[1][0] - m[0][0] * m[1][2] ) * m[2][1] + 
+		     ( m[0][0] * m[1][1] - m[0][1] * m[1][0] ) * m[2][2] ) * m[3][3];
 }
+//trace
+inline float mat4::tr(mat4 m) {
 
-vec3 mat4::rotateNdegreeAboutZ(double angle, vec3 rhs) {
-    vec3 product = vec3();
-    product.e[0] = std::cos(angle * M_PI / 180) * rhs.x() - std::sin(angle * M_PI / 180) * rhs.y();
-    product.e[1] = std::sin(angle * M_PI / 180) * rhs.x() + std::cos(angle * M_PI / 180) * rhs.y();
-    product.e[2] = rhs.z();
-
-    return product;
+	return m[0][0]+m[1][1]+m[2][2]+m[3][3];
 }
+//Cayley–Hamilton method//
+inline bool mat4::inverse(mat4 m, mat4& inverse) {
 
-mat4 mat4::transpose(mat4 m) {
-    mat4 transpose = mat4(column, row);
-    for (int i = 0; i < row; i++) {
-        for (int j = 0; j < column; j++)
-        {
-            transpose.entry[j][i] = entry[i][j];
-        }
-    }
-    return transpose;
+	if (det(m) == 0) {
+		std::cout << "The matrix is nonsingular(nondegenerate)" << std::endl;
+		return false;
+	}
+    inverse = (1.0f/det(m))*
+			  ((1.0f/6)*(std::pow(tr(m),3) - 3*tr(m)*tr(m*m) + 2*tr(m*m*m))*identity() -
+			  0.5*m*((std::pow(tr(m),2) - tr(m*m))) + m*m*tr(m) - m*m*m
+		      );
+	return true;
 }
-
-mat4 mat4::conjuagteTranspose(mat4 m) {
-    mat4 conjuagteTranspose = mat4(column, row);
-    for (int i = 0; i < row; i++) {
-        for (int j = 0; j < column; j++)
-        {
-            conjuagteTranspose.entry[j][i] = entry[i][j].conjugation();
-        }
-    }
-    return conjuagteTranspose;
-}
-
-T mat4::det(mat4 m) 
-{
-    if (m.column <= 1 && m.row <= 1) 
-    {
-        return m.entry[0][0];
-    }
-
-    T sum;
-    for (int j = 0; j < m.column; j++) {
-        mat4 minor = removeColumn(m,j);
-        minor = removeRow(minor,0);
-        sum += pow(-1,1+(j+1))*m.entry[0][j]*det(minor);
-    }
-
-    return sum;
-}
-
-bool mat4::LUDecompose(mat4 m, mat4 L, mat4 U, int n)) {
-    return 0;
-}
-
-mat4 mat4::inverse(mat4 m) {
-    return m;
-}
-*/
 
 inline std::ostream& operator<<(std::ostream& os, const mat4& m) 
 {
