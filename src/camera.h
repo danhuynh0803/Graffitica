@@ -12,25 +12,25 @@ public:
         look_from(from), look_at(at), vfov(vert_fov), aspect_ratio(asp_ratio)
     {
        // Camera's local axes 
-       w = unit_vector(look_from - look_at);  // +z 
-       u = unit_vector(cross(up, w));         // +x
-       v = cross(w, u);                       // +y
+       forward = unit_vector(look_from - look_at);  // +z 
+       right = unit_vector(cross(up, w));           // +x
+       up = cross(w, u);                            // +y
     }
 
+    // Returns the view matrix
     mat4 get_view()
     {
-        // return a perspective view matrix
-        if (is_perspective)
-        {
+        mat4 view; 
+        // view matrix values, assuming column vector notation
+        std::vector<float> v_view = {
+            right.x(), up.x(), forward.x(), translate.x(),
+            right.y(), up.y(), forward.y(), translate.y(),
+            right.z(), up.z(), forward.z(), translate.z(),
+                    0,      0,           0,             1 
+        };
 
-        }
-        // Else return an orthographic view matrix
-        else 
-        {
-
-        }
-
-        return new matrix(0, 0);
+        view = v_view;
+        return view;
     }
         
     mat4 get_perspective()
@@ -40,7 +40,7 @@ public:
 
     vec3 look_from;
     vec3 look_at; 
-    vec3 u, v, w;
+    vec3 right, up, forward, translate;
     float vfov, aspect_ratio;
 };
 

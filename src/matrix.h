@@ -63,12 +63,10 @@ public:
     inline mat4 rotate(const mat4& m_transform, float angle, const vec3& axis);
 
 
-	static mat4 affine_matrix(float k_x, float k_y, float k_z, float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy, float t_x, float t_y, float t_z);
-	static float det(mat4 m);
-	static float tr(mat4 m);
+    static mat4 affine_matrix(float k_x, float k_y, float k_z, float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy, float t_x, float t_y, float t_z);
+    static float det(mat4 m);
+    static float tr(mat4 m);
     static bool inverse(mat4 m, mat4& inverse);
-
-	
 
     inline friend std::ostream& operator <<(std::ostream& os, const mat4& m);
 
@@ -141,7 +139,6 @@ inline void mat4::operator =(const std::vector<float> &rhs)
 }
 
 inline mat4 mat4::operator+(const mat4& rhs) {
-    // TODO first check if the dimension allow for +
     int row = 4, col = 4;
     mat4 sum;
     for (int i = 0; i < row; i++) {
@@ -153,7 +150,6 @@ inline mat4 mat4::operator+(const mat4& rhs) {
 }
 
 inline mat4 mat4::operator-(const mat4& rhs) {
-    // TODO first check if the dimension allow for -
     mat4 sum;
     int row = 4, col = 4;
     for (int i = 0; i < row; i++) {
@@ -165,7 +161,6 @@ inline mat4 mat4::operator-(const mat4& rhs) {
 }
 
 inline mat4 mat4::operator*(const mat4& rhs) {
-    // TODO first check if the dimension allow for *
     mat4 product;
     int row = 4, col = 4;
     for (int i = 0; i < row; i++) {
@@ -179,7 +174,6 @@ inline mat4 mat4::operator*(const mat4& rhs) {
 }
 
 inline vec4 mat4::operator*(const vec4& rhs) {
-    // TODO first check if the dimension allow for *
     vec4 product;
     int row = 4, col = 4;
     for (int i = 0; i < row; i++) {
@@ -191,7 +185,6 @@ inline vec4 mat4::operator*(const vec4& rhs) {
 }
 
 inline mat4 mat4::operator*(float rhs) {
-    // TODO first check if the dimension allow for *
     mat4 product;
     int row = 4, col = 4;
     for (int i = 0; i < row; i++) {
@@ -250,61 +243,63 @@ inline bool operator ==(const mat4 &m1, const mat4 &m2)
     return true; 
 }
 inline mat4 mat4::affine_matrix(float k_x, float k_y, float k_z, float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy, float t_x, float t_y, float t_z) {
-	mat4 m;
-	m[3][0] = 0;
-	m[3][1] = 0;
-	m[3][2] = 0;
-	m[3][3] = 1;
-	//scale
-	m[0][0] = k_x;
-	m[1][1] = k_y;
-	m[2][2] = k_z;
-	//shear
-	m[0][1] = h_xy;
-	m[0][2] = h_xz;
-	m[1][0] = h_yx;
-	m[1][2] = h_yz;
-	m[2][0] = h_zx;
-	m[2][1] = h_zy;
-	//translation
-	m[0][3] = t_x;
-	m[1][3] = t_y;
-	m[2][3] = t_z;
-	return m;
+    mat4 m;
+    m[3][0] = 0;
+    m[3][1] = 0;
+    m[3][2] = 0;
+    m[3][3] = 1;
+    //scale
+    m[0][0] = k_x;
+    m[1][1] = k_y;
+    m[2][2] = k_z;
+    //shear
+    m[0][1] = h_xy;
+    m[0][2] = h_xz;
+    m[1][0] = h_yx;
+    m[1][2] = h_yz;
+    m[2][0] = h_zx;
+    m[2][1] = h_zy;
+    //translation
+    m[0][3] = t_x;
+    m[1][3] = t_y;
+    m[2][3] = t_z;
+    return m;
 }
 
-inline float mat4::det(mat4 m) {
-
-	return ( ( m[0][3] * m[1][2] - m[0][2] * m[1][3] ) * m[2][1] +
-			 ( m[0][1] * m[1][3] - m[0][3] * m[1][1] ) * m[2][2] +
-			 ( m[0][2] * m[1][1] - m[0][1] * m[1][2] ) * m[2][3] ) * m[3][0] + 
-		   ( ( m[0][2] * m[1][3] - m[0][3] * m[1][2] ) * m[2][0] +
-		     ( m[0][3] * m[1][0] - m[0][0] * m[1][3] ) * m[2][2] + 
-		     ( m[0][0] * m[1][2] - m[0][2] * m[1][0] ) * m[2][3] ) * m[3][1] +
-		   ( ( m[0][3] * m[1][1] - m[0][1] * m[1][3] ) * m[2][0] + 
-		     ( m[0][0] * m[1][3] - m[0][3] * m[1][0] ) * m[2][1] +
-		     ( m[0][1] * m[1][0] - m[0][0] * m[1][1] ) * m[2][3] ) * m[3][2] +
-		   ( ( m[0][1] * m[1][2] - m[0][2] * m[1][1] ) * m[2][0] +
-		     ( m[0][2] * m[1][0] - m[0][0] * m[1][2] ) * m[2][1] + 
-		     ( m[0][0] * m[1][1] - m[0][1] * m[1][0] ) * m[2][2] ) * m[3][3];
+inline float mat4::det(mat4 m) 
+{
+    return ( ( m[0][3] * m[1][2] - m[0][2] * m[1][3] ) * m[2][1] +
+            ( m[0][1] * m[1][3] - m[0][3] * m[1][1] ) * m[2][2] +
+            ( m[0][2] * m[1][1] - m[0][1] * m[1][2] ) * m[2][3] ) * m[3][0] + 
+        ( ( m[0][2] * m[1][3] - m[0][3] * m[1][2] ) * m[2][0] +
+          ( m[0][3] * m[1][0] - m[0][0] * m[1][3] ) * m[2][2] + 
+          ( m[0][0] * m[1][2] - m[0][2] * m[1][0] ) * m[2][3] ) * m[3][1] +
+        ( ( m[0][3] * m[1][1] - m[0][1] * m[1][3] ) * m[2][0] + 
+          ( m[0][0] * m[1][3] - m[0][3] * m[1][0] ) * m[2][1] +
+          ( m[0][1] * m[1][0] - m[0][0] * m[1][1] ) * m[2][3] ) * m[3][2] +
+        ( ( m[0][1] * m[1][2] - m[0][2] * m[1][1] ) * m[2][0] +
+          ( m[0][2] * m[1][0] - m[0][0] * m[1][2] ) * m[2][1] + 
+          ( m[0][0] * m[1][1] - m[0][1] * m[1][0] ) * m[2][2] ) * m[3][3];
 }
+
 //trace
-inline float mat4::tr(mat4 m) {
-
-	return m[0][0]+m[1][1]+m[2][2]+m[3][3];
+inline float mat4::tr(mat4 m) 
+{
+    return m[0][0]+m[1][1]+m[2][2]+m[3][3];
 }
-//Cayley–Hamilton method//
-inline bool mat4::inverse(mat4 m, mat4& inverse) {
 
-	if (det(m) == 0) {
-		std::cout << "The matrix is nonsingular(nondegenerate)" << std::endl;
-		return false;
-	}
+//Cayley–Hamilton method//
+inline bool mat4::inverse(mat4 m, mat4& inverse) 
+{
+    if (det(m) == 0) {
+        std::cout << "The matrix is nonsingular(nondegenerate)" << std::endl;
+        return false;
+    }
     inverse = (1.0f/det(m))*
-			  ((1.0f/6)*(std::pow(tr(m),3) - 3*tr(m)*tr(m*m) + 2*tr(m*m*m))*identity() -
-			  0.5*m*((std::pow(tr(m),2) - tr(m*m))) + m*m*tr(m) - m*m*m
-		      );
-	return true;
+        ((1.0f/6)*(std::pow(tr(m),3) - 3*tr(m)*tr(m*m) + 2*tr(m*m*m))*identity() -
+         0.5*m*((std::pow(tr(m),2) - tr(m*m))) + m*m*tr(m) - m*m*m
+        );
+    return true;
 }
 
 inline std::ostream& operator<<(std::ostream& os, const mat4& m) 
