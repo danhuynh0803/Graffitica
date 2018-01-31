@@ -11,6 +11,9 @@ class mat4;
 
 mat4 zero();
 mat4 identity();
+mat4 translate(const mat4& m_transform, const vec3& new_position);
+mat4 scale(const mat4& m_transform, float angle, const vec3& axis);
+mat4 rotate(const mat4& m_transform, float angle, const vec3& axis);
 
 class mat4
 {
@@ -18,6 +21,14 @@ public:
     mat4() 
     {
         entry.resize(4, std::vector<float>(4, 0));
+        // TODO: do we want to initialize to identity or to 0?
+        /*
+        // initialize all matrices to 4x4 identity
+        entry[0][0] = 1;
+        entry[1][1] = 1;
+        entry[2][2] = 1;
+        entry[3][3] = 1;
+        */
     }
     
     inline void operator =(const mat4 &rhs);
@@ -58,10 +69,6 @@ public:
     //mat4 operator -=(const mat4 &rhs);
     //mat4 operator *=(const mat4 &rhs);
 
-    inline mat4 translate(const mat4& m_transform, const vec3& new_position);
-    inline mat4 scale(const mat4& m_transform, float angle, const vec3& axis);
-    inline mat4 rotate(const mat4& m_transform, float angle, const vec3& axis);
-
 
     static mat4 affine_matrix(float k_x, float k_y, float k_z, float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy, float t_x, float t_y, float t_z);
     static float det(mat4 m);
@@ -88,6 +95,32 @@ mat4 identity()
         m.entry[i][i] = 1;
     }
     return m;
+}
+
+mat4 translate(const mat4& m_transform, const vec3& v_translation)
+{
+    mat4 m_translation = identity();
+    m_translation[0][3] = v_translation.x();
+    m_translation[1][3] = v_translation.y();
+    m_translation[2][3] = v_translation.z();
+
+    return m_translation * m_transform;
+}
+
+mat4 scale(const mat4& m_transform, const vec3& v_scale)
+{
+    mat4 m_scale; 
+    m_scale[0][0] = v_scale.x();
+    m_scale[1][1] = v_scale.y();
+    m_scale[2][2] = v_scale.z();
+    m_scale[3][3] = 1;
+    
+    return m_scale * m_transform;
+}
+
+mat4 rotate(const mat4& m_transform, float angle, const vec3& axis)
+{
+
 }
 
 inline void mat4::operator =(const mat4 &rhs)
