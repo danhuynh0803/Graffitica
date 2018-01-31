@@ -32,9 +32,9 @@ int main()
     mat4 m = identity();
     std::cout << m << std::endl;
 
-    mat4 m_translate = translate(m, vec3(2.0f, 2.0f, 2.0f));
-    std::cout << m_translate << std::endl;
-    vec4 t_p3 = m_translate * vec4(p3, 1.0f); 
+    translate(m, vec3(2.0f, 2.0f, 2.0f));
+    std::cout << m << std::endl;
+    vec4 t_p3 = m * vec4(p3, 1.0f); 
     std::cout << t_p3 << std::endl;
 
     return 0;

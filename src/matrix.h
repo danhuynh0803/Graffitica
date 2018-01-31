@@ -97,17 +97,17 @@ mat4 identity()
     return m;
 }
 
-mat4 translate(const mat4& m_transform, const vec3& v_translation)
+void translate(mat4& m_transform, const vec3& v_translation)
 {
     mat4 m_translation = identity();
     m_translation[0][3] = v_translation.x();
     m_translation[1][3] = v_translation.y();
     m_translation[2][3] = v_translation.z();
 
-    return m_translation * m_transform;
+    m_transform = m_translation * m_transform;
 }
 
-mat4 scale(const mat4& m_transform, const vec3& v_scale)
+void scale(mat4& m_transform, const vec3& v_scale)
 {
     mat4 m_scale; 
     m_scale[0][0] = v_scale.x();
@@ -115,7 +115,7 @@ mat4 scale(const mat4& m_transform, const vec3& v_scale)
     m_scale[2][2] = v_scale.z();
     m_scale[3][3] = 1;
     
-    return m_scale * m_transform;
+    m_transform = m_scale * m_transform;
 }
 
 mat4 rotate(const mat4& m_transform, float angle, const vec3& axis)
