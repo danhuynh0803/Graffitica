@@ -23,9 +23,9 @@ public:
         mat4 view; 
         // view matrix values, assuming column vector notation
         std::vector<float> v_view = {
-            right.x(), up.x(), forward.x(), translate.x(),
-            right.y(), up.y(), forward.y(), translate.y(),
-            right.z(), up.z(), forward.z(), translate.z(),
+            right.x(), up.x(), forward.x(), look_from.x(),
+            right.y(), up.y(), forward.y(), look_from.y(),
+            right.z(), up.z(), forward.z(), look_from.z(),
                     0,      0,           0,             1 
         };
 
@@ -40,7 +40,7 @@ public:
 
     vec3 look_from;
     vec3 look_at; 
-    vec3 right, up, forward, translate;
+    vec3 right, up, forward;
     float vfov, aspect_ratio;
 };
 
