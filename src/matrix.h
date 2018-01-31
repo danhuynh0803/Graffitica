@@ -11,10 +11,18 @@ class mat4;
 
 mat4 zero();
 mat4 identity();
-mat4 translate(const mat4& m_transform, const vec3& new_position);
-mat4 scale(const mat4& m_transform, float angle, const vec3& axis);
-mat4 rotate(const mat4& m_transform, float angle, const vec3& axis);
-
+void translate(mat4& m_transform, const vec3& v_translation);
+void scale(mat4& m_transform, const vec3& v_scale);
+void rotate_aribitary_axes(mat4& m_transform, float angle, const vec3& axis);
+void rotate_x(mat4& m_transform, float angle);
+void rotate_y(mat4& m_transform, float angle);
+void rotate_z(mat4& m_transform, float angle);
+void rotate_xyz(mat4& m_transform, float angle_x, float angle_y, float angle_z);
+void shear(mat4& m_transform, float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy);
+void affine_matrix(mat4& m_transform, 
+	float k_x, float k_y, float k_z, 
+	float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy, 
+	float t_x, float t_y, float t_z);
 class mat4
 {
 public:
@@ -69,8 +77,6 @@ public:
     //mat4 operator -=(const mat4 &rhs);
     //mat4 operator *=(const mat4 &rhs);
 
-
-    static mat4 affine_matrix(float k_x, float k_y, float k_z, float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy, float t_x, float t_y, float t_z);
     static float det(mat4 m);
     static float tr(mat4 m);
     static bool inverse(mat4 m, mat4& inverse);
@@ -117,11 +123,102 @@ void scale(mat4& m_transform, const vec3& v_scale)
     
     m_transform = m_scale * m_transform;
 }
+void rotate_aribitary_axes(mat4& m_transform, float angle, const vec3& axis)
+{
+	mat4 m_rotate;
+	angle *= M_PI / 180;
+	//makes it a unit vector
+	float l = axis[0] / axis.length();
+	float m = axis[1] / axis.length();
+	float n = axis[2] / axis.length();
+	m_rotate[0][0] = l*l*(1 - cos(angle) + cos(angle));
+	m_rotate[0][1] = m*l*(1 - cos(angle) - n * sin(angle));
+	m_rotate[0][2] = n*l*(1 - cos(angle) + m * sin(angle));
 
-mat4 rotate(const mat4& m_transform, float angle, const vec3& axis)
+	m_rotate[1][0] = l*m*(1 - cos(angle) + n * sin(angle));
+	m_rotate[1][1] = m*m*(1 - cos(angle) + cos(angle));
+	m_rotate[1][2] = n*m*(1 - cos(angle) - l * sin(angle));
+
+	m_rotate[2][0] = l*n*(1 - cos(angle) - m * sin(angle));
+	m_rotate[2][1] = m*n*(1 - cos(angle) + l * sin(angle));
+	m_rotate[2][2] = n*n*(1 - cos(angle) + cos(angle));
+
+	m_rotate[3][3] = 1;
+	m_transform = m_rotate * m_transform;
+}
+void rotate_x(mat4& m_transform, float angle)
+{
+	mat4 m_rotate;
+	angle *= M_PI / 180;
+	m_rotate[0][0] = 1;
+	m_rotate[3][3] = 1;
+	m_rotate[1][1] = cos(angle);
+	m_rotate[1][2] = -1 * sin(angle);
+	m_rotate[2][1] = sin(angle);
+	m_rotate[2][2] = cos(angle);
+	m_transform = m_rotate * m_transform;
+}
+void rotate_y(mat4& m_transform, float angle)
+{
+	mat4 m_rotate;
+	angle *= M_PI / 180;
+	m_rotate[1][1] = 1;
+	m_rotate[3][3] = 1;
+	m_rotate[0][0] = cos(angle);
+	m_rotate[0][2] = sin(angle);
+	m_rotate[2][1] = -1 * sin(angle);
+	m_rotate[2][2] = cos(angle);
+	m_transform = m_rotate * m_transform;
+}
+void rotate_z(mat4& m_transform, float angle)
+{
+	mat4 m_rotate;
+	angle *= M_PI / 180;
+	m_rotate[2][2] = 1;
+	m_rotate[3][3] = 1;
+	m_rotate[0][0] = cos(angle);
+	m_rotate[0][1] = -1 * sin(angle);
+	m_rotate[1][0] = sin(angle);
+	m_rotate[1][1] = cos(angle);
+	m_transform = m_rotate * m_transform;
+}
+void rotate_xyz(mat4& m_transform, float angle_x, float angle_y, float angle_z)
 {
 
 }
+
+void shear(mat4& m_transform, float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy)
+{
+	mat4 m_shear = identity();
+	m_shear[0][1] = h_xy;
+	m_shear[0][2] = h_xz;
+	m_shear[1][0] = h_yx;
+	m_shear[1][2] = h_yz;
+	m_shear[2][0] = h_zx;
+	m_shear[2][1] = h_zy;
+	m_transform = m_shear * m_transform;
+}
+void affine_matrix(mat4& m_transform, float k_x, float k_y, float k_z, float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy, float t_x, float t_y, float t_z) {
+	mat4 m;
+	m[3][3] = 1;
+	//scale
+	m[0][0] = k_x;
+	m[1][1] = k_y;
+	m[2][2] = k_z;
+	//shear
+	m[0][1] = h_xy;
+	m[0][2] = h_xz;
+	m[1][0] = h_yx;
+	m[1][2] = h_yz;
+	m[2][0] = h_zx;
+	m[2][1] = h_zy;
+	//translation
+	m[0][3] = t_x;
+	m[1][3] = t_y;
+	m[2][3] = t_z;
+	m_transform = m * m_transform;
+}
+
 
 inline void mat4::operator =(const mat4 &rhs)
 {
@@ -275,29 +372,7 @@ inline bool operator ==(const mat4 &m1, const mat4 &m2)
     }
     return true; 
 }
-inline mat4 mat4::affine_matrix(float k_x, float k_y, float k_z, float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy, float t_x, float t_y, float t_z) {
-    mat4 m;
-    m[3][0] = 0;
-    m[3][1] = 0;
-    m[3][2] = 0;
-    m[3][3] = 1;
-    //scale
-    m[0][0] = k_x;
-    m[1][1] = k_y;
-    m[2][2] = k_z;
-    //shear
-    m[0][1] = h_xy;
-    m[0][2] = h_xz;
-    m[1][0] = h_yx;
-    m[1][2] = h_yz;
-    m[2][0] = h_zx;
-    m[2][1] = h_zy;
-    //translation
-    m[0][3] = t_x;
-    m[1][3] = t_y;
-    m[2][3] = t_z;
-    return m;
-}
+
 
 inline float mat4::det(mat4 m) 
 {
