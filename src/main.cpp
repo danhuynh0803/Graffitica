@@ -6,6 +6,7 @@
 #include "noise.h"
 #include "matrix.h"
 #include "quaternion.h"
+#include "camera.h"
 
 // Color lib
 color WHITE(1.0f, 1.0f, 1.0f); 

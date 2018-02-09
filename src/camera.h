@@ -1,7 +1,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "vec3.h"
+#include "vector.h"
 #include "matrix.h"
 
 class camera
@@ -12,9 +12,9 @@ public:
         look_from(from), look_at(at), vfov(vert_fov), aspect_ratio(asp_ratio)
     {
        // Camera's local axes 
-       forward = unit_vector(look_from - look_at);  // +z 
-       right = unit_vector(cross(up, forward));     // +x
-       up = cross(forward, right);                  // +y
+       forward = unit_vector(look_from - look_at);              // +z 
+       right = unit_vector(cross(vec3(0, 1, 0), forward));      // +x
+       up = cross(forward, right);                              // +y
     }
 
     // Returns the view matrix
