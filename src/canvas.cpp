@@ -7,6 +7,7 @@
 #include "canvas.h"
 #include "vector.h"
 #include "graff.h"
+#include "matrix.h"
 
 vec3 Canvas::convert_ndc_to_canvas(const vec3 &p)
 {
@@ -25,6 +26,17 @@ void Canvas::draw_shapes()
            it != shapes_list.end(); ++it) 
     {
         (*it)->draw(canvas);    
+    }
+}
+
+void Canvas::apply_transform(const mat4& m_transform)
+{
+    // Apply transformation matrix on all shapes
+    // and their corresponding vertices
+    for (std::vector<shape *>::const_iterator it = shapes_list.begin();
+           it != shapes_list.end(); ++it)
+    {
+        (*it)->apply_transform(m_transform);    
     }
 }
 

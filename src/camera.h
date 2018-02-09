@@ -8,13 +8,13 @@ class camera
 {
 public: 
 
-    camera(const vec3 &from, const vec3 &at, float vert_fov, float asp_ratio):
+    camera(const vec3& from, const vec3& at, float vert_fov, float asp_ratio):
         look_from(from), look_at(at), vfov(vert_fov), aspect_ratio(asp_ratio)
     {
        // Camera's local axes 
        forward = unit_vector(look_from - look_at);  // +z 
-       right = unit_vector(cross(up, w));           // +x
-       up = cross(w, u);                            // +y
+       right = unit_vector(cross(up, forward));     // +x
+       up = cross(forward, right);                  // +y
     }
 
     // Returns the view matrix
@@ -42,6 +42,7 @@ public:
     vec3 look_at; 
     vec3 right, up, forward;
     float vfov, aspect_ratio;
+    float near, far;
 };
 
 #endif // CAMERA_H

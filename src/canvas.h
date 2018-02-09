@@ -5,6 +5,7 @@
 #include <vector>
 #include "vector.h"
 #include "shapes.h"
+#include "matrix.h"
 
 class Canvas 
 {
@@ -23,6 +24,9 @@ public:
 
     // Draws all the shapes stores within the shapes_list
     void draw_shapes(); 
+
+    // Apply a transformation matrix to all vertices
+    void apply_transform(const mat4& m_transform);
 
     // Primitives
     void draw_line(const vec3 &p0, const vec3 &p1, const color& _color); 
@@ -44,7 +48,7 @@ private:
     int width;    
     int height; 
 
-    bool has_depth = false;  // Enables 3D perspective if true
+    bool has_depth = false;  // Enables depth buffer if true
 
     std::vector<std::vector<color> > canvas;
     std::vector<shape*> shapes_list;
