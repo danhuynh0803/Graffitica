@@ -2,41 +2,35 @@
 #define MATRIX_H
 #define _USE_MATH_DEFINES
 #include <cmath>
-#include <stdexcept>
 #include <iostream> 
 #include <vector>
 #include "vector.h"
 
 class mat4; 
 
-mat4 zero();
-mat4 identity();
-void translate(mat4& m_transform, const vec3& v_translation);
-void scale(mat4& m_transform, const vec3& v_scale);
-void rotate_aribitary_axes(mat4& m_transform, float angle, const vec3& axis);
-void rotate_x(mat4& m_transform, float angle);
-void rotate_y(mat4& m_transform, float angle);
-void rotate_z(mat4& m_transform, float angle);
-void rotate_xyz(mat4& m_transform, float angle_x, float angle_y, float angle_z);
-void shear(mat4& m_transform, float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy);
+inline mat4 zero();
+inline mat4 identity();
+inline void translate(mat4& m_transform, const vec3& v_translation);
+inline void scale(mat4& m_transform, const vec3& v_scale);
+inline void rotate_aribitary_axes(mat4& m_transform, float angle, const vec3& axis);
+inline void rotate_x(mat4& m_transform, float angle);
+inline void rotate_y(mat4& m_transform, float angle);
+inline void rotate_z(mat4& m_transform, float angle);
+inline void rotate_xyz(mat4& m_transform, float angle_x, float angle_y, float angle_z);
+inline void shear(mat4& m_transform, float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy);
+/*
 void affine_matrix(mat4& m_transform, 
 	float k_x, float k_y, float k_z, 
 	float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy, 
 	float t_x, float t_y, float t_z);
+*/
+
 class mat4
 {
 public:
     mat4() 
     {
         entry.resize(4, std::vector<float>(4, 0));
-        // TODO: do we want to initialize to identity or to 0?
-        /*
-        // initialize all matrices to 4x4 identity
-        entry[0][0] = 1;
-        entry[1][1] = 1;
-        entry[2][2] = 1;
-        entry[3][3] = 1;
-        */
     }
     
     inline void operator =(const mat4 &rhs);
@@ -86,13 +80,13 @@ public:
     std::vector<std::vector<float> > entry;
 };
 
-mat4 zero() 
+inline mat4 zero() 
 {
     return mat4();
 }
 
 // Returns a 4x4 identity matrix
-mat4 identity()
+inline mat4 identity()
 {
     mat4 m; 
     for (int i = 0; i < 4; ++i) 
@@ -103,7 +97,7 @@ mat4 identity()
     return m;
 }
 
-void translate(mat4& m_transform, const vec3& v_translation)
+inline void translate(mat4& m_transform, const vec3& v_translation)
 {
     mat4 m_translation = identity();
     m_translation[0][3] = v_translation.x();
@@ -113,7 +107,7 @@ void translate(mat4& m_transform, const vec3& v_translation)
     m_transform = m_translation * m_transform;
 }
 
-void scale(mat4& m_transform, const vec3& v_scale)
+inline void scale(mat4& m_transform, const vec3& v_scale)
 {
     mat4 m_scale; 
     m_scale[0][0] = v_scale.x();
@@ -123,81 +117,88 @@ void scale(mat4& m_transform, const vec3& v_scale)
     
     m_transform = m_scale * m_transform;
 }
-void rotate_aribitary_axes(mat4& m_transform, float angle, const vec3& axis)
-{
-	mat4 m_rotate;
-	angle *= M_PI / 180;
-	//makes it a unit vector
-	float l = axis[0] / axis.length();
-	float m = axis[1] / axis.length();
-	float n = axis[2] / axis.length();
-	m_rotate[0][0] = l*l*(1 - cos(angle) + cos(angle));
-	m_rotate[0][1] = m*l*(1 - cos(angle) - n * sin(angle));
-	m_rotate[0][2] = n*l*(1 - cos(angle) + m * sin(angle));
 
-	m_rotate[1][0] = l*m*(1 - cos(angle) + n * sin(angle));
-	m_rotate[1][1] = m*m*(1 - cos(angle) + cos(angle));
-	m_rotate[1][2] = n*m*(1 - cos(angle) - l * sin(angle));
+inline void rotate_aribitary_axes(mat4& m_transform, float angle, const vec3& axis)
+{
+    mat4 m_rotate;
+    angle *= M_PI / 180;
+    //makes it a unit vector
+    float l = axis[0] / axis.length();
+    float m = axis[1] / axis.length();
+    float n = axis[2] / axis.length();
+    m_rotate[0][0] = l*l*(1 - cos(angle) + cos(angle));
+    m_rotate[0][1] = m*l*(1 - cos(angle) - n * sin(angle));
+    m_rotate[0][2] = n*l*(1 - cos(angle) + m * sin(angle));
 
-	m_rotate[2][0] = l*n*(1 - cos(angle) - m * sin(angle));
-	m_rotate[2][1] = m*n*(1 - cos(angle) + l * sin(angle));
-	m_rotate[2][2] = n*n*(1 - cos(angle) + cos(angle));
+    m_rotate[1][0] = l*m*(1 - cos(angle) + n * sin(angle));
+    m_rotate[1][1] = m*m*(1 - cos(angle) + cos(angle));
+    m_rotate[1][2] = n*m*(1 - cos(angle) - l * sin(angle));
 
-	m_rotate[3][3] = 1;
-	m_transform = m_rotate * m_transform;
-}
-void rotate_x(mat4& m_transform, float angle)
-{
-	mat4 m_rotate;
-	angle *= M_PI / 180;
-	m_rotate[0][0] = 1;
-	m_rotate[3][3] = 1;
-	m_rotate[1][1] = cos(angle);
-	m_rotate[1][2] = -1 * sin(angle);
-	m_rotate[2][1] = sin(angle);
-	m_rotate[2][2] = cos(angle);
-	m_transform = m_rotate * m_transform;
-}
-void rotate_y(mat4& m_transform, float angle)
-{
-	mat4 m_rotate;
-	angle *= M_PI / 180;
-	m_rotate[1][1] = 1;
-	m_rotate[3][3] = 1;
-	m_rotate[0][0] = cos(angle);
-	m_rotate[0][2] = sin(angle);
-	m_rotate[2][1] = -1 * sin(angle);
-	m_rotate[2][2] = cos(angle);
-	m_transform = m_rotate * m_transform;
-}
-void rotate_z(mat4& m_transform, float angle)
-{
-	mat4 m_rotate;
-	angle *= M_PI / 180;
-	m_rotate[2][2] = 1;
-	m_rotate[3][3] = 1;
-	m_rotate[0][0] = cos(angle);
-	m_rotate[0][1] = -1 * sin(angle);
-	m_rotate[1][0] = sin(angle);
-	m_rotate[1][1] = cos(angle);
-	m_transform = m_rotate * m_transform;
-}
-void rotate_xyz(mat4& m_transform, float angle_x, float angle_y, float angle_z)
-{
+    m_rotate[2][0] = l*n*(1 - cos(angle) - m * sin(angle));
+    m_rotate[2][1] = m*n*(1 - cos(angle) + l * sin(angle));
+    m_rotate[2][2] = n*n*(1 - cos(angle) + cos(angle));
 
+    m_rotate[3][3] = 1;
+    m_transform = m_rotate * m_transform;
 }
 
-void shear(mat4& m_transform, float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy)
+inline void rotate_x(mat4& m_transform, float angle)
 {
-	mat4 m_shear = identity();
-	m_shear[0][1] = h_xy;
-	m_shear[0][2] = h_xz;
-	m_shear[1][0] = h_yx;
-	m_shear[1][2] = h_yz;
-	m_shear[2][0] = h_zx;
-	m_shear[2][1] = h_zy;
-	m_transform = m_shear * m_transform;
+    mat4 m_rotate;
+    angle *= M_PI / 180;
+    m_rotate[0][0] = 1;
+    m_rotate[3][3] = 1;
+    m_rotate[1][1] = cos(angle);
+    m_rotate[1][2] = -1 * sin(angle);
+    m_rotate[2][1] = sin(angle);
+    m_rotate[2][2] = cos(angle);
+    m_transform = m_rotate * m_transform;
 }
+
+inline void rotate_y(mat4& m_transform, float angle)
+{
+    mat4 m_rotate;
+    angle *= M_PI / 180;
+    m_rotate[1][1] = 1;
+    m_rotate[3][3] = 1;
+    m_rotate[0][0] = cos(angle);
+    m_rotate[0][2] = sin(angle);
+    m_rotate[2][1] = -1 * sin(angle);
+    m_rotate[2][2] = cos(angle);
+    m_transform = m_rotate * m_transform;
+}
+
+inline void rotate_z(mat4& m_transform, float angle)
+{
+    mat4 m_rotate;
+    angle *= M_PI / 180;
+    m_rotate[2][2] = 1;
+    m_rotate[3][3] = 1;
+    m_rotate[0][0] = cos(angle);
+    m_rotate[0][1] = -1 * sin(angle);
+    m_rotate[1][0] = sin(angle);
+    m_rotate[1][1] = cos(angle);
+    m_transform = m_rotate * m_transform;
+}
+
+inline void rotate_xyz(mat4& m_transform, float angle_x, float angle_y, float angle_z)
+{
+
+}
+
+inline void shear(mat4& m_transform, float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy)
+{
+    mat4 m_shear = identity();
+    m_shear[0][1] = h_xy;
+    m_shear[0][2] = h_xz;
+    m_shear[1][0] = h_yx;
+    m_shear[1][2] = h_yz;
+    m_shear[2][0] = h_zx;
+    m_shear[2][1] = h_zy;
+    m_transform = m_shear * m_transform;
+}
+
+/*
 void affine_matrix(mat4& m_transform, float k_x, float k_y, float k_z, float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy, float t_x, float t_y, float t_z) {
 	mat4 m;
 	m[3][3] = 1;
@@ -218,7 +219,7 @@ void affine_matrix(mat4& m_transform, float k_x, float k_y, float k_z, float h_x
 	m[2][3] = t_z;
 	m_transform = m * m_transform;
 }
-
+*/
 
 inline void mat4::operator =(const mat4 &rhs)
 {
@@ -268,7 +269,7 @@ inline void mat4::operator =(const std::vector<float> &rhs)
     }
 }
 
-inline mat4 mat4::operator+(const mat4& rhs) {
+inline mat4 mat4::operator +(const mat4& rhs) {
     int row = 4, col = 4;
     mat4 sum;
     for (int i = 0; i < row; i++) {
@@ -279,7 +280,7 @@ inline mat4 mat4::operator+(const mat4& rhs) {
     return sum;
 }
 
-inline mat4 mat4::operator-(const mat4& rhs) {
+inline mat4 mat4::operator -(const mat4& rhs) {
     mat4 sum;
     int row = 4, col = 4;
     for (int i = 0; i < row; i++) {
@@ -290,7 +291,7 @@ inline mat4 mat4::operator-(const mat4& rhs) {
     return sum;
 }
 
-inline mat4 mat4::operator*(const mat4& rhs) {
+inline mat4 mat4::operator *(const mat4& rhs) {
     mat4 product;
     int row = 4, col = 4;
     for (int i = 0; i < row; i++) {
@@ -303,6 +304,31 @@ inline mat4 mat4::operator*(const mat4& rhs) {
     return product;
 }
 
+inline vec4 operator *(const mat4& lhs, const vec4 &rhs)
+{
+    vec4 product;
+    int row = 4, col = 4;
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < col; j++) {
+            product[i] += lhs[i][j] * rhs[j];
+        }
+    }
+    return product;
+}
+
+inline vec4 mat4::operator *(const vec4& rhs) {
+    vec4 product;
+    int row = 4, col = 4;
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < col; j++) {
+            product[i] += entry[i][j] * rhs[j];
+        }
+    }
+    return product;
+}
+
+//TODO make workable with const mat4
+/*
 inline vec4 mat4::operator*(const vec4& rhs) {
     vec4 product;
     int row = 4, col = 4;
@@ -313,6 +339,7 @@ inline vec4 mat4::operator*(const vec4& rhs) {
     }
     return product;
 }
+*/
 
 inline mat4 mat4::operator*(float rhs) {
     mat4 product;
@@ -396,7 +423,7 @@ inline float mat4::tr(mat4 m)
     return m[0][0]+m[1][1]+m[2][2]+m[3][3];
 }
 
-//Cayley–Hamilton method//
+//Cayleyï¿½Hamilton method//
 inline bool mat4::inverse(mat4 m, mat4& inverse) 
 {
     if (det(m) == 0) {

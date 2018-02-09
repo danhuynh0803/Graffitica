@@ -184,6 +184,7 @@ public:
     inline float g() const { return e[1]; }
     inline float b() const { return e[2]; }
     inline float a() const { return e[3]; }
+    inline vec3 xyz() const { return vec3(e[0], e[1], e[2]); }
 
     inline void operator =(const vec4 &v2);
     inline const vec4& operator +() const { return *this; }

@@ -16,8 +16,6 @@ TEST_CASE("Vector3 Multiply", "[VEC3 MULT]")
     REQUIRE( vec3(1,1,1) *-1 == vec3(-1,-1,-1) );
 }
 
-
-
 /// Vector4 tests
 TEST_CASE("Vector4 Add", "[VEC4 ADD]")
 {

@@ -5,11 +5,13 @@
 #include "vector.h"
 #include "vertex.h"
 #include "graff.h"
+#include "matrix.h"
 
 class shape 
 {
 public:
     virtual void draw(std::vector<std::vector<color> > &canvas) = 0;
+    virtual void apply_transform(const mat4& m_transform) = 0;
 };
 
 
@@ -20,6 +22,7 @@ public:
         p0(_p0), p1(_p1), shape_color(_color) {}
     
     void draw(std::vector<std::vector<color> > &canvas);
+    void apply_transform(const mat4& m_transform);
 
     // TODO create a vertex class, where it contains vec3 position and vec3 color 
     color shape_color;
@@ -34,6 +37,7 @@ public:
         p0(_p0), p1(_p1), p2(_p2), shape_color(_color), is_filled(filled) {} 
 
     void draw(std::vector<std::vector<color> > &canvas);
+    void apply_transform(const mat4& m_transform);
 
     // TODO create a vertex class, where it contains vec3 position and vec3 color 
     color shape_color;
