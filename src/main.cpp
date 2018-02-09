@@ -35,7 +35,8 @@ int main()
     translate(m, vec3(2.0f, 2.0f, 2.0f));
     std::cout << m << std::endl;
     vec4 t_p3 = m * vec4(p3, 1.0f); 
+    vec4 t_p5 = m * vec4(p4, 1.0f); 
     std::cout << t_p3 << std::endl;
-    std::cout << t_p3 << std::endl;
+    std::cout << t_p5 << std::endl;
     return 0;
 }
