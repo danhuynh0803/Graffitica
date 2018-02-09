@@ -36,6 +36,6 @@ int main()
     std::cout << m << std::endl;
     vec4 t_p3 = m * vec4(p3, 1.0f); 
     std::cout << t_p3 << std::endl;
-
+    std::cout << t_p3 << std::endl;
     return 0;
 }
