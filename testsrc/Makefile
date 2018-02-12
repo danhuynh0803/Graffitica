@@ -4,6 +4,8 @@ INCLUDE = -I../src/
 
 TESTS = tests-vec.cpp tests-matrix.cpp
 
+.PHONY: all clean
+
 all: tests-main tests
 
 tests-main: tests-main.o 

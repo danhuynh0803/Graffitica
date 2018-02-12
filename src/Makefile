@@ -18,12 +18,12 @@ endif
 .cpp.o:
 	$(CPP) $(CPPFLAGS) -c $(BOOST) $< $(OFLAGS) $@
 
-.PHONY: all
+.PHONY: all clean 
+
 all: $(OBJECTS) build 
 
 build: $(OBJECTS)
 	$(CPP) $(CPPFLAGS) $(OFLAGS) $(BUILDEXE) $(OBJECTS) $(BOOST)
 
-.PHONY: clean
 clean: 
 	$(RM) *.o graffitica
