@@ -21,9 +21,10 @@ public:
     int get_height() { return height; }
     std::vector<std::vector<color> >& get_canvas() { return canvas; }
     vec3 convert_ndc_to_canvas(const vec3& p);
+    vec3 convert_canvas_to_ndc(const vec3& p);
 
     // Draws all the shapes stores within the shapes_list
-    void draw_shapes(); 
+    void draw_shapes();
 
     // Apply a transformation matrix to all vertices
     void apply_transform(const mat4& m_transform);

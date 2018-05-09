@@ -19,6 +19,17 @@ vec3 Canvas::convert_ndc_to_canvas(const vec3 &p)
     return canvas_coords;
 }
 
+vec3 Canvas::convert_canvas_to_ndc(const vec3 &p)
+{
+    vec3 ndc_coords(
+        (2 * p.x() - width) / width,  
+        (2 * p.y() - height) / height, 0
+    ); 
+
+    return ndc_coords;
+}
+
+
 void Canvas::draw_shapes()
 {
     // Draw all the shapes that are stored in the shapes_list 
