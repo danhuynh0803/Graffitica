@@ -6,15 +6,19 @@
 
 #include "model.h"
 
-Model::Model(const char* model_file) : verts(), faces() 
+Model::Model(const char* file_name) : verts(), faces() 
 {
     std::ifstream in;
-    in.open (model_file, std::ifstream::in);
+    in.open (file_name, std::ifstream::in);
     // exit if we can't open the file
     if (in.fail()) 
         return;
 
     std::string line; 
+
+    bool hasTexture = false;
+    bool hasNormals = false;
+
     while(!in.eof()) 
     {
         std::getline(in, line);
@@ -25,6 +29,7 @@ Model::Model(const char* model_file) : verts(), faces()
         // so that we do not store it into the 
         // vert/face list
         char trash; 
+
         // Current line is a vertex line
         if (!line.compare(0, 2, "v ")) 
         {
@@ -37,6 +42,16 @@ Model::Model(const char* model_file) : verts(), faces()
             }
             verts.push_back(vertex);
         }
+        // Current line is a texture line
+        else if (!line.compare(0, 2, "vt"))
+        {
+            hasTexture = true;
+        }
+        // Normal line 
+        else if (!line.compare(0, 2, "vn"))
+        {
+            hasNormals = true;
+        }
         // Current line is a face 
         else if (!line.compare(0, 2, "f ")) 
         {
@@ -45,26 +60,56 @@ Model::Model(const char* model_file) : verts(), faces()
             int vidx, tidx, nidx; // vertex, texture, and normal indices
             char delimiter;
              
-            while (iss >> vidx >> delimiter >> tidx >> delimiter >> nidx)
+            if (hasTexture && hasNormals)
             {
-                vidx--;
-                face.push_back(vidx);
+                // Face line format: 
+                // f v/vt/vn v/vt/vn v/vt/vn
+                while (iss >> vidx >> delimiter >> tidx >> delimiter >> nidx)
+                {
+                    vidx--;
+                    face.push_back(vidx);
+                }
             }
-            // Handles cases where *.obj faces are just vertex info 
-            // but does not handle textures and normals
-            /*
-            for (int i = 0; i < 3; ++i) 
+            else if (hasTexture && !hasNormals)
             {
-                iss >> idx;
-                // Decrement by 1 as *.obj format stores vert indices starting at 1
-                idx--; 
-                face.push_back(idx);
+                // Face line format: 
+                // f v/vt v/vt v/vt
+                while (iss >> vidx >> delimiter >> tidx)
+                {
+                    vidx--;
+                    face.push_back(vidx);
+                }
             }
-            */
+            else if (!hasTexture && hasNormals)
+            {
+                // Face line format: 
+                // f v//vn v//vn v//vn
+                while (iss >> vidx >> delimiter >> delimiter >> nidx)
+                {
+                    vidx--;
+                    face.push_back(vidx);
+                }
+            }
+            else  // Only positional vertices are provided
+            {
+                // f v1 v2 v3
+                for (int i = 0; i < 3; ++i) 
+                {
+                    iss >> vidx;
+                    // Decrement by 1 as *.obj format stores vert indices starting at 1
+                    vidx--; 
+                    face.push_back(vidx);
+                }
+            }
+
             faces.push_back(face);
         } 
     }
-    std::cerr << "# of vertices=" << verts.size() << "\n# of faces=" << faces.size() << std::endl;
+    // Debugs
+    std::cout << file_name << ":" << std::endl;
+    std::cout << "# of vertices=" << verts.size() << " # of faces=" << faces.size() << std::endl;
+    std::cout << "has texture data=" << hasTexture << " has normal data=" << hasNormals << std::endl;
+    std::cout << std::endl;
 }
 
 Model::~Model() 

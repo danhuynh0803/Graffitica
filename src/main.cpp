@@ -48,22 +48,22 @@ int main()
 {
     Canvas c(500, 500);
     Canvas d(500, 500);
-    Canvas e(500, 500);
+    Canvas e(800, 800);
 
     c.reset_canvas(WHITE); // set background color
     d.reset_canvas(BLACK); // set background color
-    e.reset_canvas(vec3(0.2f, 0.3f, 0.2f)); // set background color
+    e.reset_canvas(vec3(0.8f, 0.8f, 0.8f)); // set background color
 
-    //Model octa("../models/octahedron.obj");
-    //Model ico("../models/ico.obj"); // test face with vertex vertex vertex
+    Model octa("../models/octahedron.obj");
+    Model ico("../models/ico.obj"); // test face with vertex vertex vertex
     Model head("../models/african_head.obj"); // test *.obj face with vertex/texture/normal
 
-    //c.draw_model(octa, BLUE, true);
-    //d.draw_model(ico, WHITE, true);
-    e.draw_model(head,  RED, true);
+    c.draw_model(octa, BLUE, true);
+    d.draw_model(ico, WHITE, true);
+    e.draw_model(head,BLACK, true);
 
-    //c.print_canvas("octa.ppm"); // print image with selected title
-    //d.print_canvas("ico.ppm"); // print image with selected title
+    c.print_canvas("octa.ppm"); // print image with selected title
+    d.print_canvas("ico.ppm"); // print image with selected title
     e.print_canvas("head.ppm"); // print image with selected title
 
     return 0;
