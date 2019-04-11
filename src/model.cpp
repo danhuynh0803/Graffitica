@@ -42,8 +42,17 @@ Model::Model(const char* model_file) : verts(), faces()
         {
             iss >> trash;
             std::vector<int> face;
-            int idx; 
-
+            int vidx, tidx, nidx; // vertex, texture, and normal indices
+            char delimiter;
+             
+            while (iss >> vidx >> delimiter >> tidx >> delimiter >> nidx)
+            {
+                vidx--;
+                face.push_back(vidx);
+            }
+            // Handles cases where *.obj faces are just vertex info 
+            // but does not handle textures and normals
+            /*
             for (int i = 0; i < 3; ++i) 
             {
                 iss >> idx;
@@ -51,6 +60,7 @@ Model::Model(const char* model_file) : verts(), faces()
                 idx--; 
                 face.push_back(idx);
             }
+            */
             faces.push_back(face);
         } 
     }

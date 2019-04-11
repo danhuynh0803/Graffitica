@@ -47,11 +47,24 @@ vec3 project_vertex(vec3 p)
 int main()
 {
     Canvas c(500, 500);
-    c.reset_canvas(WHITE); // set background color
+    Canvas d(500, 500);
+    Canvas e(500, 500);
 
-    Model model("../models/octahedron.obj");
-    c.draw_model(model, BLUE, true);
-    c.print_canvas("model.ppm"); // print image with selected title
+    c.reset_canvas(WHITE); // set background color
+    d.reset_canvas(BLACK); // set background color
+    e.reset_canvas(vec3(0.2f, 0.3f, 0.2f)); // set background color
+
+    //Model octa("../models/octahedron.obj");
+    //Model ico("../models/ico.obj"); // test face with vertex vertex vertex
+    Model head("../models/african_head.obj"); // test *.obj face with vertex/texture/normal
+
+    //c.draw_model(octa, BLUE, true);
+    //d.draw_model(ico, WHITE, true);
+    e.draw_model(head,  RED, true);
+
+    //c.print_canvas("octa.ppm"); // print image with selected title
+    //d.print_canvas("ico.ppm"); // print image with selected title
+    e.print_canvas("head.ppm"); // print image with selected title
 
     return 0;
 }
