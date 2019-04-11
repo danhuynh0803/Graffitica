@@ -7,6 +7,7 @@
 #include "matrix.h"
 #include "quaternion.h"
 #include "camera.h"
+#include "model.h"
 
 // Color lib
 color WHITE(1.0f, 1.0f, 1.0f); 
@@ -45,30 +46,12 @@ vec3 project_vertex(vec3 p)
 
 int main()
 {
-    // front points
-    vec3 vAf(-1, 1, 5);
-    vec3 vBf(1, 1, 5);
-    vec3 vCf(1, -1, 5);
-    vec3 vDf(-1, -1, 5);
-    // back points
-    vec3 vAb(-1, 1, 6);
-    vec3 vBb(1, 1, 6);
-    vec3 vCb(1, -1, 6);
-    vec3 vDb(-1, -1, 6);
-
     Canvas c(500, 500);
-    c.reset_canvas(WHITE);
-    c.draw_line(project_vertex(vAf), project_vertex(vBf), BLUE);
-    c.draw_line(project_vertex(vBf), project_vertex(vCf), BLUE);
-    c.draw_line(project_vertex(vCf), project_vertex(vDf), BLUE);
-    c.draw_line(project_vertex(vDf), project_vertex(vAf), BLUE);
+    c.reset_canvas(WHITE); // set background color
 
-    c.draw_line(project_vertex(vAb), project_vertex(vBb), RED);
-    c.draw_line(project_vertex(vBb), project_vertex(vCb), RED);
-    c.draw_line(project_vertex(vCb), project_vertex(vDb), RED);
-    c.draw_line(project_vertex(vDb), project_vertex(vAb), RED);
+    Model model("../models/ico.obj");
 
-    c.print_canvas("perspect.ppm");
+    //c.print_canvas("perspect.ppm"); // print image with selected title
 
     return 0;
 }

@@ -6,7 +6,7 @@
 #include <boost/filesystem.hpp>
 #include "canvas.h"
 #include "vector.h"
-#include "graff.h"
+#include "draw.h"
 #include "matrix.h"
 
 vec3 Canvas::convert_ndc_to_canvas(const vec3 &p)
@@ -53,7 +53,7 @@ void Canvas::apply_transform(const mat4& m_transform)
 
 void Canvas::draw_line(const vec3 &p0, const vec3 &p1, const color& _color)
 {
-    graff::draw_line(convert_ndc_to_canvas(p0), 
+    draw::draw_line(convert_ndc_to_canvas(p0), 
                      convert_ndc_to_canvas(p1), 
                      _color, 
                      canvas);
@@ -61,7 +61,7 @@ void Canvas::draw_line(const vec3 &p0, const vec3 &p1, const color& _color)
 
 void Canvas::draw_triangle(const vec3 &p0, const vec3 &p1, const vec3 &p2, const color& _color, bool is_filled)
 {
-    graff::draw_triangle(convert_ndc_to_canvas(p0), 
+    draw::draw_triangle(convert_ndc_to_canvas(p0), 
                          convert_ndc_to_canvas(p1), 
                          convert_ndc_to_canvas(p2), 
                          _color, 

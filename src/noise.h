@@ -4,7 +4,7 @@
 #include <random>
 #include <vector>
 #include "vector.h"
-#include "graff.h"
+#include "draw.h"
 
 /// Function prototypes
 
@@ -19,7 +19,7 @@ void gen_2D_white_noise(int samples, const color &_color, std::vector<std::vecto
     {   
         x = distribution(generator) * canvas.size();
         y = distribution(generator) * canvas[0].size();
-        graff::put_pixel(x, y, _color, canvas);
+        draw::put_pixel(x, y, _color, canvas);
     }
 }
 
@@ -35,7 +35,7 @@ void gen_2D_gold_noise(int samples, const color& _color, std::vector<std::vector
         s = fmod((s + c), 1.0f);
         x = s * canvas.size();
         y = i % canvas[0].size(); 
-        graff::put_pixel(x, y, _color, canvas);
+        draw::put_pixel(x, y, _color, canvas);
     } 
 
 }
