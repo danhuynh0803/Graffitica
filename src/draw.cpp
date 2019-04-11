@@ -62,9 +62,26 @@ void draw::sort_desc(std::vector<vec3> &verts)
     }
 }
 
-void draw::draw_model(Model model)
+// Draws a model from a *.obj format 
+void draw::draw_model(Model model, const color& _color, std::vector<std::vector<color> > &canvas, bool is_wire)
 {
+    int nfaces = model.num_faces();
+    for (int i = 0; i < nfaces; ++i) 
+    {
+        // Get the index of the vertices that comprise the face
+        std::vector<int> vert_indices = model.face(i); 
 
+        // TODO rethink how to handle drawing to NDC
+        // Need to rethink how to tie with camera functions 
+
+        // Draw the triangles based on the position of the three vertices
+        draw_triangle(convert_ndc_to_canvas(model.vert(vert_indices[0]), canvas), 
+                      convert_ndc_to_canvas(model.vert(vert_indices[1]), canvas), 
+                      convert_ndc_to_canvas(model.vert(vert_indices[2]), canvas), 
+                      _color, 
+                      canvas,
+                      is_wire);
+    }
 }
 
 void draw::draw_line(vec3 p0, vec3 p1, const color& _color, std::vector<std::vector<color> > &canvas)
@@ -220,15 +237,15 @@ void draw::draw_triangle_wireframe(vec3 p0, vec3 p1, vec3 p2, const color &_colo
     draw::draw_line(p2, p0, _color, canvas);
 }
 
-void draw::draw_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_color, std::vector<std::vector<color> > &canvas, bool is_filled)
+void draw::draw_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_color, std::vector<std::vector<color> > &canvas, bool is_wire)
 {
-    if (is_filled)
+    if (is_wire)
     {
-        draw::draw_triangle_filled(p0, p1, p2, _color, canvas);
+        draw::draw_triangle_wireframe(p0, p1, p2, _color, canvas);
     }
     else 
     {
-        draw::draw_triangle_wireframe(p0, p1, p2, _color, canvas);
+        draw::draw_triangle_filled(p0, p1, p2, _color, canvas);
     }
 }
 

@@ -13,7 +13,7 @@ public :
     int num_verts();
     int num_faces();
     vec3 vert(int i);
-    std::vector<int> face(int index); 
+    std::vector<int> face(int index);
 
 private:
     std::vector<vec3> verts;

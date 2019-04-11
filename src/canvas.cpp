@@ -8,6 +8,7 @@
 #include "vector.h"
 #include "draw.h"
 #include "matrix.h"
+#include "model.h"
 
 vec3 Canvas::convert_ndc_to_canvas(const vec3 &p)
 {
@@ -59,15 +60,21 @@ void Canvas::draw_line(const vec3 &p0, const vec3 &p1, const color& _color)
                      canvas);
 }
 
-void Canvas::draw_triangle(const vec3 &p0, const vec3 &p1, const vec3 &p2, const color& _color, bool is_filled)
+void Canvas::draw_triangle(const vec3 &p0, const vec3 &p1, const vec3 &p2, const color& _color, bool is_wire)
 {
     draw::draw_triangle(convert_ndc_to_canvas(p0), 
                          convert_ndc_to_canvas(p1), 
                          convert_ndc_to_canvas(p2), 
                          _color, 
                          canvas, 
-                         is_filled);
+                         is_wire);
 }
+
+void Canvas::draw_model(Model model, const color& _color, bool is_wire)
+{
+    draw::draw_model(model, _color, canvas, is_wire);
+}
+
 
 void Canvas::reset_canvas(const color& _color)
 {

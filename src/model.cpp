@@ -42,11 +42,13 @@ Model::Model(const char* model_file) : verts(), faces()
         {
             iss >> trash;
             std::vector<int> face;
-            int itrash, idx; 
+            int idx; 
 
-            while (iss >> idx >> trash >> itrash >> trash >> itrash) 
+            for (int i = 0; i < 3; ++i) 
             {
-                idx--; // all indices start at 1 in .obj, so decrement by 1
+                iss >> idx;
+                // Decrement by 1 as *.obj format stores vert indices starting at 1
+                idx--; 
                 face.push_back(idx);
             }
             faces.push_back(face);
@@ -69,7 +71,7 @@ int Model::num_faces()
     return (int)faces.size();
 }
 
-std::vector<int> Model::face(int idx) 
+std::vector<int> Model::face(int idx)
 {
     return faces[idx];
 }

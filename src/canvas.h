@@ -6,6 +6,7 @@
 #include "vector.h"
 #include "shapes.h"
 #include "matrix.h"
+#include "model.h"
 
 class Canvas 
 {
@@ -31,7 +32,9 @@ public:
 
     // Primitives
     void draw_line(const vec3 &p0, const vec3 &p1, const color& _color); 
-    void draw_triangle(const vec3 &p0, const vec3 &p1, const vec3 &p2, const color& _color, bool = true);
+    void draw_triangle(const vec3 &p0, const vec3 &p1, const vec3 &p2, const color& _color, bool = false);
+    // Draw model from *.obj files using triangles
+    void draw_model(Model model, const color& _color, bool = false);
 
     // 2D or 3D options
     void enable_depth() { has_depth = true; }

@@ -49,9 +49,9 @@ int main()
     Canvas c(500, 500);
     c.reset_canvas(WHITE); // set background color
 
-    Model model("../models/ico.obj");
-
-    //c.print_canvas("perspect.ppm"); // print image with selected title
+    Model model("../models/octahedron.obj");
+    c.draw_model(model, BLUE, true);
+    c.print_canvas("model.ppm"); // print image with selected title
 
     return 0;
 }
