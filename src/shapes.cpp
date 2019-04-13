@@ -1,13 +1,4 @@
 #include "shapes.h"
-#include "draw.h"
-
-void line::draw(std::vector<std::vector<color> > &canvas)
-{
-    //draw::draw_line(p0, p1, shape_color, canvas);
-    draw::draw_line(draw::convert_ndc_to_canvas(p0, canvas), 
-                     draw::convert_ndc_to_canvas(p1, canvas), 
-                     shape_color, canvas);
-}
 
 void line::apply_transform(const mat4& m_transform)
 {
@@ -16,15 +7,6 @@ void line::apply_transform(const mat4& m_transform)
 
     p0 = p0_new.xyz();
     p1 = p1_new.xyz();
-}
-
-void triangle::draw(std::vector<std::vector<color> > &canvas)
-{
-    //draw::draw_triangle(p0, p1, p2,shape_color, canvas, is_filled);
-    draw::draw_triangle(draw::convert_ndc_to_canvas(p0, canvas), 
-                         draw::convert_ndc_to_canvas(p1, canvas), 
-                         draw::convert_ndc_to_canvas(p2, canvas), 
-                         shape_color, canvas, is_filled);
 }
 
 void triangle::apply_transform(const mat4& m_transform)

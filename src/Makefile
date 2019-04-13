@@ -1,7 +1,7 @@
 CPP = g++
 CPPFLAGS = -lstdc++ -std=c++11 -g
 OFLAGS = -o
-OBJECTS = draw.o shapes.o canvas.o model.o main.o 
+OBJECTS = shapes.o canvas.o model.o main.o 
 
 BOOSTDIR = L/usr/lib/x86_64-linux-gnu/ 
 BOOST = -lboost_filesystem -lboost_system

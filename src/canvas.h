@@ -27,16 +27,23 @@ public:
     // Apply a transformation matrix to all vertices
     void apply_transform(const mat4& m_transform);
 
+    void put_pixel(int x, int y, const color& _color);
+    void swap(vec3 &p0, vec3 &p1);
+    void sort_desc(std::vector<vec3> &verts);
+
     // Primitives
-    void draw_line(const vec3 &p0, const vec3 &p1, const color& _color); 
-    void draw_triangle(const vec3 &p0, const vec3 &p1, const vec3 &p2, const color& _color, bool = false);
+    void draw_line(vec3 p0, vec3 p1, const color& _color); 
+    void draw_triangle(vec3 p0, vec3 p1, vec3 p2, const color& _color, bool = false);
+    void draw_triangle_filled(vec3 p0, vec3 p1, vec3 p2, const color& _color);
+    void draw_triangle_wireframe(vec3 p0, vec3 p1, vec3 p2, const color& _color);
+    void fill_flat_bottom_triangle(vec3 p0, vec3 p1, vec3 p2, const color& _color); 
+    void fill_flat_top_triangle(vec3 p0, vec3 p1, vec3 p2, const color& _color); 
+
     // Draw model from *.obj files using triangles
     void draw_model(Model model, const color& _color, bool = false);
 
     // 2D or 3D options
-    void enable_depth() { has_depth = true; }
-    void disable_depth() { has_depth = false; }
-    bool get_depth() { return has_depth; }
+    bool has_depth = false;  // Enables depth buffer if true
 
     void reset_canvas(const color& _color = color(1.0f, 1.0f, 1.0f)); 
     void print_canvas(); 
@@ -48,8 +55,6 @@ public:
 private:  
     int width;    
     int height; 
-
-    bool has_depth = false;  // Enables depth buffer if true
 
     std::vector<std::vector<color> > canvas;
     std::vector<shape*> shapes_list;

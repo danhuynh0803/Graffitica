@@ -10,6 +10,7 @@
 
 ///////////////////////
 
+/* //TODO remove until draw functions are refactored
 void gen_2D_white_noise(int samples, const color &_color, std::vector<std::vector<color> > &canvas)
 {
     int x, y;
@@ -39,5 +40,6 @@ void gen_2D_gold_noise(int samples, const color& _color, std::vector<std::vector
     } 
 
 }
+*/
 
 #endif // NOISE_H
