@@ -1,16 +1,17 @@
+//TODO remove until draw functions are refactored
 #ifndef NOISE_H
 #define NOISE_H
 
 #include <random>
 #include <vector>
 #include "vector.h"
-#include "draw.h"
+//#include "draw.h"
 
 /// Function prototypes
 
 ///////////////////////
 
-/* //TODO remove until draw functions are refactored
+/* 
 void gen_2D_white_noise(int samples, const color &_color, std::vector<std::vector<color> > &canvas)
 {
     int x, y;

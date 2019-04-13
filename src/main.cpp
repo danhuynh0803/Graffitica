@@ -8,6 +8,7 @@
 #include "quaternion.h"
 #include "camera.h"
 #include "model.h"
+#include "light.h"
 
 // Color lib
 color WHITE(1.0f, 1.0f, 1.0f); 
@@ -52,7 +53,7 @@ int main()
 
     c.reset_canvas(WHITE); // set background color
     d.reset_canvas(BLACK); // set background color
-    e.reset_canvas(vec3(0.8f, 0.8f, 0.8f)); // set background color
+    e.reset_canvas(vec3(0.7f, 0.7f, 1.0f)); // set background color
 
     Model octa("../models/octahedron.obj");
     Model ico("../models/ico.obj"); // test face with vertex vertex vertex
@@ -60,7 +61,7 @@ int main()
 
     c.draw_model(octa, BLUE, true);
     d.draw_model(ico, WHITE, true);
-    e.draw_model(head,BLACK, true);
+    e.draw_model(head,WHITE, true);
 
     c.print_canvas("octa.ppm"); // print image with selected title
     d.print_canvas("ico.ppm"); // print image with selected title
