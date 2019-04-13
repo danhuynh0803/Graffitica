@@ -62,7 +62,11 @@ void draw::sort_desc(std::vector<vec3> &verts)
     }
 }
 
+// ==========================================
 // Draws a model from a *.obj format 
+// This is done by processing three vertices 
+// within the face
+// ==========================================
 void draw::draw_model(Model model, const color& _color, std::vector<std::vector<color> > &canvas, bool is_wire)
 {
     int nfaces = model.num_faces();

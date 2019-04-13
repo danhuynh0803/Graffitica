@@ -35,7 +35,15 @@ public:
         
     mat4 get_perspective()
     {
+        mat4 persp; 
+        // perspective values, assuming coloumn vector notation
+        std::vector<float> v_persp = {
 
+
+        };
+
+        persp = v_persp;
+        return persp;
     }
 
     vec3 look_from;

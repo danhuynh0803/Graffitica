@@ -5,6 +5,7 @@
 #include <cmath>
 #include <thread>
 #include "vector.h"
+#include "shapes.h"
 #include "model.h"
 
 /// Function prototypes ///

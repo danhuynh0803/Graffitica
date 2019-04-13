@@ -12,10 +12,7 @@ class Canvas
 {
 public: 
     // Constructor
-    Canvas(int w, int h) : width(w), height(h) 
-    {
-        canvas.resize(w, std::vector<color>(h));
-    }
+    Canvas(int w, int h);
     
     // Canvas dimensions
     int get_width() { return width; }
@@ -45,7 +42,7 @@ public:
     void print_canvas(); 
     void print_canvas(std::string _title);
 
-    // Storing shapes for additional processing
+    // Storing shapes for processing all together
     void add_shape(shape* prim) { shapes_list.push_back(prim); }
 
 private:  
@@ -56,6 +53,7 @@ private:
 
     std::vector<std::vector<color> > canvas;
     std::vector<shape*> shapes_list;
+    std::vector<std::vector<float> > depth_buffer;
 };
 
 #endif // CANVAS_H

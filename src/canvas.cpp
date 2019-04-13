@@ -3,12 +3,20 @@
 #include <string>
 #include <cmath>
 #include <vector>
+#include <cfloat>
 #include <boost/filesystem.hpp>
 #include "canvas.h"
 #include "vector.h"
 #include "draw.h"
 #include "matrix.h"
+#include "shapes.h"
 #include "model.h"
+
+Canvas::Canvas(int w, int h) : width(w), height(h)
+{
+    canvas.resize(w, std::vector<color>(h));
+    depth_buffer.resize(w, std::vector<float>(h));
+}
 
 vec3 Canvas::convert_ndc_to_canvas(const vec3 &p)
 {
@@ -55,26 +63,25 @@ void Canvas::apply_transform(const mat4& m_transform)
 void Canvas::draw_line(const vec3 &p0, const vec3 &p1, const color& _color)
 {
     draw::draw_line(convert_ndc_to_canvas(p0), 
-                     convert_ndc_to_canvas(p1), 
-                     _color, 
-                     canvas);
+                    convert_ndc_to_canvas(p1), 
+                    _color, 
+                    canvas);
 }
 
 void Canvas::draw_triangle(const vec3 &p0, const vec3 &p1, const vec3 &p2, const color& _color, bool is_wire)
 {
     draw::draw_triangle(convert_ndc_to_canvas(p0), 
-                         convert_ndc_to_canvas(p1), 
-                         convert_ndc_to_canvas(p2), 
-                         _color, 
-                         canvas, 
-                         is_wire);
+                        convert_ndc_to_canvas(p1), 
+                        convert_ndc_to_canvas(p2), 
+                        _color, 
+                        canvas, 
+                        is_wire);
 }
 
 void Canvas::draw_model(Model model, const color& _color, bool is_wire)
 {
     draw::draw_model(model, _color, canvas, is_wire);
 }
-
 
 void Canvas::reset_canvas(const color& _color)
 {
@@ -83,6 +90,10 @@ void Canvas::reset_canvas(const color& _color)
         for (int w = 0; w < width; ++w)
         {
             canvas[w][h] = _color;
+
+            // Set depth_buffer values to FLT_MAX
+            // which serves as the furthest point from the camera
+            depth_buffer[w][h] = FLT_MAX;
         }
     }
 }
