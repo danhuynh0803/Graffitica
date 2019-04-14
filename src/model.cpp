@@ -6,6 +6,12 @@
 
 #include "model.h"
 
+Model::Model(const Model& model) 
+{
+    verts = model.verts;
+    faces = model.faces;
+}
+
 Model::Model(const char* file_name) : verts(), faces() 
 {
     std::ifstream in;
@@ -114,6 +120,21 @@ Model::Model(const char* file_name) : verts(), faces()
 
 Model::~Model() 
 {
+}
+
+Model Model::apply_transform(const mat4& transform)
+{
+    Model new_model(*this);
+
+    for (int i = 0; i < new_model.num_verts(); ++i)
+    {
+        vec4 new_pos = vec4(new_model.vert(i), 1.0);
+        new_pos = transform * new_pos;
+
+        new_model.verts[i] = new_pos.xyz(); 
+    }
+
+    return new_model;
 }
 
 int Model::num_verts() 

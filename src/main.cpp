@@ -59,9 +59,12 @@ int main()
     Model ico("../models/ico.obj"); // test face with vertex vertex vertex
     Model head("../models/african_head.obj"); // test *.obj face with vertex/texture/normal
 
+    mat4 trans = identity(); 
+    rotate_y(trans, 45);
+
     c.draw_model(octa, BLUE, true);
     d.draw_model(ico, WHITE, true);
-    e.draw_model(head,WHITE, true);
+    e.draw_model(head.apply_transform(trans),WHITE, true);
 
     c.print_canvas("octa.ppm"); // print image with selected title
     d.print_canvas("ico.ppm"); // print image with selected title
