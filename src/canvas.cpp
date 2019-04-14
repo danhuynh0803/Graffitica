@@ -10,6 +10,13 @@
 #include "matrix.h"
 #include "shapes.h"
 #include "model.h"
+#include "light.h"
+
+// Local function prototypes
+void swap(vec3&, vec3&);
+void sort_desc(std::vector<vec3>&);
+
+////////////
 
 // Constructor
 Canvas::Canvas(int w, int h) : width(w), height(h)
@@ -89,8 +96,8 @@ void Canvas::print_canvas()
             int b = (int)(canvas[x][y].b() * 255.99f);
 
             std::cout << r << " " 
-                << g << " " 
-                << b << std::endl;
+                      << g << " " 
+                      << b << std::endl;
         }
     }
 }
@@ -119,8 +126,8 @@ void Canvas::print_canvas(std::string _title)
             int b = (int)(canvas[x][y].b() * 255.99f);
 
             image_file << r << " " 
-                << g << " " 
-                << b << "\n";
+                       << g << " " 
+                       << b << "\n";
         }
     }
     image_file.close();
@@ -155,14 +162,19 @@ void Canvas::put_pixel(int x, int y, const color& _color)
     canvas[x][y] = _color; 
 }
 
-void Canvas::swap(vec3 &p0, vec3 &p1) 
+void swap(vec3 &p0, vec3 &p1) 
 {
     vec3 temp(p0);
     p0 = p1; 
     p1 = temp; 
 }
 
-void Canvas::sort_desc(std::vector<vec3> &verts)
+// ==========================================
+// This function orders the list of vertices
+// by descending Y. 
+// So that v[0].y >= v[1].y >= .. >= v[n-1].y
+// ==========================================
+void sort_desc(std::vector<vec3> &verts)
 {
     for (int i = 0; i < verts.size(); ++i) 
     {
@@ -170,7 +182,7 @@ void Canvas::sort_desc(std::vector<vec3> &verts)
         {
             if (verts[i].y() < verts[j].y())
             {
-                Canvas::swap(verts[i], verts[j]);
+                swap(verts[i], verts[j]);
             }
         }
     }
@@ -183,21 +195,59 @@ void Canvas::sort_desc(std::vector<vec3> &verts)
 // ==========================================
 void Canvas::draw_model(Model model, const color& _color, bool is_wire)
 {
+    vec3 new_color = _color; 
     int nfaces = model.num_faces();
     for (int i = 0; i < nfaces; ++i) 
     {
+        bool is_back_face = false;
+
         // Get the index of the vertices that comprise the face
         std::vector<int> vert_indices = model.face(i); 
+
+        vec3 p0 = model.vert(vert_indices[0]);
+        vec3 p1 = model.vert(vert_indices[1]);
+        vec3 p2 = model.vert(vert_indices[2]);
 
         // TODO rethink how to handle drawing to NDC
         // Need to rethink how to tie with camera functions 
 
-        // Draw the triangles based on the position of the three vertices
-        draw_triangle(convert_ndc_to_canvas(model.vert(vert_indices[0])),
-                      convert_ndc_to_canvas(model.vert(vert_indices[1])), 
-                      convert_ndc_to_canvas(model.vert(vert_indices[2])), 
-                      _color, 
-                      is_wire);
+        if (!is_wire && !lights.empty())
+        {
+            // TODO make it iterate over it all lights later
+            Light* light = lights[0];
+
+            // Compute the direction of the normal and compare it with the light
+            vec3 normal = cross((p1-p0), (p2-p0));
+            normal.make_unit_vector();
+
+            // TODO calculate direction off each fragment instead of a single vertex for more accurate results
+            vec3 light_dir = (light->pos)-p0;
+            light_dir.make_unit_vector();
+
+            // test with directional lighting
+            float diffuse = dot(normal, light_dir);
+
+            // Check if the value is negative, if so then the normal 
+            // is in the opposite direction of the light
+            // and face is a back face
+            if (diffuse < 0) { 
+                is_back_face = true; 
+            } 
+
+            new_color = diffuse * light->color;
+        }
+
+        
+        // Back-face culling - don't draw if it's a back-face
+        if (!is_back_face)
+        {
+            // Draw the triangles based on the position of the three vertices
+            draw_triangle(convert_ndc_to_canvas(p0),
+                    convert_ndc_to_canvas(p1), 
+                    convert_ndc_to_canvas(p2), 
+                    new_color, 
+                    is_wire);
+        }
     }
 }
 
@@ -256,6 +306,10 @@ void Canvas::draw_line(vec3 p0, vec3 p1, const color& _color)
 // bottom-most point p1/p2 to the top-most 
 // point p0.
 //
+//     p0 
+//    /  \ 
+//   p1--p2
+//
 // precondition: p0.y > p1.y == p2.y
 // ==========================================
 void Canvas::fill_flat_bottom_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_color)
@@ -279,6 +333,10 @@ void Canvas::fill_flat_bottom_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_
 // Fills triangle by drawing lines from 
 // bottom most point p2 to the 
 // top-most points p0 and p1.
+//
+//   p0--p1
+//    \  /
+//     p2
 //
 // precondition: p0.y == p1.y > p2.y
 // =====================================

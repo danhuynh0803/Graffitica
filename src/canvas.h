@@ -7,6 +7,7 @@
 #include "shapes.h"
 #include "matrix.h"
 #include "model.h"
+#include "light.h"
 
 class Canvas 
 {
@@ -40,6 +41,8 @@ public:
     // Storing shapes for processing all together
     void add_shape(shape* prim) { shapes_list.push_back(prim); }
 
+    void add_light(Light* light) { lights.push_back(light); }
+
     // 2D or 3D options
     bool has_depth = false;  // Enables depth buffer if true
 
@@ -51,15 +54,14 @@ private:
     std::vector<shape*> shapes_list;
     std::vector<std::vector<float> > depth_buffer;
 
+    std::vector<Light*> lights;
+
     // =====================================================================
     // Helper functions that should be called by the public draw functions
     vec3 convert_ndc_to_canvas(const vec3& p);
     vec3 convert_canvas_to_ndc(const vec3& p);
 
     void put_pixel(int x, int y, const color& _color);
-    void swap(vec3 &p0, vec3 &p1);
-    void sort_desc(std::vector<vec3> &verts);
-
     void draw_triangle_filled(vec3 p0, vec3 p1, vec3 p2, const color& _color);
     void draw_triangle_wireframe(vec3 p0, vec3 p1, vec3 p2, const color& _color);
     void fill_flat_bottom_triangle(vec3 p0, vec3 p1, vec3 p2, const color& _color); 
