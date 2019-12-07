@@ -28,9 +28,10 @@ Canvas::Canvas(int w, int h) : width(w), height(h)
 vec3 Canvas::convert_ndc_to_canvas(const vec3 &p)
 {
     vec3 canvas_coords(
-        (int)(0.5f * (width * p.x() + width)),  
-        (int)(0.5f * (height * p.y() + height)), 0
-    ); 
+        (int)(0.5f * (width * p.x() + width)),
+        (int)(0.5f * (height * p.y() + height)),
+              0
+    );
 
     return canvas_coords;
 }
@@ -38,9 +39,10 @@ vec3 Canvas::convert_ndc_to_canvas(const vec3 &p)
 vec3 Canvas::convert_canvas_to_ndc(const vec3 &p)
 {
     vec3 ndc_coords(
-        (2 * p.x() - width) / width,  
-        (2 * p.y() - height) / height, 0
-    ); 
+        (2 * p.x() - width) / width,
+        (2 * p.y() - height) / height,
+         0
+    );
 
     return ndc_coords;
 }
@@ -48,12 +50,12 @@ vec3 Canvas::convert_canvas_to_ndc(const vec3 &p)
 
 void Canvas::draw_shapes()
 {
-    // Draw all the shapes that are stored in the shapes_list 
-    for (std::vector<shape*>::const_iterator it = shapes_list.begin(); 
-           it != shapes_list.end(); ++it) 
+    // Draw all the shapes that are stored in the shapes_list
+    for (std::vector<shape*>::const_iterator it = shapes_list.begin();
+           it != shapes_list.end(); ++it)
     {
         // TODO refactor this to be just one function
-        //(*it)->draw(canvas);    
+        //(*it)->draw(canvas);
     }
 }
 
@@ -64,7 +66,7 @@ void Canvas::apply_transform(const mat4& m_transform)
     for (std::vector<shape *>::const_iterator it = shapes_list.begin();
            it != shapes_list.end(); ++it)
     {
-        (*it)->apply_transform(m_transform);    
+        (*it)->apply_transform(m_transform);
     }
 }
 
@@ -95,8 +97,8 @@ void Canvas::print_canvas()
             int g = (int)(canvas[x][y].g() * 255.99f);
             int b = (int)(canvas[x][y].b() * 255.99f);
 
-            std::cout << r << " " 
-                      << g << " " 
+            std::cout << r << " "
+                      << g << " "
                       << b << std::endl;
         }
     }
@@ -132,20 +134,20 @@ void Canvas::print_canvas(std::string _title)
     }
     image_file.close();
 
-    std::cout << "Printing " << _title << " to " << output_dir << std::endl; 
+    std::cout << "Printing " << _title << " to " << output_dir << std::endl;
 }
 
 
 void Canvas::put_pixel(int x, int y, const color& _color)
 {
     // Only color the pixel if it is within the bounds of the canvas
-    if (x > canvas.size() || 
-        y > canvas[0].size() || 
+    if (x > canvas.size() ||
+        y > canvas[0].size() ||
         x < 0 || y < 0)
     {
         return;
     }
-    
+
     // TODO
     // This is done due to the issues with convert_ndc_to_canvas
     // the 0.5f multiplication factor causes a 1.0 ndc value to be out of range
@@ -159,14 +161,14 @@ void Canvas::put_pixel(int x, int y, const color& _color)
         y--;
     }
 
-    canvas[x][y] = _color; 
+    canvas[x][y] = _color;
 }
 
-void swap(vec3 &p0, vec3 &p1) 
+void swap(vec3 &p0, vec3 &p1)
 {
     vec3 temp(p0);
-    p0 = p1; 
-    p1 = temp; 
+    p0 = p1;
+    p1 = temp;
 }
 
 // ==========================================
@@ -189,63 +191,64 @@ void sort_desc(std::vector<vec3> &verts)
 }
 
 // ==========================================
-// Draws a model from a *.obj format 
-// This is done by processing three vertices 
+// Draws a model from a *.obj format
+// This is done by processing three vertices
 // within the face
 // ==========================================
 void Canvas::draw_model(Model model, const color& _color, bool is_wire)
 {
-    vec3 new_color = _color; 
+    vec3 new_color = _color;
     int nfaces = model.num_faces();
-    for (int i = 0; i < nfaces; ++i) 
+    for (int i = 0; i < nfaces; ++i)
     {
         bool is_back_face = false;
+        // Check backface by using normal with scene camera
 
         // Get the index of the vertices that comprise the face
-        std::vector<int> vert_indices = model.face(i); 
+        std::vector<int> vert_indices = model.face(i);
 
         vec3 p0 = model.vert(vert_indices[0]);
         vec3 p1 = model.vert(vert_indices[1]);
         vec3 p2 = model.vert(vert_indices[2]);
 
         // TODO rethink how to handle drawing to NDC
-        // Need to rethink how to tie with camera functions 
+        // Need to rethink how to tie with camera functions
+        // Compute the direction of the normal and compare it with the light
+        vec3 normal = cross((p1-p0), (p2-p0));
+        normal.make_unit_vector();
 
-        if (!is_wire && !lights.empty())
+        // TODO check backface based on camera position?
+        vec3 cameraDir = camera.look_from - camera.look_at;
+        cameraDir.make_unit_vector();
+        is_back_face = dot(cameraDir, normal) < 0.0f;
+
+        if (!is_wire && !lights.empty() && !is_back_face)
         {
-            // TODO make it iterate over it all lights later
-            Light* light = lights[0];
-
-            // Compute the direction of the normal and compare it with the light
-            vec3 normal = cross((p1-p0), (p2-p0));
-            normal.make_unit_vector();
-
             // TODO calculate direction off each fragment instead of a single vertex for more accurate results
-            vec3 light_dir = (light->pos)-p0;
-            light_dir.make_unit_vector();
+            // TODO base light dir off of the center of the triangle
+            vec3 midPoint = (p2 - ((p0 - p1)*0.5f)) * 0.5f;
 
-            // test with directional lighting
-            float diffuse = dot(normal, light_dir);
+            vec3 diffuse(0.0f);
+            for (auto light : lights)
+            {
+                vec3 light_dir = (light->pos) - midPoint;
+                light_dir.make_unit_vector();
 
-            // Check if the value is negative, if so then the normal 
-            // is in the opposite direction of the light
-            // and face is a back face
-            if (diffuse < 0) { 
-                is_back_face = true; 
-            } 
+                diffuse += std::max(0.0f, dot(normal, light_dir)) * light->color;
+            }
 
-            new_color = diffuse * light->color;
+            float ambient = 0.2f;
+            new_color = (ambient + diffuse) * _color;
         }
 
-        
         // Back-face culling - don't draw if it's a back-face
         if (!is_back_face)
         {
             // Draw the triangles based on the position of the three vertices
             draw_triangle(convert_ndc_to_canvas(p0),
-                    convert_ndc_to_canvas(p1), 
-                    convert_ndc_to_canvas(p2), 
-                    new_color, 
+                    convert_ndc_to_canvas(p1),
+                    convert_ndc_to_canvas(p2),
+                    new_color,
                     is_wire);
         }
     }
@@ -253,23 +256,23 @@ void Canvas::draw_model(Model model, const color& _color, bool is_wire)
 
 void Canvas::draw_line(vec3 p0, vec3 p1, const color& _color)
 {
-    int dx = p1.x() - p0.x(); 
-    int dy = p1.y() - p0.y(); 
+    int dx = p1.x() - p0.x();
+    int dy = p1.y() - p0.y();
 
     // Check if p0 == p1, then just paint just that point
-    if (dx == 0 && dy == 0) 
+    if (dx == 0 && dy == 0)
     {
         put_pixel(p0.x(), p0.y(), _color);
-        return; 
+        return;
     }
 
     // Draw line using y = f(x)
     if (abs(dx) > abs(dy))
     {
-        if (p0.x() > p1.x()) 
+        if (p0.x() > p1.x())
         {
             swap(p0, p1);
-        }    
+        }
 
         int x_end = p1.x();
         float y = p0.y();

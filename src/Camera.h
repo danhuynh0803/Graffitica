@@ -4,15 +4,17 @@
 #include "vector.h"
 #include "matrix.h"
 
-class camera
+class Camera
 {
-public: 
+public:
 
-    camera(const vec3& from, const vec3& at, float vert_fov, float asp_ratio):
+    Camera() {}
+
+    Camera(const vec3& from, const vec3& at, float vert_fov, float asp_ratio):
         look_from(from), look_at(at), vfov(vert_fov), aspect_ratio(asp_ratio)
     {
-       // Camera's local axes 
-       forward = unit_vector(look_from - look_at);              // +z 
+       // Camera's local axes
+       forward = unit_vector(look_from - look_at);              // +z
        right = unit_vector(cross(vec3(0, 1, 0), forward));      // +x
        up = cross(forward, right);                              // +y
     }
@@ -20,7 +22,7 @@ public:
     // Returns the view matrix
     mat4 get_view()
     {
-        mat4 view; 
+        mat4 view;
         // view matrix values, assuming column vector notation
         std::vector<float> v_view = {
             right.x(), up.x(), forward.x(), look_from.x(),
@@ -32,10 +34,10 @@ public:
         view = v_view;
         return view;
     }
-        
+
     mat4 get_perspective()
     {
-        mat4 persp; 
+        mat4 persp;
         // perspective values, assuming coloumn vector notation
         std::vector<float> v_persp = {
 
@@ -47,7 +49,7 @@ public:
     }
 
     vec3 look_from;
-    vec3 look_at; 
+    vec3 look_at;
     vec3 right, up, forward;
     float vfov, aspect_ratio;
     float near, far;

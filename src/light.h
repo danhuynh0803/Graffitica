@@ -9,8 +9,8 @@ public:
     //virtual void Luminate() = 0;
     Light(vec3 p, vec3 c) : pos(p), color(c) {}
 
-    vec3 color; 
-    vec3 pos; 
+    vec3 color;
+    vec3 pos;
 };
 
 class DirLight : public Light

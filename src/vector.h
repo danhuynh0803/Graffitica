@@ -21,6 +21,7 @@ class vec3
 public:
     vec3() { e[0] = 0.0f, e[1] = 0.0f, e[2] = 0.0f; }
     vec3(const vec3& v) { e[0] = v.e[0], e[1] = v.e[1], e[2] = v.e[2]; }
+    vec3(float f) { e[0] = f, e[1] = f, e[2] = f; }
     vec3(float e0, float e1, float e2) { e[0] = e0, e[1] = e1, e[2] = e2; }
 
     inline float x() const { return e[0]; }

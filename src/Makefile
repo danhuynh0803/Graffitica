@@ -1,16 +1,16 @@
 CPP = g++
 CPPFLAGS = -lstdc++ -std=c++11 -g
 OFLAGS = -o
-OBJECTS = shapes.o canvas.o model.o main.o 
+OBJECTS = shapes.o canvas.o model.o main.o
 
-BOOSTDIR = L/usr/lib/x86_64-linux-gnu/ 
+BOOSTDIR = L/usr/lib/
 BOOST = -lboost_filesystem -lboost_system
 
 ifeq ($(OS), Windows_NT)
 	BUILDEXE := graffitica.exe
 	RM := del
 else 
-	BUILDEXE := graffitica 
+	BUILDEXE := graffitica
 	RM := rm -rf
 endif
 
@@ -18,12 +18,12 @@ endif
 .cpp.o:
 	$(CPP) $(CPPFLAGS) -c $(BOOST) $< $(OFLAGS) $@
 
-.PHONY: all clean 
+.PHONY: all clean
 
-all: $(OBJECTS) build 
+all: $(OBJECTS) build
 
 build: $(OBJECTS)
 	$(CPP) $(CPPFLAGS) $(OFLAGS) $(BUILDEXE) $(OBJECTS) $(BOOST)
 
-clean: 
+clean:
 	$(RM) *.o graffitica
