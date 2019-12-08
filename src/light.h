@@ -19,7 +19,7 @@ public:
     void Luminate();
 };
 
-class PointLight : public Light 
+class PointLight : public Light
 {
 public:
     void Luminate();

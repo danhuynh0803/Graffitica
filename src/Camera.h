@@ -28,7 +28,7 @@ public:
             right.x(), up.x(), forward.x(), look_from.x(),
             right.y(), up.y(), forward.y(), look_from.y(),
             right.z(), up.z(), forward.z(), look_from.z(),
-                    0,      0,           0,             1 
+                    0,      0,           0,             1
         };
 
         view = v_view;

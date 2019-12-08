@@ -118,7 +118,7 @@ Model::Model(const char* file_name) : verts(), faces()
     std::cout << std::endl;
 }
 
-Model::~Model() 
+Model::~Model()
 {
 }
 
@@ -128,10 +128,13 @@ Model Model::apply_transform(const mat4& transform)
 
     for (int i = 0; i < new_model.num_verts(); ++i)
     {
-        vec4 new_pos = vec4(new_model.vert(i), 1.0);
-        new_pos = transform * new_pos;
 
-        new_model.verts[i] = new_pos.xyz(); 
+        vec4 new_pos = vec4(new_model.vert(i), 1.0);
+        std::cout << "old Pos = " << new_pos << "\t";
+        new_pos = transform * new_pos;
+        std::cout << "new Pos = " << new_pos << std::endl;
+
+        new_model.verts[i] = new_pos.xyz();
     }
 
     return new_model;
