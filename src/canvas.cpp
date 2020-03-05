@@ -23,6 +23,13 @@ Canvas::Canvas(int w, int h) : width(w), height(h)
 {
     canvas.resize(w, std::vector<color>(h));
     depth_buffer.resize(w, std::vector<float>(h));
+    for (int i = 0; i < w; ++i)
+    {
+        std::fill(depth_buffer[i].begin(), 
+                  depth_buffer[i].end(), 
+                  -std::numeric_limits<float>::max()
+        );         
+    }
 }
 
 vec3 Canvas::convert_ndc_to_canvas(const vec3 &p)
@@ -241,6 +248,9 @@ void Canvas::draw_model(Model model, const color& _color, bool is_wire)
             new_color = (ambient + diffuse) * _color;
         }
 
+        // TODO add depth buffer
+         
+
         // Back-face culling - don't draw if it's a back-face
         if (!is_back_face)
         {
@@ -361,6 +371,14 @@ void Canvas::fill_flat_top_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_col
 
         draw_line(pa, pb, _color);
     }
+}
+
+//==========================================
+// Calculates the triangles barycentric coordinate
+//=========================================
+vec3 barycentric(vec3 p0, vec3 p1, vec3 p2)
+{
+    vec3 bp;
 }
 
 //==========================================
