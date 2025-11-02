@@ -20,6 +20,8 @@ color PURPLE(1.0f, 0.0f, 1.0f);
 color CYAN(0.0f, 1.0f, 1.0f);
 color YELLOW(1.0f, 1.0f, 0.0f);
 
+#include <SDL3/SDL.h>
+
 int main()
 {
     mat4 trans = identity();

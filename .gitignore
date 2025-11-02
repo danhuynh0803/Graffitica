@@ -30,6 +30,9 @@
 *.out
 *.app
 
+# Build dirs
+[Bb]uild
+
 # Output files
 *.ppm
 graffitica
