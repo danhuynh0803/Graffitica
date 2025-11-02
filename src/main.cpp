@@ -1,65 +1,34 @@
-#include <iostream>
-#include <fstream>
-#include "canvas.h"
-#include "shapes.h"
-#include "vector.h"
-#include "noise.h"
-#include "matrix.h"
-#include "quaternion.h"
-#include "Camera.h"
-#include "model.h"
-#include "light.h"
-
-// Color library
-color WHITE(1.0f, 1.0f, 1.0f);
-color BLACK(0.0f, 0.0f, 0.0f);
-color RED(1.0f, 0.0f, 0.0f);
-color GREEN(0.0f, 1.0f, 0.0f);
-color BLUE(0.0f, 0.0f, 1.0f);
-color PURPLE(1.0f, 0.0f, 1.0f);
-color CYAN(0.0f, 1.0f, 1.0f);
-color YELLOW(1.0f, 1.0f, 0.0f);
-
 #include <SDL3/SDL.h>
 
 int main()
 {
-    mat4 trans = identity();
-    rotate_y(trans, 45);
+    SDL_Init(SDL_INIT_VIDEO);
 
-    //Model octa("../models/octahedron.obj");
-    //Model ico("../models/ico.obj"); // test face with vertex vertex vertex
-    //Model head("../models/african_head.obj"); // test *.obj face with vertex/texture/normal
-    Model test ("../models/test.obj");
+    int width = 800;
+    int height = 600;
 
-    //Model rotatedHead = head.apply_transform(trans);
+    SDL_Window* window = SDL_CreateWindow("Graffitica",
+        width, height,
+        SDL_WINDOW_RESIZABLE);
 
-    int width = 1000;
-    int height = 1000;
-    Canvas e(width, height);
-    vec3 lookFrom(0.0f, 1, 1.0f);
-    vec3 lookAt(0.0f, 1, 0.0f);
+    int mouse_x = 0;
+    int mouse_y = 0;
 
-    Camera camera(lookFrom, lookAt, 45.0f, (float)width/(float)height);
-    e.camera = camera;
-    std::cout << e.camera.get_view() << std::endl;
+    bool running = true;
+    while (running)
+    {
+        for (SDL_Event event; SDL_PollEvent(&event);) switch (event.type)
+        {
+        case SDL_EVENT_QUIT:
+            running = false;
+            break;
+        case SDL_EVENT_MOUSE_MOTION:
+            mouse_x = event.motion.x;
+            mouse_y = event.motion.y;
+            break;
+        }
 
-    //e.apply_transform(e.camera.get_view());
-
-    // TODO find better way to organize this
-    Light redLight( vec3(-2.0, 0, 1), vec3(1.0f, 0.0f, 0.0f));
-    Light blueLight(vec3( 0.5, 2, 1), vec3(0.0f, 0.0f, 1.0f));
-    Light greenLight(vec3(0.0, 0, 5), vec3(0.0f, 1.0f, 0.0f));
-    e.add_light(&redLight);
-    e.add_light(&blueLight);
-    e.add_light(&greenLight);
-
-    e.reset_canvas(BLACK);
-    //e.draw_model(head, WHITE, true); // true for wireframe
-    //e.apply_transform(trans);
-    //e.draw_model(head, WHITE); // true for wireframe
-    //e.draw_model(rotatedHead, WHITE); // true for wireframe
-    //e.print_canvas("head_light.ppm"); // print image with selected title
-
-    return 0;
+        if (!running)
+            break;
+    }
 }
