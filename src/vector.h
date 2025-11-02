@@ -5,13 +5,6 @@
 #include <stdlib.h>
 #include <iostream>
 
-#ifdef _WIN32
-double drand48()
-{
-    return (double)rand()/(RAND_MAX + 1.0);
-}
-#endif
-
 class vec3;
 typedef vec3 color;
 

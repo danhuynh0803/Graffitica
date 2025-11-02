@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <vector>
 #include "vector.h"
+#include <numbers>
 
 class mat4; 
 
@@ -25,6 +26,8 @@ void affine_matrix(mat4& m_transform,
 	float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy, 
 	float t_x, float t_y, float t_z);
 */
+
+#define M_PI std::numbers::pi_v<float>
 
 class mat4
 {

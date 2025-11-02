@@ -4,7 +4,6 @@
 #include <cmath>
 #include <vector>
 #include <cfloat>
-#include <boost/filesystem.hpp>
 #include "canvas.h"
 #include "vector.h"
 #include "matrix.h"
@@ -111,6 +110,7 @@ void Canvas::print_canvas()
     }
 }
 
+/*
 void Canvas::print_canvas(std::string _title)
 {
     // Create an output directory to store renders
@@ -143,6 +143,7 @@ void Canvas::print_canvas(std::string _title)
 
     std::cout << "Printing " << _title << " to " << output_dir << std::endl;
 }
+*/
 
 
 void Canvas::put_pixel(int x, int y, const color& _color)
@@ -379,6 +380,7 @@ void Canvas::fill_flat_top_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_col
 vec3 barycentric(vec3 p0, vec3 p1, vec3 p2)
 {
     vec3 bp;
+    return bp;
 }
 
 //==========================================
