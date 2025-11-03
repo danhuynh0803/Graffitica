@@ -1,8 +1,8 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "vector.h"
-#include "matrix.h"
+#include "math/vector.h"
+#include "math/matrix.h"
 
 class Camera
 {
