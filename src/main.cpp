@@ -1,6 +1,11 @@
 #include <SDL3/SDL.h>
 #include <memory>
+#include "renderer/resource.h"
+#include "core/types.h"
+#include "renderer/formats.h"
+#include "renderer/renderer.h"
 
+// TODO refactor window and inputs out of main
 int main()
 {
     SDL_Init(SDL_INIT_VIDEO);
@@ -46,8 +51,11 @@ int main()
             SDL_SetSurfaceBlendMode(presentSurface, SDL_BLENDMODE_NONE);
         }
 
+        ImageView colorTarget(width, height, presentSurface->pixels);
+        renderer::cmd::Clear(colorTarget, {.4, .5, .7, 1.0});
+
         // clear color (0xAABBGGRR)
-        std::fill_n((uint32_t*)presentSurface->pixels, width * height, 0xFF888888);
+        //std::fill_n((uint32_t*)presentSurface->pixels, width * height, 0xFF888888);
 
         SDL_Rect rect{ .x = 0, .y = 0, .w = width, .h = height };
         SDL_BlitSurface(presentSurface, &rect, SDL_GetWindowSurface(window), &rect);

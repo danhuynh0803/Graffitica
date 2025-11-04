@@ -9,7 +9,9 @@ class Mesh
 public :
     Mesh(const char* meshFile);
     Mesh(const Mesh& mesh);
-    ~Mesh(); 
+    Mesh(Mesh&& mesh);
+
+    ~Mesh() = default;
 
     uint32_t num_verts() const;
     uint32_t num_faces() const;
@@ -22,11 +24,18 @@ public :
         faces = m.faces;
     }
 
-    Mesh apply_transform(const mat4&);
+    Mesh& operator=(Mesh&& m)
+    {
+        verts = std::move(m.verts);
+        faces = std::move(m.faces);
+	return *this;
+    }
+
+    // TODO move out of class and into vertex processing
+    //Mesh apply_transform(const mat4&);
 
 private:
     std::vector<vec3> verts;
-    std::vector<std::vector<int> > faces;
+    std::vector<std::vector<int>> faces;
 };
-
 
