@@ -30,6 +30,10 @@ int main()
             {100, 50, 0.},
             {75, 100, 0.},
 
+            {250, 500, 0.},
+            {750, 500, 0.},
+            {500, 0, 0.},
+
             // Test skewed triangle for flat top/bottom rasterization
             {150, 250, 0.},
             {200, 250, 0.},
@@ -40,7 +44,7 @@ int main()
             { 0, 1, 0, 1 },
             { 0, 0, 1, 1 },
         },
-        .m_VertexCount = 6
+        .m_VertexCount = 9
     };
 
     bool running = true;

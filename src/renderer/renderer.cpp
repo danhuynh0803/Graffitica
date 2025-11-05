@@ -307,7 +307,7 @@ void renderer::cmd::Draw(const ImageView& view, const Buffer& vb, U32 vertexCoun
     const auto& colors = vb.m_VertexColors;
     for (int i = firstVertex; i < vertexCount; i += 3)
     {
-        const auto& col = colors[i % 3];
+        const auto& col = colors[i / 3];
 
         // Copy assign as they will be modified during draw algorithms
         vec3 p0 = positions[i];
