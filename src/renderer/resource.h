@@ -16,11 +16,16 @@ struct ImageView
 		data = static_cast<FORMAT_R8G8B8A8*>(surfacePixels);
 	}
 
-	ImageView& operator =(const ImageView&) = delete;
+	ImageView& operator =(const ImageView&) = delete;	
 
 	U32 width, height;
 	//std::unique_ptr<FORMAT> data = nullptr;
 	FORMAT_R8G8B8A8* data = nullptr;
+
+	FORMAT_R8G8B8A8& at(U32 x, U32 y) const
+	{
+		return data[x + y*width];
+	}
 };
 
 /*
@@ -42,6 +47,19 @@ struct ImageView
 };
 */
 
+struct Buffer
+{
+	//SimpleMesh* data;
+
+	std::vector<vec3> m_Positions;
+	std::vector<vec4> m_VertexColors;
+	uint32_t m_VertexCount;
+};
+
+/*
+* TODO organize api like vk/dx12?
+* e.g. have inputlayouts and such to read data from interleaved arrays?
+* or just have SoAs for each vertex attribute?
 class Buffer
 {
 public:
@@ -50,5 +68,6 @@ public:
 private:
 	std::vector<float> m_Data;
 };
+*/
 
 //} // resource

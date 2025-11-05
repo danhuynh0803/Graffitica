@@ -6,6 +6,7 @@
 #include "vertex.h"
 #include "math/matrix.h"
 
+/*
 class shape 
 {
 public:
@@ -16,13 +17,13 @@ public:
 class line : public shape
 {
 public: 
-    line(const vec3 &_p0, const vec3 &_p1, const color &_color) : 
+    line(const vec3 &_p0, const vec3 &_p1, const vec4 &_color) : 
         p0(_p0), p1(_p1), shape_color(_color) {}
     
     void apply_transform(const mat4& m_transform);
 
     // TODO create a vertex class, where it contains vec3 position and vec3 color 
-    color shape_color;
+    vec4 shape_color;
     vec3 p0, p1; 
 };
 
@@ -36,9 +37,9 @@ public:
     void apply_transform(const mat4& m_transform);
 
     // TODO create a vertex class, where it contains vec3 position and vec3 color 
-    color shape_color;
+    vec4 shape_color;
     bool is_filled = false;
     vec3 p0, p1, p2;
 };
-
+*/
 #endif // SHAPES_H

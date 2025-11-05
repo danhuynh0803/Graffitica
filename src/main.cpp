@@ -4,6 +4,7 @@
 #include "core/types.h"
 #include "renderer/formats.h"
 #include "renderer/renderer.h"
+#include "renderer/mesh.h"
 
 // TODO refactor window and inputs out of main
 int main()
@@ -21,6 +22,26 @@ int main()
     int mouse_y = 0;
 
     SDL_Surface* presentSurface = nullptr;
+
+    // TODO convert
+    Buffer vbo {
+        .m_Positions = {
+            {50, 50, 0.},
+            {100, 50, 0.},
+            {75, 100, 0.},
+
+            // Test skewed triangle for flat top/bottom rasterization
+            {150, 250, 0.},
+            {200, 250, 0.},
+            {350, 500, 0.},
+        },
+        .m_VertexColors = {
+            { 1, 0, 0, 1 },
+            { 0, 1, 0, 1 },
+            { 0, 0, 1, 1 },
+        },
+        .m_VertexCount = 6
+    };
 
     bool running = true;
     while (running)
@@ -54,8 +75,9 @@ int main()
         ImageView colorTarget(width, height, presentSurface->pixels);
         renderer::cmd::Clear(colorTarget, {.4, .5, .7, 1.0});
 
-        // clear color (0xAABBGGRR)
-        //std::fill_n((uint32_t*)presentSurface->pixels, width * height, 0xFF888888);
+        // todo cmdbuffer interface?
+        // bind cmds can simply assign pointers to various objects needed for rendering
+        renderer::cmd::Draw(colorTarget, vbo, vbo.m_VertexCount, 0);
 
         SDL_Rect rect{ .x = 0, .y = 0, .w = width, .h = height };
         SDL_BlitSurface(presentSurface, &rect, SDL_GetWindowSurface(window), &rect);

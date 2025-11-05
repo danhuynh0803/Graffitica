@@ -11,6 +11,7 @@
 #include "model.h"
 #include "light.h"
 
+/*
 // Local function prototypes
 void swap(vec3&, vec3&);
 void sort_desc(std::vector<vec3>&);
@@ -52,7 +53,6 @@ vec3 Canvas::convert_canvas_to_ndc(const vec3 &p)
 
     return ndc_coords;
 }
-
 
 void Canvas::draw_shapes()
 {
@@ -110,7 +110,6 @@ void Canvas::print_canvas()
     }
 }
 
-/*
 void Canvas::print_canvas(std::string _title)
 {
     // Create an output directory to store renders
@@ -143,8 +142,6 @@ void Canvas::print_canvas(std::string _title)
 
     std::cout << "Printing " << _title << " to " << output_dir << std::endl;
 }
-*/
-
 
 void Canvas::put_pixel(int x, int y, const color& _color)
 {
@@ -446,3 +443,5 @@ void Canvas::draw_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_color, bool 
         draw_triangle_filled(p0, p1, p2, _color);
     }
 }
+
+*/

@@ -4,6 +4,14 @@
 #include "math/vector.h"
 #include "math/matrix.h"
 
+// for testing api
+struct SimpleMesh
+{
+    std::vector<vec3> m_Positions;
+    std::vector<vec4> m_VertexColors;
+    uint32_t m_VertexCount;
+};
+
 class Mesh
 {
 public :
@@ -37,5 +45,9 @@ public :
 private:
     std::vector<vec3> verts;
     std::vector<std::vector<int>> faces;
-};
 
+public:
+    std::vector<vec3> m_Positions;
+    std::vector<vec4> m_VertexColors;
+    uint32_t m_VertexCount;
+};

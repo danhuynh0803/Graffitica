@@ -10,6 +10,7 @@
 #include "light.h"
 #include "Camera.h"
 
+/*
 class Canvas
 {
 public:
@@ -73,5 +74,6 @@ private:
     void fill_flat_top_triangle(vec3 p0, vec3 p1, vec3 p2, const color& _color); 
     // =====================================================================
 };
+*/
 
 #endif // CANVAS_H

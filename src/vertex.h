@@ -5,12 +5,12 @@
 
 struct vertex 
 {
-    vertex(const vec3 &pos, const color &col) : 
+    vertex(const vec3 &pos, const vec4 &col) : 
         position(pos), color(col) {}
 
     // Vertex attributes
     vec3 position; 
-    vec3 color;
+    vec4 color;
 };
 
 #endif // VERTEX_H

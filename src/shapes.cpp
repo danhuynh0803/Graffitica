@@ -1,5 +1,6 @@
 #include "shapes.h"
 
+/*
 void line::apply_transform(const mat4& m_transform)
 {
     vec4 p0_new = m_transform * vec4(p0, 1.0f); 
@@ -19,3 +20,4 @@ void triangle::apply_transform(const mat4& m_transform)
     p1 = p1_new.xyz();
     p2 = p2_new.xyz();
 }
+*/

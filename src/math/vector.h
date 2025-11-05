@@ -5,10 +5,10 @@
 #include <stdlib.h>
 #include <iostream>
 
+/// START VEC3_H 
 class vec3;
 typedef vec3 color;
 
-/// START VEC3_H 
 class vec3
 {
 public:
