@@ -429,7 +429,6 @@ void RasterizeAABB(const ImageView& view, const Buffer& vb, U32 vertexCount, U32
         float maxY = std::max(a.y(), std::max(b.y(), c.y()));
 
         float totalArea = CalculateTriangleArea(a, b, c);
-        
 
         for (int x = minX; x <= maxX; ++x)
         {
@@ -439,7 +438,10 @@ void RasterizeAABB(const ImageView& view, const Buffer& vb, U32 vertexCount, U32
                 vec3 P (x, y, 0);
                 float u = CalculateTriangleArea(P, b, c) / totalArea;
                 float v = CalculateTriangleArea(P, c, a) / totalArea;
-                float w = 1.0 - u - v;
+                float w = CalculateTriangleArea(P, a, b) / totalArea;
+                // Causing precision issues
+                //float w = 1.0 - u - v;
+
                 // skip points outside of triangle
                 if (u < 0 || v < 0 || w < 0) {
                     continue;
