@@ -26,18 +26,14 @@ int main()
     // TODO convert
     Buffer vbo {
         .m_Positions = {
-            {50, 50, 0.},
-            {100, 50, 0.},
-            {75, 100, 0.},
+            // edge testing
+            { 100, 100, 0},
+            { 700, 100, 0},
+            { 100, 500, 0},
 
-            {250, 500, 0.},
-            {750, 500, 0.},
-            {500, 0, 0.},
-
-            // Test skewed triangle for flat top/bottom rasterization
-            {150, 250, 0.},
-            {200, 250, 0.},
-            {350, 500, 0.},
+            { 100, 500, 0},
+            { 700, 500, 0},
+            { 700, 100, 0},
         },
         // TODO allow hex conversion for colors?
         .m_VertexColors = {
@@ -46,17 +42,17 @@ int main()
             { 0, 0, 1, 1 },
 
             { 1, (105. / 255), (180. / 255), 1},
-            { 1, (105. / 255), (180. / 255), 1},
-            { 1, (105. / 255), (180. / 255), 1},
-            //{ 0, 1, 1, 1 },
-            //{ 0, 0, 1, 1 },
+            //{ 1, (105. / 255), (180. / 255), 1},
+            //{ 1, (105. / 255), (180. / 255), 1},
+            { 0, 1, 1, 1 },
+            { 0, 0, 1, 1 },
 
             { 1, 0, 1, 1 },
             { 0, 1, 1, 1 },
             { 1, 1, 1, 1 },
         },
-        .m_VertexCount = 9
     };
+    //vbo.m_VertexCount = vbo.m_Positions.size();
 
     bool running = true;
     while (running)
@@ -92,7 +88,7 @@ int main()
 
         // todo cmdbuffer interface?
         // bind cmds can simply assign pointers to various objects needed for rendering
-        renderer::cmd::Draw(colorTarget, vbo, vbo.m_VertexCount, 0);
+        renderer::cmd::Draw(colorTarget, vbo, vbo.m_Positions.size(), 0);
 
         SDL_Rect rect{ .x = 0, .y = 0, .w = width, .h = height };
         SDL_BlitSurface(presentSurface, &rect, SDL_GetWindowSurface(window), &rect);

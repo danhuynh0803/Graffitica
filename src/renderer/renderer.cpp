@@ -301,7 +301,7 @@ void renderer::cmd::Clear(const ImageView& view, const vec4& clearColor)
     std::fill_n(view.data, size, FORMAT_R8G8B8A8::to(clearColor));
 }
 
-void DrawScanline(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex)
+void RasterizeScanline(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex)
 {
     const auto& positions = vb.m_Positions;
     const auto& colors = vb.m_VertexColors;
@@ -408,7 +408,7 @@ float CalculateTriangleArea(const vec3& a, const vec3& b, const vec3& c)
     return .5 * ( (b.y() - a.y()) * (b.x() + a.x()) + (c.y() - b.y()) * (c.x() + b.x()) + (a.y() - c.y()) * (a.x() + c.x()) );
 }
 
-void DrawAABB(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex)
+void RasterizeAABB(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex)
 {
     // TODO profile with some timer utilities
     // SCOPED_TIMER()
@@ -430,14 +430,16 @@ void DrawAABB(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firs
 
         float totalArea = CalculateTriangleArea(a, b, c);
         
+
         for (int x = minX; x <= maxX; ++x)
         {
             for (int y = minY; y <= maxY; ++y)
             {
+                // TODO replace barycentric with Cramer's rule ver
                 vec3 P (x, y, 0);
                 float u = CalculateTriangleArea(P, b, c) / totalArea;
                 float v = CalculateTriangleArea(P, c, a) / totalArea;
-                float w = CalculateTriangleArea(P, a, b) / totalArea;
+                float w = 1.0 - u - v;
                 // skip points outside of triangle
                 if (u < 0 || v < 0 || w < 0) {
                     continue;
@@ -457,9 +459,9 @@ void DrawAABB(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firs
 void renderer::cmd::Draw(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex)
 {
     // Keep scanline for single-threaded mode - ground-truth for visual quality testing
-    //DrawScanline(view, vb, vertexCount, firstVertex);
+    //RasterizeScanline(view, vb, vertexCount, firstVertex);
 
-    DrawAABB(view, vb, vertexCount, firstVertex);
+    RasterizeAABB(view, vb, vertexCount, firstVertex);
 }
 
 // TODO update interface to work with indexbuffers
