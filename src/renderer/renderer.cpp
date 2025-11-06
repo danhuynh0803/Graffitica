@@ -11,6 +11,7 @@
 #include "shapes.h"
 #include "model.h"
 #include "light.h"
+#include "mesh.h"
 
 namespace
 {
@@ -458,16 +459,93 @@ void RasterizeAABB(const ImageView& view, const Buffer& vb, U32 vertexCount, U32
     }
 }
 
+void RasterizeAABB(const ImageView& view, const vec4& color, const vec3& a, const vec3& b, const vec3& c)
+{
+    // TODO profile with some timer utilities
+    // SCOPED_TIMER()
+
+     // TODO need to simplify vec to access member directly class
+        // compute AABB
+    float minX = std::min(a.x(), std::min(b.x(), c.x()));
+    float maxX = std::max(a.x(), std::max(b.x(), c.x()));
+    float minY = std::min(a.y(), std::min(b.y(), c.y()));
+    float maxY = std::max(a.y(), std::max(b.y(), c.y()));
+
+    float totalArea = CalculateTriangleArea(a, b, c);
+
+    for (int x = minX; x <= maxX; ++x)
+    {
+        for (int y = minY; y <= maxY; ++y)
+        {
+            // TODO replace barycentric with Cramer's rule ver
+            vec3 P(x, y, 0);
+            float u = CalculateTriangleArea(P, b, c) / totalArea;
+            float v = CalculateTriangleArea(P, c, a) / totalArea;
+            float w = CalculateTriangleArea(P, a, b) / totalArea;
+            // Causing precision issues
+            //float w = 1.0 - u - v;
+
+            // skip points outside of triangle
+            if (u < 0 || v < 0 || w < 0) {
+                continue;
+            }
+
+            // Get col of P based on barycentric weights
+            //const vec4& colA = colors[i];
+            //const vec4& colB = colors[i + 1];
+            //const vec4& colC = colors[i + 2];
+            //vec4 col = u * colA + v * colB + w * colC;
+            //const vec4 col (1,0,0,1);
+            view.at(x, y) = FORMAT_R8G8B8A8::to(color);
+        }
+    }
+}
+
 void renderer::cmd::Draw(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex)
 {
     // Keep scanline for single-threaded mode - ground-truth for visual quality testing
     //RasterizeScanline(view, vb, vertexCount, firstVertex);
+    const auto& positions = vb.m_Positions;
+    const auto& colors = vb.m_VertexColors;
 
-    RasterizeAABB(view, vb, vertexCount, firstVertex);
+    for (int i = firstVertex; i < vertexCount; i += 3)
+    {
+        const auto& a = positions[i];
+        const auto& b = positions[i + 1];
+        const auto& c = positions[i + 2];
+
+        RasterizeAABB(view, vb, vertexCount, firstVertex);
+    }
 }
 
-// TODO update interface to work with indexbuffers
 void renderer::cmd::DrawIndexed(const ImageView& view, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
 {
-    // TODO
+    const auto& positions = vb.m_Positions;
+    const auto& colors = vb.m_VertexColors;
+
+    for (int i = firstIndex; i < indexCount; ++i)
+    {
+        const std::vector<int>& face = vb.m_MeshData->face(i);
+        const auto& verts = vb.m_MeshData->GetVertices();
+
+        auto NDCToViewport = [&](const vec3 & p)
+        {
+            constexpr U32 width = 800;
+            constexpr U32 height = 599;
+            // hardcode to test
+            vec3 coords (
+                (int)(0.5f * (width * p.x() + width)),
+                (int)(0.5f * (height * -p.y() + height)), // invert-y
+                0
+            );
+
+            return coords;
+        };
+
+        const auto& a = NDCToViewport(verts[ face[0] ]);
+        const auto& b = NDCToViewport(verts[ face[1] ]);
+        const auto& c = NDCToViewport(verts[ face[2] ]);
+
+        RasterizeAABB(view, colors[i % colors.size()], a, b, c); 
+    }
 }

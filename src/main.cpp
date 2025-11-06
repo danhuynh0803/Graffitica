@@ -52,6 +52,23 @@ int main()
             { 1, 1, 1, 1 },
         },
     };
+
+    Buffer model = {
+        .m_MeshData = std::make_shared<Mesh>("../models/african_head.obj"),
+        .m_VertexColors = {
+            { 1, 0, 0, 1 },
+            { 0, 1, 0, 1 },
+            { 0, 0, 1, 1 },
+
+            { 1, (105. / 255), (180. / 255), 1},
+            { 0, 1, 1, 1 },
+            { 0, 0.5, 0.5, 1 },
+
+            { 1, 0, 1, 1 },
+            { 0.5, 0.5, 1, 1 },
+            { 1, 1, 0, 1 },
+        },
+    };
     //vbo.m_VertexCount = vbo.m_Positions.size();
 
     bool running = true;
@@ -88,7 +105,8 @@ int main()
 
         // todo cmdbuffer interface?
         // bind cmds can simply assign pointers to various objects needed for rendering
-        renderer::cmd::Draw(colorTarget, vbo, vbo.m_Positions.size(), 0);
+        //renderer::cmd::Draw(colorTarget, vbo, vbo.m_Positions.size(), 0);
+        renderer::cmd::DrawIndexed(colorTarget, model, model.m_MeshData->NumFaces(), 0, 0);
 
         SDL_Rect rect{ .x = 0, .y = 0, .w = width, .h = height };
         SDL_BlitSurface(presentSurface, &rect, SDL_GetWindowSurface(window), &rect);

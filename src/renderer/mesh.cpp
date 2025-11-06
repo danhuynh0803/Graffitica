@@ -5,15 +5,10 @@
 #include <sstream>
 #include <regex>
 #include "mesh.h"
-
-Mesh::Mesh(const Mesh& model)
-{
-    verts = model.verts;
-    faces = model.faces;
-}
+#include <filesystem>
 
 // TODO mesh loader lib
-Mesh::Mesh(const char* file_name) : verts(), faces()
+Mesh::Mesh(const char* file_name) : m_Verts(), m_Faces()
 {
     std::ifstream in;
     in.open (file_name, std::ifstream::in);
@@ -54,7 +49,7 @@ Mesh::Mesh(const char* file_name) : verts(), faces()
             {
                 iss >> vertex[i];
             }
-            verts.push_back(vertex);
+            m_Verts.push_back(vertex);
         }
         // Current line is a texture line
         else if (!line.compare(0, 2, "vt"))
@@ -139,21 +134,16 @@ Mesh::Mesh(const char* file_name) : verts(), faces()
                 }
             }
 
-            faces.push_back(face);
+            m_Faces.push_back(face);
         }
     }
     // Debugs
     std::cout << file_name << ":" << std::endl;
-    std::cout << "# of vertices=" << verts.size() << " # of faces=" << faces.size() << std::endl;
+    std::cout << "# of vertices=" << m_Verts.size() << " # of faces=" << m_Faces.size() << std::endl;
     std::cout << std::endl;
 }
 
-std::vector<int> Mesh::face(int idx)
+const std::vector<int>& Mesh::face(int idx) const
 {
-    return faces[idx];
-}
-
-vec3 Mesh::vert(int i) 
-{
-    return verts[i];
+    return m_Faces[idx];
 }

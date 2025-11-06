@@ -4,6 +4,8 @@
 #include <vector>
 #include "renderer/formats.h"
 
+class Mesh;
+
 //namespace resource
 //{
 
@@ -47,13 +49,15 @@ struct ImageView
 };
 */
 
-struct Buffer
+class Buffer
 {
-	//SimpleMesh* data;
-
+public:
+	std::shared_ptr<Mesh> m_MeshData = nullptr;
 	std::vector<vec3> m_Positions;
 	std::vector<vec4> m_VertexColors;
 	uint32_t m_VertexCount;
+
+	std::vector<U32> m_Indices;
 };
 
 /*
