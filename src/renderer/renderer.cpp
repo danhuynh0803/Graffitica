@@ -301,7 +301,7 @@ void renderer::cmd::Clear(const ImageView& view, const vec4& clearColor)
     std::fill_n(view.data, size, FORMAT_R8G8B8A8::to(clearColor));
 }
 
-void renderer::cmd::Draw(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex)
+void DrawScanline(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex)
 {
     const auto& positions = vb.m_Positions;
     const auto& colors = vb.m_VertexColors;
@@ -311,8 +311,8 @@ void renderer::cmd::Draw(const ImageView& view, const Buffer& vb, U32 vertexCoun
 
         // Copy assign as they will be modified during draw algorithms
         vec3 p0 = positions[i];
-        vec3 p1 = positions[i+1];
-        vec3 p2 = positions[i+2];
+        vec3 p1 = positions[i + 1];
+        vec3 p2 = positions[i + 2];
 
         //draw_triangle(p0, p1, p2, colors[0], false);
 
@@ -392,6 +392,74 @@ void renderer::cmd::Draw(const ImageView& view, const Buffer& vb, U32 vertexCoun
         }
 
     }
+}
+
+//==========================================
+// Calculates the triangles barycentric coordinate
+//=========================================
+vec3 barycentric(vec3 p0, vec3 p1, vec3 p2)
+{
+    // TODO
+    return {};
+}
+
+float CalculateTriangleArea(const vec3& a, const vec3& b, const vec3& c)
+{
+    return .5 * ( (b.y() - a.y()) * (b.x() + a.x()) + (c.y() - b.y()) * (c.x() + b.x()) + (a.y() - c.y()) * (a.x() + c.x()) );
+}
+
+void DrawAABB(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex)
+{
+    // TODO profile with some timer utilities
+    // SCOPED_TIMER()
+
+    const auto& positions = vb.m_Positions;
+    const auto& colors = vb.m_VertexColors;
+
+    for (int i = firstVertex; i < vertexCount; i += 3)
+    {
+        const auto& a = positions[i];
+        const auto& b = positions[i+1];
+        const auto& c = positions[i+2];
+        // TODO need to simplify vec to access member directly class
+        // compute AABB
+        float minX = std::min(a.x(), std::min(b.x(), c.x()));
+        float maxX = std::max(a.x(), std::max(b.x(), c.x()));
+        float minY = std::min(a.y(), std::min(b.y(), c.y()));
+        float maxY = std::max(a.y(), std::max(b.y(), c.y()));
+
+        float totalArea = CalculateTriangleArea(a, b, c);
+        
+        for (int x = minX; x <= maxX; ++x)
+        {
+            for (int y = minY; y <= maxY; ++y)
+            {
+                vec3 P (x, y, 0);
+                float u = CalculateTriangleArea(P, b, c) / totalArea;
+                float v = CalculateTriangleArea(P, c, a) / totalArea;
+                float w = CalculateTriangleArea(P, a, b) / totalArea;
+                // skip points outside of triangle
+                if (u < 0 || v < 0 || w < 0) {
+                    continue;
+                }
+
+                // Get col of P based on barycentric weights
+                const vec4& colA = colors[i];
+                const vec4& colB = colors[i+1];
+                const vec4& colC = colors[i+2];
+                vec4 col = u*colA + v*colB + w*colC;
+                view.at(x, y) = FORMAT_R8G8B8A8::to(col);
+            }
+        }
+    }
+}
+
+void renderer::cmd::Draw(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex)
+{
+    // Keep scanline for single-threaded mode - ground-truth for visual quality testing
+    //DrawScanline(view, vb, vertexCount, firstVertex);
+
+    DrawAABB(view, vb, vertexCount, firstVertex);
 }
 
 // TODO update interface to work with indexbuffers
