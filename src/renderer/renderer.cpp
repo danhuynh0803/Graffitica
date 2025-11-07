@@ -1,5 +1,4 @@
-#include "renderer.h"
-
+#include <algorithm>
 #include <fstream> 
 #include <iostream>
 #include <string>
@@ -12,6 +11,9 @@
 #include "model.h"
 #include "light.h"
 #include "mesh.h"
+#include "renderer/rasterizer_state.h"
+#include "renderer/resource.h"
+#include "renderer/renderer.h"
 
 namespace
 {
@@ -518,7 +520,8 @@ void renderer::cmd::Draw(const ImageView& view, const Buffer& vb, U32 vertexCoun
     }
 }
 
-void renderer::cmd::DrawIndexed(const ImageView& view, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
+// TODO incorporate line, triangle fan, etc
+void renderer::cmd::DrawIndexed(const RasterizerState& state, const ImageView& view, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
 {
     const auto& positions = vb.m_Positions;
     const auto& colors = vb.m_VertexColors;
@@ -528,24 +531,38 @@ void renderer::cmd::DrawIndexed(const ImageView& view, const Buffer& vb, U32 ind
         const std::vector<int>& face = vb.m_MeshData->face(i);
         const auto& verts = vb.m_MeshData->GetVertices();
 
-        auto NDCToViewport = [&](const vec3 & p)
+        auto NDCToViewport = [&](const vec3& p)
+            {
+                constexpr U32 width = 800;
+                constexpr U32 height = 599;
+                // hardcode to test
+                vec3 coords(
+                    (int)(0.5f * (width * p.x() + width)),
+                    (int)(0.5f * (height * -p.y() + height)), // invert-y
+                    0
+                );
+
+                return coords;
+            };
+
+        const auto& a = NDCToViewport(verts[face[0]]);
+        const auto& b = NDCToViewport(verts[face[1]]);
+        const auto& c = NDCToViewport(verts[face[2]]);
+        const auto col = colors[i % colors.size()];
+
+        switch (state.fillMode)
         {
-            constexpr U32 width = 800;
-            constexpr U32 height = 599;
-            // hardcode to test
-            vec3 coords (
-                (int)(0.5f * (width * p.x() + width)),
-                (int)(0.5f * (height * -p.y() + height)), // invert-y
-                0
-            );
-
-            return coords;
-        };
-
-        const auto& a = NDCToViewport(verts[ face[0] ]);
-        const auto& b = NDCToViewport(verts[ face[1] ]);
-        const auto& c = NDCToViewport(verts[ face[2] ]);
-
-        RasterizeAABB(view, colors[i % colors.size()], a, b, c); 
+        case (FILL_MODE::FILL_MODE_SOLID):
+            RasterizeAABB(view, colors[i % colors.size()], a, b, c);
+            break;
+        case (FILL_MODE::FILL_MODE_WIREFRAME):
+            draw_line(view, a, b, col);
+            draw_line(view, b, c, col);
+            draw_line(view, c, a, col);
+            break;
+        default:
+            //TODO logging utilities
+            break;
+        }
     }
 }

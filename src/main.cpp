@@ -3,8 +3,11 @@
 #include "renderer/resource.h"
 #include "core/types.h"
 #include "renderer/formats.h"
-#include "renderer/renderer.h"
 #include "renderer/mesh.h"
+#include "util/timer.h"
+#include "renderer/rasterizer_state.h"
+#include "renderer/renderer.h"
+#include "renderer/command.h"
 
 // TODO refactor window and inputs out of main
 int main()
@@ -70,7 +73,11 @@ int main()
         },
     };
     //vbo.m_VertexCount = vbo.m_Positions.size();
-
+    RasterizerState drawState{
+        .fillMode = FILL_MODE::FILL_MODE_WIREFRAME,
+        .cullMode = CULL_MODE::CULL_MODE_BACK,
+    };
+    
     bool running = true;
     while (running)
     {
@@ -105,8 +112,7 @@ int main()
 
         // todo cmdbuffer interface?
         // bind cmds can simply assign pointers to various objects needed for rendering
-        //renderer::cmd::Draw(colorTarget, vbo, vbo.m_Positions.size(), 0);
-        renderer::cmd::DrawIndexed(colorTarget, model, model.m_MeshData->NumFaces(), 0, 0);
+        renderer::cmd::DrawIndexed(drawState, colorTarget, model, model.m_MeshData->NumFaces(), 0, 0);
 
         SDL_Rect rect{ .x = 0, .y = 0, .w = width, .h = height };
         SDL_BlitSurface(presentSurface, &rect, SDL_GetWindowSurface(window), &rect);

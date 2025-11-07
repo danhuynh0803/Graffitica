@@ -68,22 +68,22 @@ Mesh::Mesh(const char* file_name) : m_Verts(), m_Faces()
             // Check what format the face is using
             if (std::regex_match (line, f0))
             {
-                std::cout << "f0 " << line << "\n";
+                //std::cout << "f0 " << line << "\n";
             }
             else if (std::regex_match (line, f1))
             {
-                std::cout << "f1 " << line << "\n";
+                //std::cout << "f1 " << line << "\n";
                 hasTexture = true;
                 hasNormals = true;
             }
             else if (std::regex_match (line, f2))
             {
-                std::cout << "f2 " << line << "\n";
+                //std::cout << "f2 " << line << "\n";
                 hasTexture = true;
             }
             else if (std::regex_match (line, f3))
             {
-                std::cout << "f3 " << line << "\n";
+                //std::cout << "f3 " << line << "\n";
                 hasNormals = true;
             }
 
@@ -137,10 +137,11 @@ Mesh::Mesh(const char* file_name) : m_Verts(), m_Faces()
             m_Faces.push_back(face);
         }
     }
+    // TODO Loggers with separate categories to enable
     // Debugs
-    std::cout << file_name << ":" << std::endl;
-    std::cout << "# of vertices=" << m_Verts.size() << " # of faces=" << m_Faces.size() << std::endl;
-    std::cout << std::endl;
+    //std::cout << file_name << ":" << std::endl;
+    //std::cout << "# of vertices=" << m_Verts.size() << " # of faces=" << m_Faces.size() << std::endl;
+    //std::cout << std::endl;
 }
 
 const std::vector<int>& Mesh::face(int idx) const
