@@ -39,3 +39,4 @@ target_link_libraries(graffitica PUBLIC
 )
 
 add_subdirectory(external)
+add_subdirectory(test)
