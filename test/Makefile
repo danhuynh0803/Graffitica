@@ -2,7 +2,7 @@ CPP = g++
 CPPFLAGS = -std=c++11
 INCLUDE = -I../src/
 
-TESTS = tests-vec.cpp tests-matrix.cpp
+TESTS = math/tests-vec.cpp math/tests-matrix.cpp
 
 .PHONY: all clean
 

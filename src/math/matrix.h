@@ -104,9 +104,9 @@ inline mat4 identity()
 inline void translate(mat4& m_transform, const vec3& v_translation)
 {
     mat4 m_translation = identity();
-    m_translation[0][3] = v_translation.x();
-    m_translation[1][3] = v_translation.y();
-    m_translation[2][3] = v_translation.z();
+    m_translation[0][3] = v_translation.x;
+    m_translation[1][3] = v_translation.y;
+    m_translation[2][3] = v_translation.z;
 
     m_transform = m_translation * m_transform;
 }
@@ -114,9 +114,9 @@ inline void translate(mat4& m_transform, const vec3& v_translation)
 inline void scale(mat4& m_transform, const vec3& v_scale)
 {
     mat4 m_scale; 
-    m_scale[0][0] = v_scale.x();
-    m_scale[1][1] = v_scale.y();
-    m_scale[2][2] = v_scale.z();
+    m_scale[0][0] = v_scale.x;
+    m_scale[1][1] = v_scale.y;
+    m_scale[2][2] = v_scale.z;
     m_scale[3][3] = 1;
     
     m_transform = m_scale * m_transform;

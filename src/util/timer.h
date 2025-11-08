@@ -31,6 +31,6 @@ private:
 };
 
 #define CAT(x, y) x ## y
-#define PROFILER util::Timer CAT(timer, __LINE__)(__FUNCTION__)
+#define SCOPED_TIMER util::Timer CAT(timer, __LINE__)(__FUNCTION__)
 
 }

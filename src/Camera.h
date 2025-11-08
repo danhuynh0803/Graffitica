@@ -1,6 +1,4 @@
-#ifndef CAMERA_H
-#define CAMERA_H
-
+#pragma once
 #include "math/vector.h"
 #include "math/matrix.h"
 
@@ -25,10 +23,10 @@ public:
         mat4 view;
         // view matrix values, assuming column vector notation
         std::vector<float> v_view = {
-            right.x(), up.x(), forward.x(), look_from.x(),
-            right.y(), up.y(), forward.y(), look_from.y(),
-            right.z(), up.z(), forward.z(), look_from.z(),
-                    0,      0,           0,             1
+            right.x, up.x, forward.x, look_from.x,
+            right.y, up.y, forward.y, look_from.y,
+            right.z, up.z, forward.z, look_from.z,
+                  0,    0,         0,           1,
         };
 
         view = v_view;
@@ -54,5 +52,3 @@ public:
     float vfov, aspect_ratio;
     float near, far;
 };
-
-#endif // CAMERA_H

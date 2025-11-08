@@ -32,7 +32,7 @@ Canvas::Canvas(int w, int h) : width(w), height(h)
     }
 }
 
-vec3 Canvas::convert_ndc_to_canvas(const vec3 &p)
+vec3 Canvas::convert_ndc_to_canvas(const vec3 &p)A
 {
     vec3 canvas_coords(
         (int)(0.5f * (width * p.x() + width)),

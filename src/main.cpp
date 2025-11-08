@@ -14,8 +14,8 @@ int main()
 {
     SDL_Init(SDL_INIT_VIDEO);
 
-    int width = 800;
-    int height = 600;
+    int width = 1600;
+    int height = 800;
 
     SDL_Window* window = SDL_CreateWindow("Graffitica",
         width, height,
@@ -26,7 +26,7 @@ int main()
 
     SDL_Surface* presentSurface = nullptr;
 
-    // TODO convert
+    // TODO move to unit testing framework
     Buffer vbo {
         .m_Positions = {
             // edge testing
@@ -45,8 +45,6 @@ int main()
             { 0, 0, 1, 1 },
 
             { 1, (105. / 255), (180. / 255), 1},
-            //{ 1, (105. / 255), (180. / 255), 1},
-            //{ 1, (105. / 255), (180. / 255), 1},
             { 0, 1, 1, 1 },
             { 0, 0, 1, 1 },
 
@@ -57,7 +55,7 @@ int main()
     };
 
     Buffer model = {
-        .m_MeshData = std::make_shared<Mesh>("../models/african_head.obj"),
+        .m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
         .m_VertexColors = {
             { 1, 0, 0, 1 },
             { 0, 1, 0, 1 },
@@ -77,7 +75,7 @@ int main()
         .fillMode = FILL_MODE::FILL_MODE_WIREFRAME,
         .cullMode = CULL_MODE::CULL_MODE_BACK,
     };
-    
+
     bool running = true;
     while (running)
     {

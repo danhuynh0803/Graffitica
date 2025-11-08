@@ -73,22 +73,22 @@ Model::Model(const char* file_name) : verts(), faces()
             // Check what format the face is using
             if (std::regex_match (line, f0))
             {
-                std::cout << "f0 " << line << "\n";
+                //std::cout << "f0 " << line << "\n";
             }
             else if (std::regex_match (line, f1))
             {
-                std::cout << "f1 " << line << "\n";
+                //std::cout << "f1 " << line << "\n";
                 hasTexture = true;
                 hasNormals = true;
             }
             else if (std::regex_match (line, f2))
             {
-                std::cout << "f2 " << line << "\n";
+                //std::cout << "f2 " << line << "\n";
                 hasTexture = true;
             }
             else if (std::regex_match (line, f3))
             {
-                std::cout << "f3 " << line << "\n";
+                //std::cout << "f3 " << line << "\n";
                 hasNormals = true;
             }
 
