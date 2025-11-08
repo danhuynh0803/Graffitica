@@ -25,3 +25,5 @@
 # sdl
 add_subdirectory(SDL)
 #set_target_properties(sdl PROPERTIES FOLDER "external")
+
+add_subdirectory(Catch2)
