@@ -21,12 +21,24 @@ if (EXISTS "${LOC_PATH}")
 endif()
 
 # TODO clean up and split cmakelists between modules later
-file(GLOB_RECURSE HEADERS "src/*.h")
-file(GLOB_RECURSE SOURCE "src/*.cpp")
+file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.h")
+
+    foreach(SOURCE_FILE ${SOURCES})
+        # Extract the relative path from the source directory
+        string(REPLACE "${CMAKE_SOURCE_DIR}/src/" "" RELATIVE_PATH "${SOURCE_FILE}")
+
+        # Extract the directory part of the relative path
+        get_filename_component(DIR_NAME "${RELATIVE_PATH}" DIRECTORY)
+
+        # Replace slashes with backslashes for Visual Studio folder structure
+        string(REPLACE "/" "\\" VS_FOLDER "${DIR_NAME}")
+
+        # Group the file into the corresponding Visual Studio folder
+        source_group("${VS_FOLDER}" FILES "${SOURCE_FILE}")
+    endforeach()
 
 add_executable(graffitica
-	${HEADERS}
-	${SOURCE}
+    ${SOURCES}
 )
 
 target_include_directories(graffitica PUBLIC

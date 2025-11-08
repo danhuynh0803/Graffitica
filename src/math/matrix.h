@@ -60,6 +60,8 @@ public:
     inline vec4 operator *(const vec4& rhs);
     inline mat4 operator *(float);
 
+    bool operator==(const mat4& rhs) const;
+
     inline std::vector<float> operator [](int i) const 
     { 
         return entry[i]; 
@@ -69,11 +71,6 @@ public:
     { 
         return entry[i]; 
     };
-
-    inline bool operator ==(const mat4 &rhs);
-    //mat4 operator +=(const mat4 &rhs);
-    //mat4 operator -=(const mat4 &rhs);
-    //mat4 operator *=(const mat4 &rhs);
 
     static float det(mat4 m);
     static float tr(mat4 m);
@@ -368,7 +365,7 @@ inline mat4 operator*(float t, const mat4 &m) {
     return product;
 }
 
-inline bool mat4::operator ==(const mat4 &rhs)
+inline bool mat4::operator ==(const mat4 &rhs) const
 {
     int row = 4;
     int col = 4;
@@ -386,6 +383,7 @@ inline bool mat4::operator ==(const mat4 &rhs)
     return true; 
 }
 
+/*
 inline bool operator ==(const mat4 &m1, const mat4 &m2)
 {
     int row = 4;
@@ -403,6 +401,7 @@ inline bool operator ==(const mat4 &m1, const mat4 &m2)
     }
     return true; 
 }
+*/
 
 
 inline float mat4::det(mat4 m) 
