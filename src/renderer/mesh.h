@@ -7,8 +7,8 @@
 // for testing api
 struct SimpleMesh
 {
-    std::vector<vec3> m_Positions;
-    std::vector<vec4> m_VertexColors;
+    std::vector<vec3f> m_Positions;
+    std::vector<vec4f> m_VertexColors;
     uint32_t m_VertexCount;
 };
 
@@ -20,13 +20,13 @@ public :
 
     uint32_t NumVertices() const { return m_Verts.size(); }
     uint32_t NumFaces() const { return m_Faces.size(); }
-    const std::vector<vec3>& GetVertices() const { return m_Verts; }
+    const std::vector<vec3f>& GetVertices() const { return m_Verts; }
 
     //std::vector<int> face(int index);
     const std::vector<int>& face(int idx) const;
 
 
 private:
-    std::vector<vec3> m_Verts;
+    std::vector<vec3f> m_Verts;
     std::vector<std::vector<int>> m_Faces;
 };

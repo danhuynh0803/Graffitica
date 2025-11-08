@@ -17,29 +17,29 @@ public:
 class line : public shape
 {
 public: 
-    line(const vec3 &_p0, const vec3 &_p1, const vec4 &_color) : 
+    line(const vec3f &_p0, const vec3f &_p1, const vec4f &_color) : 
         p0(_p0), p1(_p1), shape_color(_color) {}
     
     void apply_transform(const mat4& m_transform);
 
-    // TODO create a vertex class, where it contains vec3 position and vec3 color 
-    vec4 shape_color;
-    vec3 p0, p1; 
+    // TODO create a vertex class, where it contains vec3f position and vec3f color 
+    vec4f shape_color;
+    vec3f p0, p1; 
 };
 
 
 class triangle : public shape
 {
 public:
-    triangle(const vec3 &_p0, const vec3 &_p1, const vec3 &_p2, const color &_color, bool filled = true) : 
+    triangle(const vec3f &_p0, const vec3f &_p1, const vec3f &_p2, const color &_color, bool filled = true) : 
         p0(_p0), p1(_p1), p2(_p2), shape_color(_color), is_filled(filled) {} 
 
     void apply_transform(const mat4& m_transform);
 
-    // TODO create a vertex class, where it contains vec3 position and vec3 color 
-    vec4 shape_color;
+    // TODO create a vertex class, where it contains vec3f position and vec3f color 
+    vec4f shape_color;
     bool is_filled = false;
-    vec3 p0, p1, p2;
+    vec3f p0, p1, p2;
 };
 */
 #endif // SHAPES_H

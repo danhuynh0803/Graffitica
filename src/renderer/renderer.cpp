@@ -19,12 +19,12 @@ namespace
 {
 
 // Local function prototypes
-void swap(vec3&, vec3&);
-void sort_desc(std::vector<vec3>&);
+void swap(vec3f&, vec3f&);
+void sort_desc(std::vector<vec3f>&);
 
-void swap(vec3& p0, vec3& p1)
+void swap(vec3f& p0, vec3f& p1)
 {
-    vec3 temp(p0);
+    vec3f temp(p0);
     p0 = p1;
     p1 = temp;
 }
@@ -34,7 +34,7 @@ void swap(vec3& p0, vec3& p1)
 // by descending Y. 
 // So that v[0].y >= v[1].y >= .. >= v[n-1].y
 // ==========================================
-void sort_desc(std::vector<vec3>& verts)
+void sort_desc(std::vector<vec3f>& verts)
 {
     for (int i = 0; i < verts.size(); ++i)
     {
@@ -58,7 +58,7 @@ void sort_desc(std::vector<vec3>& verts)
 /*
 void draw_model(Model model, const color& _color, bool is_wire)
 {
-    vec3 new_color = _color;
+    vec3f new_color = _color;
     int nfaces = model.num_faces();
     for (int i = 0; i < nfaces; ++i)
     {
@@ -68,18 +68,18 @@ void draw_model(Model model, const color& _color, bool is_wire)
         // Get the index of the vertices that comprise the face
         std::vector<int> vert_indices = model.face(i);
 
-        vec3 p0 = model.vert(vert_indices[0]);
-        vec3 p1 = model.vert(vert_indices[1]);
-        vec3 p2 = model.vert(vert_indices[2]);
+        vec3f p0 = model.vert(vert_indices[0]);
+        vec3f p1 = model.vert(vert_indices[1]);
+        vec3f p2 = model.vert(vert_indices[2]);
 
         // TODO rethink how to handle drawing to NDC
         // Need to rethink how to tie with camera functions
         // Compute the direction of the normal and compare it with the light
-        vec3 normal = cross((p1 - p0), (p2 - p0));
+        vec3f normal = cross((p1 - p0), (p2 - p0));
         normal.make_unit_vector();
 
         // TODO check backface based on camera position?
-        vec3 cameraDir = camera.look_from - camera.look_at;
+        vec3f cameraDir = camera.look_from - camera.look_at;
         cameraDir.make_unit_vector();
         is_back_face = dot(cameraDir, normal) < 0.0f;
 
@@ -87,12 +87,12 @@ void draw_model(Model model, const color& _color, bool is_wire)
         {
             // TODO calculate direction off each fragment instead of a single vertex for more accurate results
             // TODO base light dir off of the center of the triangle
-            vec3 midPoint = (p2 - ((p0 - p1) * 0.5f)) * 0.5f;
+            vec3f midPoint = (p2 - ((p0 - p1) * 0.5f)) * 0.5f;
 
-            vec3 diffuse(0.0f);
+            vec3f diffuse(0.0f);
             for (auto light : lights)
             {
-                vec3 light_dir = (light->pos) - midPoint;
+                vec3f light_dir = (light->pos) - midPoint;
                 light_dir.make_unit_vector();
 
                 diffuse += std::max(0.0f, dot(normal, light_dir)) * light->color;
@@ -119,7 +119,7 @@ void draw_model(Model model, const color& _color, bool is_wire)
 }
 */
 
-void draw_line(const ImageView& view, vec3 p0, vec3 p1, const vec4& _color)
+void draw_line(const ImageView& view, vec3f p0, vec3f p1, const vec4f& _color)
 {
     int dx = p1.x - p0.x;
     int dy = p1.y - p0.y;
@@ -185,7 +185,7 @@ void draw_line(const ImageView& view, vec3 p0, vec3 p1, const vec4& _color)
 //
 // precondition: p0.y > p1.y == p2.y
 // ==========================================
-void fill_flat_bottom_triangle(vec3 p0, vec3 p1, vec3 p2, const vec4& _color)
+void fill_flat_bottom_triangle(vec3f p0, vec3f p1, vec3f p2, const vec4f& _color)
 {
     int dy = p0.y - p1.y;
     float slope_p1_p0 = (p0.x - p1.x) / (p0.y - p1.y);
@@ -213,7 +213,7 @@ void fill_flat_bottom_triangle(vec3 p0, vec3 p1, vec3 p2, const vec4& _color)
 //
 // precondition: p0.y == p1.y > p2.y
 // =====================================
-void fill_flat_top_triangle(vec3 p0, vec3 p1, vec3 p2, const vec4& _color)
+void fill_flat_top_triangle(vec3f p0, vec3f p1, vec3f p2, const vec4f& _color)
 {
     int dy = p0.y - p2.y;
     float slope_p2_p0 = (p0.x - p2.x) / (p0.y - p2.y);
@@ -239,10 +239,10 @@ void fill_flat_top_triangle(vec3 p0, vec3 p1, vec3 p2, const vec4& _color)
 // flat top part. Then fills each line 
 // horizontally.
 // =========================================
-void draw_triangle_filled(vec3 p0, vec3 p1, vec3 p2, const vec4& _color)
+void draw_triangle_filled(vec3f p0, vec3f p1, vec3f p2, const vec4f& _color)
 {
     // sort vertices on descending y 
-    std::vector<vec3> verts = { p0, p1, p2 };
+    std::vector<vec3f> verts = { p0, p1, p2 };
     sort_desc(verts);
 
     p0 = verts[0];
@@ -278,14 +278,14 @@ void draw_triangle_filled(vec3 p0, vec3 p1, vec3 p2, const vec4& _color)
     }
 }
 
-void draw_triangle_wireframe(vec3 p0, vec3 p1, vec3 p2, const vec4& _color)
+void draw_triangle_wireframe(vec3f p0, vec3f p1, vec3f p2, const vec4f& _color)
 {
     //draw_line(p0, p1, _color);
     //draw_line(p1, p2, _color);
     //draw_line(p2, p0, _color);
 }
 
-void draw_triangle(vec3 p0, vec3 p1, vec3 p2, const vec4& _color, bool is_wire)
+void draw_triangle(vec3f p0, vec3f p1, vec3f p2, const vec4f& _color, bool is_wire)
 {
     if (is_wire)
     {
@@ -298,7 +298,7 @@ void draw_triangle(vec3 p0, vec3 p1, vec3 p2, const vec4& _color, bool is_wire)
 }
 
 
-void renderer::cmd::Clear(const ImageView& view, const vec4& clearColor)
+void renderer::cmd::Clear(const ImageView& view, const vec4f& clearColor)
 {
     auto size = view.width * view.height;
     std::fill_n(view.data, size, FORMAT_R8G8B8A8::to(clearColor));
@@ -321,7 +321,7 @@ void RasterizeScanline(const ImageView& view, const Buffer& vb, U32 vertexCount,
 
         // sort vertices on descending y 
         // TODO replace with predicate
-        std::vector<vec3> verts = { p0, p1, p2 };
+        std::vector<vec3f> verts = { p0, p1, p2 };
         sort_desc(verts);
 
         p0 = verts[0];
@@ -400,13 +400,13 @@ void RasterizeScanline(const ImageView& view, const Buffer& vb, U32 vertexCount,
 //==========================================
 // Calculates the triangles barycentric coordinate
 //=========================================
-vec3 barycentric(vec3 p0, vec3 p1, vec3 p2)
+vec3f barycentric(vec3f p0, vec3f p1, vec3f p2)
 {
     // TODO
     return {};
 }
 
-float CalculateTriangleArea(const vec3& a, const vec3& b, const vec3& c)
+float CalculateTriangleArea(const vec3f& a, const vec3f& b, const vec3f& c)
 {
     return .5 * ( (b.y - a.y) * (b.x + a.x) + (c.y - b.y) * (c.x + b.x) + (a.y - c.y) * (a.x + c.x) );
 }
@@ -438,7 +438,7 @@ void RasterizeAABB(const ImageView& view, const Buffer& vb, U32 vertexCount, U32
             for (int y = minY; y <= maxY; ++y)
             {
                 // TODO replace barycentric with Cramer's rule ver
-                vec3 P (x, y, 0);
+                vec3f P (x, y, 0);
                 float u = CalculateTriangleArea(P, b, c) / totalArea;
                 float v = CalculateTriangleArea(P, c, a) / totalArea;
                 float w = CalculateTriangleArea(P, a, b) / totalArea;
@@ -451,17 +451,17 @@ void RasterizeAABB(const ImageView& view, const Buffer& vb, U32 vertexCount, U32
                 }
 
                 // Get col of P based on barycentric weights
-                const vec4& colA = colors[i];
-                const vec4& colB = colors[i+1];
-                const vec4& colC = colors[i+2];
-                vec4 col = u*colA + v*colB + w*colC;
+                const vec4f& colA = colors[i];
+                const vec4f& colB = colors[i+1];
+                const vec4f& colC = colors[i+2];
+                vec4f col = u*colA + v*colB + w*colC;
                 view.at(x, y) = FORMAT_R8G8B8A8::to(col);
             }
         }
     }
 }
 
-void RasterizeAABB(const ImageView& view, const vec4& color, const vec3& a, const vec3& b, const vec3& c)
+void RasterizeAABB(const ImageView& view, const vec4f& color, const vec3f& a, const vec3f& b, const vec3f& c)
 {
     // TODO profile with some timer utilities
     // SCOPED_TIMER()
@@ -480,7 +480,7 @@ void RasterizeAABB(const ImageView& view, const vec4& color, const vec3& a, cons
         for (int y = minY; y <= maxY; ++y)
         {
             // TODO replace barycentric with Cramer's rule ver
-            vec3 P(x, y, 0);
+            vec3f P(x, y, 0);
             float u = CalculateTriangleArea(P, b, c) / totalArea;
             float v = CalculateTriangleArea(P, c, a) / totalArea;
             float w = CalculateTriangleArea(P, a, b) / totalArea;
@@ -493,11 +493,11 @@ void RasterizeAABB(const ImageView& view, const vec4& color, const vec3& a, cons
             }
 
             // Get col of P based on barycentric weights
-            //const vec4& colA = colors[i];
-            //const vec4& colB = colors[i + 1];
-            //const vec4& colC = colors[i + 2];
-            //vec4 col = u * colA + v * colB + w * colC;
-            //const vec4 col (1,0,0,1);
+            //const vec4f& colA = colors[i];
+            //const vec4f& colB = colors[i + 1];
+            //const vec4f& colC = colors[i + 2];
+            //vec4f col = u * colA + v * colB + w * colC;
+            //const vec4f col (1,0,0,1);
             view.at(x, y) = FORMAT_R8G8B8A8::to(color);
         }
     }
@@ -531,12 +531,12 @@ void renderer::cmd::DrawIndexed(const RasterizerState& state, const ImageView& v
         const std::vector<int>& face = vb.m_MeshData->face(i);
         const auto& verts = vb.m_MeshData->GetVertices();
 
-        auto NDCToViewport = [&](const vec3& p)
+        auto NDCToViewport = [&](const vec3f& p)
             {
                 constexpr U32 width = 800;
                 constexpr U32 height = 599;
                 // hardcode to test
-                vec3 coords(
+                vec3f coords(
                     (int)(0.5f * (width * p.x + width)),
                     (int)(0.5f * (height * -p.y + height)), // invert-y
                     0

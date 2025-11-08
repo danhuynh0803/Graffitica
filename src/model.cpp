@@ -7,6 +7,7 @@
 
 #include "model.h"
 
+/*
 Model::Model(const Model& model)
 {
     verts = model.verts;
@@ -48,7 +49,7 @@ Model::Model(const char* file_name) : verts(), faces()
         if (!line.compare(0, 2, "v "))
         {
             iss >> trash;
-            vec3 vertex;
+            vec3f vertex;
             // Read all three positions
             for (int i = 0; i < 3; ++i)
             {
@@ -159,7 +160,7 @@ Model Model::apply_transform(const mat4& transform)
     for (int i = 0; i < new_model.num_verts(); ++i)
     {
 
-        vec4 new_pos = vec4(new_model.vert(i), 1.0);
+        vec4f new_pos = vec4f(new_model.vert(i), 1.0);
         std::cout << "old Pos = " << new_pos << "\t";
         new_pos = transform * new_pos;
         std::cout << "new Pos = " << new_pos << std::endl;
@@ -185,7 +186,9 @@ std::vector<int> Model::face(int idx)
     return faces[idx];
 }
 
-vec3 Model::vert(int i) 
+vec3f Model::vert(int i) 
 {
     return verts[i];
 }
+
+*/

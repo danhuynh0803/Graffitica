@@ -11,7 +11,7 @@ class Buffer;
 namespace renderer::cmd
 {
 
-void Clear(const ImageView& view, const vec4& clearColor);
+void Clear(const ImageView& view, const vec4f& clearColor);
 
 void Draw(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex);
 
