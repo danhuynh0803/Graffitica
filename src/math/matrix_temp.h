@@ -54,8 +54,8 @@ public:
 
     /*
     // TODO generalize this to rotate in any axis and any amount of degrees
-    static vec3 rotate90degree(vec3 rhs);
-    static vec3 rotateNdegreeAboutZ(double angle, vec3 rhs);
+    static vec3f rotate90degree(vec3f rhs);
+    static vec3f rotateNdegreeAboutZ(double angle, vec3f rhs);
 
     matrix conjuagte(matrix m);
     matrix transpose(matrix m);
@@ -284,8 +284,8 @@ matrix matrix::conjuagte(matrix m) {
     return conjuagte;
 }
 
-vec3 matrix::rotate90degree(vec3 rhs) {
-    vec3 product(-1 * rhs.y(), 1 * rhs.x(), rhs.z());
+vec3f matrix::rotate90degree(vec3f rhs) {
+    vec3f product(-1 * rhs.y(), 1 * rhs.x(), rhs.z());
        product.x = entry[0][0] * rhs.x() + entry[0][1] * rhs.y() + entry[0][2] * rhs.z();
        product.y = entry[1][0] * rhs.x() + entry[1][1] * rhs.y() + entry[1][2] * rhs.z();
        product.z = entry[2][0] * rhs.x() + entry[2][1] * rhs.y() + entry[2][2] * rhs.z();
@@ -301,8 +301,8 @@ vec3 matrix::rotate90degree(vec3 rhs) {
     return product;
 }
 
-vec3 matrix::rotateNdegreeAboutZ(double angle, vec3 rhs) {
-    vec3 product = vec3();
+vec3f matrix::rotateNdegreeAboutZ(double angle, vec3f rhs) {
+    vec3f product = vec3f();
     product.e[0] = std::cos(angle * M_PI / 180) * rhs.x() - std::sin(angle * M_PI / 180) * rhs.y();
     product.e[1] = std::sin(angle * M_PI / 180) * rhs.x() + std::cos(angle * M_PI / 180) * rhs.y();
     product.e[2] = rhs.z();

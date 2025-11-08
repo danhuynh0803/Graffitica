@@ -3,14 +3,15 @@
 
 #include "math/vector.h"
 
+/*
 class Light
 {
 public:
     //virtual void Luminate() = 0;
-    Light(vec3 p, vec3 c) : pos(p), color(c) {}
+    Light(vec3f p, vec3f c) : pos(p), color(c) {}
 
-    vec3 color;
-    vec3 pos;
+    vec3f color;
+    vec3f pos;
 };
 
 class DirLight : public Light
@@ -30,5 +31,7 @@ class SpotLight : public Light
 public:
     void Luminate();
 };
+
+*/
 
 #endif // LIGHT_H

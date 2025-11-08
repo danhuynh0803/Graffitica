@@ -53,8 +53,8 @@ class Buffer
 {
 public:
 	std::shared_ptr<Mesh> m_MeshData = nullptr;
-	std::vector<vec3> m_Positions;
-	std::vector<vec4> m_VertexColors;
+	std::vector<vec3f> m_Positions;
+	std::vector<vec4f> m_VertexColors;
 	uint32_t m_VertexCount;
 
 	std::vector<U32> m_Indices;

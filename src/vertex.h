@@ -3,14 +3,15 @@
 
 #include "math/vector.h"
 
+/*
 struct vertex 
 {
-    vertex(const vec3 &pos, const vec4 &col) : 
+    vertex(const vec3f &pos, const vec4f &col) : 
         position(pos), color(col) {}
 
     // Vertex attributes
-    vec3 position; 
-    vec4 color;
+    vec3f position; 
+    vec4f color;
 };
-
+*/
 #endif // VERTEX_H

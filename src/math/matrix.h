@@ -12,9 +12,9 @@ class mat4;
 
 inline mat4 zero();
 inline mat4 identity();
-inline void translate(mat4& m_transform, const vec3& v_translation);
-inline void scale(mat4& m_transform, const vec3& v_scale);
-inline void rotate_aribitary_axes(mat4& m_transform, float angle, const vec3& axis);
+inline void translate(mat4& m_transform, const vec3f& v_translation);
+inline void scale(mat4& m_transform, const vec3f& v_scale);
+inline void rotate_aribitary_axes(mat4& m_transform, float angle, const vec3f& axis);
 inline void rotate_x(mat4& m_transform, float angle);
 inline void rotate_y(mat4& m_transform, float angle);
 inline void rotate_z(mat4& m_transform, float angle);
@@ -57,7 +57,7 @@ public:
     }
 
     inline mat4 operator *(const mat4& rhs);
-    inline vec4 operator *(const vec4& rhs);
+    inline vec4f operator *(const vec4f& rhs);
     inline mat4 operator *(float);
 
     bool operator==(const mat4& rhs) const;
@@ -98,7 +98,7 @@ inline mat4 identity()
     return m;
 }
 
-inline void translate(mat4& m_transform, const vec3& v_translation)
+inline void translate(mat4& m_transform, const vec3f& v_translation)
 {
     mat4 m_translation = identity();
     m_translation[0][3] = v_translation.x;
@@ -108,7 +108,7 @@ inline void translate(mat4& m_transform, const vec3& v_translation)
     m_transform = m_translation * m_transform;
 }
 
-inline void scale(mat4& m_transform, const vec3& v_scale)
+inline void scale(mat4& m_transform, const vec3f& v_scale)
 {
     mat4 m_scale; 
     m_scale[0][0] = v_scale.x;
@@ -119,7 +119,7 @@ inline void scale(mat4& m_transform, const vec3& v_scale)
     m_transform = m_scale * m_transform;
 }
 
-inline void rotate_aribitary_axes(mat4& m_transform, float angle, const vec3& axis)
+inline void rotate_aribitary_axes(mat4& m_transform, float angle, const vec3f& axis)
 {
     mat4 m_rotate;
     angle *= M_PI / 180;
@@ -305,9 +305,9 @@ inline mat4 mat4::operator *(const mat4& rhs) {
     return product;
 }
 
-inline vec4 operator *(const mat4& lhs, const vec4 &rhs)
+inline vec4f operator *(const mat4& lhs, const vec4f &rhs)
 {
-    vec4 product;
+    vec4f product;
     int row = 4, col = 4;
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < col; j++) {
@@ -317,8 +317,8 @@ inline vec4 operator *(const mat4& lhs, const vec4 &rhs)
     return product;
 }
 
-inline vec4 mat4::operator *(const vec4& rhs) {
-    vec4 product;
+inline vec4f mat4::operator *(const vec4f& rhs) {
+    vec4f product;
     int row = 4, col = 4;
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < col; j++) {
@@ -330,8 +330,8 @@ inline vec4 mat4::operator *(const vec4& rhs) {
 
 //TODO make workable with const mat4
 /*
-inline vec4 mat4::operator*(const vec4& rhs) {
-    vec4 product;
+inline vec4f mat4::operator*(const vec4f& rhs) {
+    vec4f product;
     int row = 4, col = 4;
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < col; j++) {

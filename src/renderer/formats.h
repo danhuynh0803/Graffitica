@@ -8,7 +8,7 @@
 
 struct FORMAT_R8G8B8A8
 {
-	static FORMAT_R8G8B8A8 to(const vec4& c)
+	static FORMAT_R8G8B8A8 to(const vec4f& c)
 	{
 		FORMAT_R8G8B8A8 o;
 		o.r = std::max(0.f, std::min(255.f, c.x() * 255.f));

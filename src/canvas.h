@@ -30,8 +30,8 @@ public:
     void apply_transform(const mat4& m_transform);
 
     // Primitives
-    void draw_line(vec3 p0, vec3 p1, const color& _color);
-    void draw_triangle(vec3 p0, vec3 p1, vec3 p2, const color& _color, bool = false);
+    void draw_line(vec3f p0, vec3f p1, const color& _color);
+    void draw_triangle(vec3f p0, vec3f p1, vec3f p2, const color& _color, bool = false);
 
     // Draw model from *.obj files using triangles
     void draw_model(Model model, const color& _color, bool = false);
@@ -64,14 +64,14 @@ private:
 
     //=====================================================================
     // Helper functions that should be called by the public draw functions
-    vec3 convert_ndc_to_canvas(const vec3& p);
-    vec3 convert_canvas_to_ndc(const vec3& p);
+    vec3f convert_ndc_to_canvas(const vec3f& p);
+    vec3f convert_canvas_to_ndc(const vec3f& p);
 
     void put_pixel(int x, int y, const color& _color);
-    void draw_triangle_filled(vec3 p0, vec3 p1, vec3 p2, const color& _color);
-    void draw_triangle_wireframe(vec3 p0, vec3 p1, vec3 p2, const color& _color);
-    void fill_flat_bottom_triangle(vec3 p0, vec3 p1, vec3 p2, const color& _color); 
-    void fill_flat_top_triangle(vec3 p0, vec3 p1, vec3 p2, const color& _color); 
+    void draw_triangle_filled(vec3f p0, vec3f p1, vec3f p2, const color& _color);
+    void draw_triangle_wireframe(vec3f p0, vec3f p1, vec3f p2, const color& _color);
+    void fill_flat_bottom_triangle(vec3f p0, vec3f p1, vec3f p2, const color& _color); 
+    void fill_flat_top_triangle(vec3f p0, vec3f p1, vec3f p2, const color& _color); 
     // =====================================================================
 };
 */

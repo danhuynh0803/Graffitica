@@ -13,8 +13,8 @@
 
 /*
 // Local function prototypes
-void swap(vec3&, vec3&);
-void sort_desc(std::vector<vec3>&);
+void swap(vec3f&, vec3f&);
+void sort_desc(std::vector<vec3f>&);
 
 ////////////
 
@@ -32,9 +32,9 @@ Canvas::Canvas(int w, int h) : width(w), height(h)
     }
 }
 
-vec3 Canvas::convert_ndc_to_canvas(const vec3 &p)A
+vec3f Canvas::convert_ndc_to_canvas(const vec3f &p)A
 {
-    vec3 canvas_coords(
+    vec3f canvas_coords(
         (int)(0.5f * (width * p.x() + width)),
         (int)(0.5f * (height * p.y() + height)),
               0
@@ -43,9 +43,9 @@ vec3 Canvas::convert_ndc_to_canvas(const vec3 &p)A
     return canvas_coords;
 }
 
-vec3 Canvas::convert_canvas_to_ndc(const vec3 &p)
+vec3f Canvas::convert_canvas_to_ndc(const vec3f &p)
 {
-    vec3 ndc_coords(
+    vec3f ndc_coords(
         (2 * p.x() - width) / width,
         (2 * p.y() - height) / height,
          0
@@ -169,9 +169,9 @@ void Canvas::put_pixel(int x, int y, const color& _color)
     canvas[x][y] = _color;
 }
 
-void swap(vec3 &p0, vec3 &p1)
+void swap(vec3f &p0, vec3f &p1)
 {
-    vec3 temp(p0);
+    vec3f temp(p0);
     p0 = p1;
     p1 = temp;
 }
@@ -181,7 +181,7 @@ void swap(vec3 &p0, vec3 &p1)
 // by descending Y. 
 // So that v[0].y >= v[1].y >= .. >= v[n-1].y
 // ==========================================
-void sort_desc(std::vector<vec3> &verts)
+void sort_desc(std::vector<vec3f> &verts)
 {
     for (int i = 0; i < verts.size(); ++i) 
     {
@@ -202,7 +202,7 @@ void sort_desc(std::vector<vec3> &verts)
 // ==========================================
 void Canvas::draw_model(Model model, const color& _color, bool is_wire)
 {
-    vec3 new_color = _color;
+    vec3f new_color = _color;
     int nfaces = model.num_faces();
     for (int i = 0; i < nfaces; ++i)
     {
@@ -212,18 +212,18 @@ void Canvas::draw_model(Model model, const color& _color, bool is_wire)
         // Get the index of the vertices that comprise the face
         std::vector<int> vert_indices = model.face(i);
 
-        vec3 p0 = model.vert(vert_indices[0]);
-        vec3 p1 = model.vert(vert_indices[1]);
-        vec3 p2 = model.vert(vert_indices[2]);
+        vec3f p0 = model.vert(vert_indices[0]);
+        vec3f p1 = model.vert(vert_indices[1]);
+        vec3f p2 = model.vert(vert_indices[2]);
 
         // TODO rethink how to handle drawing to NDC
         // Need to rethink how to tie with camera functions
         // Compute the direction of the normal and compare it with the light
-        vec3 normal = cross((p1-p0), (p2-p0));
+        vec3f normal = cross((p1-p0), (p2-p0));
         normal.make_unit_vector();
 
         // TODO check backface based on camera position?
-        vec3 cameraDir = camera.look_from - camera.look_at;
+        vec3f cameraDir = camera.look_from - camera.look_at;
         cameraDir.make_unit_vector();
         is_back_face = dot(cameraDir, normal) < 0.0f;
 
@@ -231,12 +231,12 @@ void Canvas::draw_model(Model model, const color& _color, bool is_wire)
         {
             // TODO calculate direction off each fragment instead of a single vertex for more accurate results
             // TODO base light dir off of the center of the triangle
-            vec3 midPoint = (p2 - ((p0 - p1)*0.5f)) * 0.5f;
+            vec3f midPoint = (p2 - ((p0 - p1)*0.5f)) * 0.5f;
 
-            vec3 diffuse(0.0f);
+            vec3f diffuse(0.0f);
             for (auto light : lights)
             {
-                vec3 light_dir = (light->pos) - midPoint;
+                vec3f light_dir = (light->pos) - midPoint;
                 light_dir.make_unit_vector();
 
                 diffuse += std::max(0.0f, dot(normal, light_dir)) * light->color;
@@ -262,7 +262,7 @@ void Canvas::draw_model(Model model, const color& _color, bool is_wire)
     }
 }
 
-void Canvas::draw_line(vec3 p0, vec3 p1, const color& _color)
+void Canvas::draw_line(vec3f p0, vec3f p1, const color& _color)
 {
     int dx = p1.x() - p0.x();
     int dy = p1.y() - p0.y();
@@ -323,7 +323,7 @@ void Canvas::draw_line(vec3 p0, vec3 p1, const color& _color)
 //
 // precondition: p0.y > p1.y == p2.y
 // ==========================================
-void Canvas::fill_flat_bottom_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_color)
+void Canvas::fill_flat_bottom_triangle(vec3f p0, vec3f p1, vec3f p2, const color &_color)
 {
     int dy = p0.y() - p1.y(); 
     float slope_p1_p0 = (p0.x() - p1.x())/(p0.y() - p1.y());
@@ -351,14 +351,14 @@ void Canvas::fill_flat_bottom_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_
 //
 // precondition: p0.y == p1.y > p2.y
 // =====================================
-void Canvas::fill_flat_top_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_color)
+void Canvas::fill_flat_top_triangle(vec3f p0, vec3f p1, vec3f p2, const color &_color)
 {
     int dy = p0.y() - p2.y();
     float slope_p2_p0 = (p0.x() - p2.x())/(p0.y() - p2.y());
     float slope_p2_p1 = (p1.x() - p2.x())/(p1.y() - p2.y());
 
-    vec3 pa = p2;
-    vec3 pb = p2;
+    vec3f pa = p2;
+    vec3f pb = p2;
 
     for (int i = 0; i < dy; ++i) 
     {
@@ -374,9 +374,9 @@ void Canvas::fill_flat_top_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_col
 //==========================================
 // Calculates the triangles barycentric coordinate
 //=========================================
-vec3 barycentric(vec3 p0, vec3 p1, vec3 p2)
+vec3f barycentric(vec3f p0, vec3f p1, vec3f p2)
 {
-    vec3 bp;
+    vec3f bp;
     return bp;
 }
 
@@ -386,10 +386,10 @@ vec3 barycentric(vec3 p0, vec3 p1, vec3 p2)
 // flat top part. Then fills each line 
 // horizontally.
 // =========================================
-void Canvas::draw_triangle_filled(vec3 p0, vec3 p1, vec3 p2, const color &_color)
+void Canvas::draw_triangle_filled(vec3f p0, vec3f p1, vec3f p2, const color &_color)
 {
     // sort vertices on descending y 
-    std::vector<vec3> verts = {p0, p1, p2};
+    std::vector<vec3f> verts = {p0, p1, p2};
     sort_desc(verts);  
 
     p0 = verts[0]; 
@@ -415,7 +415,7 @@ void Canvas::draw_triangle_filled(vec3 p0, vec3 p1, vec3 p2, const color &_color
         // slope from p0 to p2
         float mx = (p2.x() - p0.x())/(p2.y() - p0.y());
         // Get pa using pa = p0 + t(p2 - p0)
-        vec3 pa(p0.x() + (p1.y() - p0.y())*mx, p1.y(), 0.0f);
+        vec3f pa(p0.x() + (p1.y() - p0.y())*mx, p1.y(), 0.0f);
 
         // Current use requires that p0.y > p1.y == pa.y
         //                           p1.y == pa.y > p2.y
@@ -425,14 +425,14 @@ void Canvas::draw_triangle_filled(vec3 p0, vec3 p1, vec3 p2, const color &_color
     }
 }
 
-void Canvas::draw_triangle_wireframe(vec3 p0, vec3 p1, vec3 p2, const color &_color)
+void Canvas::draw_triangle_wireframe(vec3f p0, vec3f p1, vec3f p2, const color &_color)
 {
     draw_line(p0, p1, _color);
     draw_line(p1, p2, _color);
     draw_line(p2, p0, _color);
 }
 
-void Canvas::draw_triangle(vec3 p0, vec3 p1, vec3 p2, const color &_color, bool is_wire)
+void Canvas::draw_triangle(vec3f p0, vec3f p1, vec3f p2, const color &_color, bool is_wire)
 {
     if (is_wire)
     {

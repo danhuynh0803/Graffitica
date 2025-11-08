@@ -5,6 +5,7 @@
 #include "math/vector.h"
 #include "math/matrix.h"
 
+/*
 class Model
 {
 public :
@@ -14,7 +15,7 @@ public :
 
     int num_verts();
     int num_faces();
-    vec3 vert(int i);
+    vec3f vert(int i);
     std::vector<int> face(int index);
 
     void operator=(const Model& m)
@@ -26,8 +27,9 @@ public :
     Model apply_transform(const mat4&);
 
 private:
-    std::vector<vec3> verts;
+    std::vector<vec3f> verts;
     std::vector<std::vector<int> > faces;
 };
+*/
 
 #endif  // MODEL_H

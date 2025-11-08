@@ -43,7 +43,7 @@ Mesh::Mesh(const char* file_name) : m_Verts(), m_Faces()
         if (!line.compare(0, 2, "v "))
         {
             iss >> trash;
-            vec3 vertex;
+            vec3f vertex;
             // Read all three positions
             for (int i = 0; i < 3; ++i)
             {

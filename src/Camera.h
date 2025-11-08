@@ -8,12 +8,12 @@ public:
 
     Camera() {}
 
-    Camera(const vec3& from, const vec3& at, float vert_fov, float asp_ratio):
+    Camera(const vec3f& from, const vec3f& at, float vert_fov, float asp_ratio):
         look_from(from), look_at(at), vfov(vert_fov), aspect_ratio(asp_ratio)
     {
        // Camera's local axes
        forward = unit_vector(look_from - look_at);              // +z
-       right = unit_vector(cross(vec3(0, 1, 0), forward));      // +x
+       right = unit_vector(cross(vec3f(0, 1, 0), forward));      // +x
        up = cross(forward, right);                              // +y
     }
 
@@ -46,9 +46,9 @@ public:
         return persp;
     }
 
-    vec3 look_from;
-    vec3 look_at;
-    vec3 right, up, forward;
+    vec3f look_from;
+    vec3f look_at;
+    vec3f right, up, forward;
     float vfov, aspect_ratio;
     float near, far;
 };
