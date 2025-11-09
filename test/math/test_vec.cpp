@@ -4,6 +4,10 @@
 // Probably worth finding a better way of handling va args? But this suffices for unit tests purposes
 #define TEST_TYPES int, uint32_t, uint64_t, float, double
 
+/// Vector2 tests
+// separate to different files
+
+
 /// Vector3 tests
 TEMPLATE_TEST_CASE("vec3 add", "[vec3][template]", TEST_TYPES)
 {
