@@ -8,6 +8,7 @@
 #include "renderer/rasterizer_state.h"
 #include "renderer/renderer.h"
 #include "renderer/command.h"
+#include <random>
 
 // TODO refactor window and inputs out of main
 int main()
@@ -56,24 +57,21 @@ int main()
 
     Buffer model = {
         .m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
-        .m_VertexColors = {
-            { 1, 0, 0, 1 },
-            { 0, 1, 0, 1 },
-            { 0, 0, 1, 1 },
-
-            { 1, (105. / 255), (180. / 255), 1},
-            { 0, 1, 1, 1 },
-            { 0, 0.5, 0.5, 1 },
-
-            { 1, 0, 1, 1 },
-            { 0.5, 0.5, 1, 1 },
-            { 1, 1, 0, 1 },
-        },
     };
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+
+    // gen random triangle colors to visualize
+    for (int i = 0; i < 100; ++i)
+        model.m_VertexColors.emplace_back(dis(gen), dis(gen), dis(gen), 1.);
+
     //vbo.m_VertexCount = vbo.m_Positions.size();
     RasterizerState drawState{
-        .fillMode = FILL_MODE::FILL_MODE_WIREFRAME,
+        .fillMode = FILL_MODE::FILL_MODE_SOLID,
         .cullMode = CULL_MODE::CULL_MODE_BACK,
+        .frontCounterClockwise = true,
     };
 
     bool running = true;

@@ -6,6 +6,8 @@
 //namespace render
 //{
 
+
+
 struct FORMAT_R8G8B8A8
 {
 	static FORMAT_R8G8B8A8 to(const vec4f& c)
@@ -20,7 +22,6 @@ struct FORMAT_R8G8B8A8
 	}
 	U8 r, g, b, a;
 };
-
 
 enum class ImageFormat
 {

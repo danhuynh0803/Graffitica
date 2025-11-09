@@ -174,134 +174,14 @@ void draw_line(const ImageView& view, vec3f p0, vec3f p1, const vec4f& _color)
     }
 }
 
-// ==========================================
-// Fills triangle by drawing lines from 
-// bottom-most point p1/p2 to the top-most 
-// point p0.
-//
-//     p0 
-//    /  \ 
-//   p1--p2
-//
-// precondition: p0.y > p1.y == p2.y
-// ==========================================
-void fill_flat_bottom_triangle(vec3f p0, vec3f p1, vec3f p2, const vec4f& _color)
-{
-    int dy = p0.y - p1.y;
-    float slope_p1_p0 = (p0.x - p1.x) / (p0.y - p1.y);
-    float slope_p2_p0 = (p0.x - p2.x) / (p0.y - p2.y);
-
-    for (int i = 0; i < dy; ++i)
-    {
-        p1.e[0] += slope_p1_p0;
-        p1.e[1]++;
-        p2.e[0] += slope_p2_p0;
-        p2.e[1]++;
-
-        //draw_line(p1, p2, _color);
-    }
-}
-
-// =====================================
-// Fills triangle by drawing lines from 
-// bottom most point p2 to the 
-// top-most points p0 and p1.
-//
-//   p0--p1
-//    \  /
-//     p2
-//
-// precondition: p0.y == p1.y > p2.y
-// =====================================
-void fill_flat_top_triangle(vec3f p0, vec3f p1, vec3f p2, const vec4f& _color)
-{
-    int dy = p0.y - p2.y;
-    float slope_p2_p0 = (p0.x - p2.x) / (p0.y - p2.y);
-    float slope_p2_p1 = (p1.x - p2.x) / (p1.y - p2.y);
-
-    vec3 pa = p2;
-    vec3 pb = p2;
-
-    for (int i = 0; i < dy; ++i)
-    {
-        pa.e[0] += slope_p2_p0;
-        pa.e[1]++;
-        pb.e[0] += slope_p2_p1;
-        pb.e[1]++;
-
-        //draw_line(pa, pb, _color);
-    }
-}
-
-//==========================================
-// Draws a filled triangle, by splitting 
-// a triangle into a flat bottom part and 
-// flat top part. Then fills each line 
-// horizontally.
-// =========================================
-void draw_triangle_filled(vec3f p0, vec3f p1, vec3f p2, const vec4f& _color)
-{
-    // sort vertices on descending y 
-    std::vector<vec3f> verts = { p0, p1, p2 };
-    sort_desc(verts);
-
-    p0 = verts[0];
-    p1 = verts[1];
-    p2 = verts[2];
-
-    if ((int)p1.y == (int)p2.y)
-    {
-        fill_flat_bottom_triangle(p0, p1, p2, _color);
-    }
-    else if ((int)p0.y == (int)p1.y)
-    {
-        fill_flat_top_triangle(p0, p1, p2, _color);
-    }
-    else
-    {
-        // Split the triangle into 2 triangles 
-        // one with a flat top and one with a flat bottom part
-        // 
-        // precondition: p0.y > p1.y > p2.y
-        //
-
-        // slope from p0 to p2
-        float mx = (p2.x - p0.x) / (p2.y - p0.y);
-        // Get pa using pa = p0 + t(p2 - p0)
-        vec3 pa(p0.x + (p1.y - p0.y) * mx, p1.y, 0.0f);
-
-        // Current use requires that p0.y > p1.y == pa.y
-        //                           p1.y == pa.y > p2.y
-        // due to the fill triangle method signature
-        fill_flat_bottom_triangle(p0, p1, pa, _color);
-        fill_flat_top_triangle(p1, pa, p2, _color);
-    }
-}
-
-void draw_triangle_wireframe(vec3f p0, vec3f p1, vec3f p2, const vec4f& _color)
-{
-    //draw_line(p0, p1, _color);
-    //draw_line(p1, p2, _color);
-    //draw_line(p2, p0, _color);
-}
-
-void draw_triangle(vec3f p0, vec3f p1, vec3f p2, const vec4f& _color, bool is_wire)
-{
-    if (is_wire)
-    {
-        draw_triangle_wireframe(p0, p1, p2, _color);
-    }
-    else
-    {
-        draw_triangle_filled(p0, p1, p2, _color);
-    }
-}
-
-
 void renderer::cmd::Clear(const ImageView& view, const vec4f& clearColor)
 {
     auto size = view.width * view.height;
     std::fill_n(view.data, size, FORMAT_R8G8B8A8::to(clearColor));
+}
+
+void renderer::cmd::Blit(const ImageView& dst, const ImageView& src, int x, int y, int z)
+{
 }
 
 void RasterizeScanline(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex)
@@ -411,7 +291,13 @@ float CalculateTriangleArea(const vec3f& a, const vec3f& b, const vec3f& c)
     return .5 * ( (b.y - a.y) * (b.x + a.x) + (c.y - b.y) * (c.x + b.x) + (a.y - c.y) * (a.x + c.x) );
 }
 
-void RasterizeAABB(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex)
+float Determinant2D(const vec3f& V, const vec3f& P)
+{
+    // ad - bc
+    return (V.x * P.y) - (V.y * P.x);
+}
+
+void RasterizeAABB(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex, CULL_MODE cullMode)
 {
     // TODO profile with some timer utilities
     // SCOPED_TIMER()
@@ -424,7 +310,7 @@ void RasterizeAABB(const ImageView& view, const Buffer& vb, U32 vertexCount, U32
         const auto& a = positions[i];
         const auto& b = positions[i+1];
         const auto& c = positions[i+2];
-        // TODO need to simplify vec to access member directly class
+
         // compute AABB
         float minX = std::min(a.x, std::min(b.x, c.x));
         float maxX = std::max(a.x, std::max(b.x, c.x));
@@ -438,42 +324,68 @@ void RasterizeAABB(const ImageView& view, const Buffer& vb, U32 vertexCount, U32
             for (int y = minY; y <= maxY; ++y)
             {
                 // TODO replace barycentric with Cramer's rule ver
-                vec3f P (x, y, 0);
-                float u = CalculateTriangleArea(P, b, c) / totalArea;
-                float v = CalculateTriangleArea(P, c, a) / totalArea;
-                float w = CalculateTriangleArea(P, a, b) / totalArea;
+                vec3f p (x, y, 0);
+                float detAP = Determinant2D(b-a, p-a);
+                float detBP = Determinant2D(c-b, p-b);
+                float detCP = Determinant2D(a-c, p-c);
+                //float u = CalculateTriangleArea(P, b, c) / totalArea;
+                //float v = CalculateTriangleArea(P, c, a) / totalArea;
+                //float w = CalculateTriangleArea(P, a, b) / totalArea;
                 // Causing precision issues
                 //float w = 1.0 - u - v;
 
                 // skip points outside of triangle
-                if (u < 0 || v < 0 || w < 0) {
+                //if (u < 0 || v < 0 || w < 0) {
+                if (detAP < 0 || detBP < 0 || detCP < 0)
                     continue;
-                }
 
                 // Get col of P based on barycentric weights
                 const vec4f& colA = colors[i];
                 const vec4f& colB = colors[i+1];
                 const vec4f& colC = colors[i+2];
-                vec4f col = u*colA + v*colB + w*colC;
+                vec4f col = colors[i]; //u*colA + v*colB + w*colC;
                 view.at(x, y) = FORMAT_R8G8B8A8::to(col);
             }
         }
     }
 }
 
-void RasterizeAABB(const ImageView& view, const vec4f& color, const vec3f& a, const vec3f& b, const vec3f& c)
+void RasterizeAABB(const ImageView& view, const RasterizerState& state, const vec4f& color,
+                   const vec3f& a, const vec3f& b, const vec3f& c)
 {
+    // Cull based on right-handed orientation
+    /*
+         C
+        / \
+       A-->B
+       CCW if det(AB, CA) > 0
+    */
+    const float totalArea = CalculateTriangleArea(a, b, c);
+    const bool isCCW = totalArea > 0.f;
+    const bool isFront = (state.frontCounterClockwise && isCCW)
+                      || (!state.frontCounterClockwise && !isCCW);
+
+    switch (state.cullMode)
+    {
+    case CULL_MODE::CULL_MODE_BACK:
+        if (!isFront) return;
+        break;
+    case CULL_MODE::CULL_MODE_FRONT:
+        if (isFront) return;
+        break;
+    default:
+    case CULL_MODE::CULL_MODE_NONE:
+        // No culling enabled
+        break;
+    }
+
     // TODO profile with some timer utilities
     // SCOPED_TIMER()
 
-     // TODO need to simplify vec to access member directly class
-        // compute AABB
     float minX = std::min(a.x, std::min(b.x, c.x));
     float maxX = std::max(a.x, std::max(b.x, c.x));
     float minY = std::min(a.y, std::min(b.y, c.y));
     float maxY = std::max(a.y, std::max(b.y, c.y));
-
-    float totalArea = CalculateTriangleArea(a, b, c);
 
     for (int x = minX; x <= maxX; ++x)
     {
@@ -491,6 +403,23 @@ void RasterizeAABB(const ImageView& view, const vec4f& color, const vec3f& a, co
             if (u < 0 || v < 0 || w < 0) {
                 continue;
             }
+
+            // TODO profile perf between the two
+            // TODO replace barycentric with Cramer's rule ver
+            vec3f p(x, y, 0);
+            //float detAP = Determinant2D(b - a, p - a);
+            //float detBP = Determinant2D(c - b, p - b);
+            //float detCP = Determinant2D(a - c, p - c);
+            //float u = CalculateTriangleArea(P, b, c) / totalArea;
+            //float v = CalculateTriangleArea(P, c, a) / totalArea;
+            //float w = CalculateTriangleArea(P, a, b) / totalArea;
+            // Causing precision issues
+            //float w = 1.0 - u - v;
+
+            // skip points outside of triangle
+            //if (u < 0 || v < 0 || w < 0) {
+            //if (detAP < 0 || detBP < 0 || detCP < 0)
+            //    continue;
 
             // Get col of P based on barycentric weights
             //const vec4f& colA = colors[i];
@@ -516,7 +445,7 @@ void renderer::cmd::Draw(const ImageView& view, const Buffer& vb, U32 vertexCoun
         const auto& b = positions[i + 1];
         const auto& c = positions[i + 2];
 
-        RasterizeAABB(view, vb, vertexCount, firstVertex);
+        RasterizeAABB(view, vb, vertexCount, firstVertex, CULL_MODE::CULL_MODE_NONE);
     }
 }
 
@@ -538,7 +467,7 @@ void renderer::cmd::DrawIndexed(const RasterizerState& state, const ImageView& v
                 // hardcode to test
                 vec3f coords(
                     (int)(0.5f * (width * p.x + width)),
-                    (int)(0.5f * (height * -p.y + height)), // invert-y
+                    (int)(0.5f * (height * p.y + height)),
                     0
                 );
 
@@ -553,7 +482,7 @@ void renderer::cmd::DrawIndexed(const RasterizerState& state, const ImageView& v
         switch (state.fillMode)
         {
         case (FILL_MODE::FILL_MODE_SOLID):
-            RasterizeAABB(view, colors[i % colors.size()], a, b, c);
+            RasterizeAABB(view, state, colors[i % colors.size()], a, b, c);
             break;
         case (FILL_MODE::FILL_MODE_WIREFRAME):
             draw_line(view, a, b, col);

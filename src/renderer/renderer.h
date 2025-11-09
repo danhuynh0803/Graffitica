@@ -13,6 +13,8 @@ namespace renderer::cmd
 
 void Clear(const ImageView& view, const vec4f& clearColor);
 
+void Blit(const ImageView& dst, const ImageView& src, int x = 0, int y = 0, int z = 0);
+
 void Draw(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex);
 
 void DrawIndexed(const RasterizerState& state,
