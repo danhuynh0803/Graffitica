@@ -14,6 +14,7 @@
 #include "renderer/rasterizer_state.h"
 #include "renderer/resource.h"
 #include "renderer/renderer.h"
+#include "renderer/framebuffer.h"
 
 namespace
 {
@@ -47,8 +48,6 @@ void sort_desc(std::vector<vec3f>& verts)
         }
     }
 }
-
-} // local static funcs
 
 // ==========================================
 // Draws a model from a *.obj format
@@ -119,7 +118,8 @@ void draw_model(Model model, const color& _color, bool is_wire)
 }
 */
 
-void draw_line(const ImageView& view, vec3f p0, vec3f p1, const vec4f& _color)
+template <typename FORMAT>
+void draw_line(const ImageView<FORMAT>& view, vec3f p0, vec3f p1, const vec4f& _color)
 {
     int dx = p1.x - p0.x;
     int dy = p1.y - p0.y;
@@ -128,7 +128,7 @@ void draw_line(const ImageView& view, vec3f p0, vec3f p1, const vec4f& _color)
     if (dx == 0 && dy == 0)
     {
         //put_pixel(p0.x, p0.y, _color);
-        view.at(p0.x, p0.y) = FORMAT_R8G8B8A8::to(_color);
+        view.at(p0.x, p0.y) = FORMAT::to(_color);
         return;
     }
 
@@ -147,7 +147,7 @@ void draw_line(const ImageView& view, vec3f p0, vec3f p1, const vec4f& _color)
         for (int x = p0.x; x < x_end; ++x)
         {
             //put_pixel(x, (int)y, _color);
-            view.at(x, (U32)y) = FORMAT_R8G8B8A8::to(_color);
+            view.at(x, (U32)y) = FORMAT::to(_color);
 
             y += m;
         }
@@ -167,23 +167,23 @@ void draw_line(const ImageView& view, vec3f p0, vec3f p1, const vec4f& _color)
         for (int y = p0.y; y < y_end; ++y)
         {
             //put_pixel((int)x, y, _color);
-            view.at((U32)x, (U32)y) = FORMAT_R8G8B8A8::to(_color);
+            view.at((U32)x, (U32)y) = FORMAT::to(_color);
 
             x += m;
         }
     }
 }
 
-void renderer::cmd::Clear(const ImageView& view, const vec4f& clearColor)
+/*
+template<typename FORMAT>
+void renderer::cmd::Clear(const ImageView<FORMAT>& view, const vec4f& clearColor)
 {
     auto size = view.width * view.height;
-    std::fill_n(view.data, size, FORMAT_R8G8B8A8::to(clearColor));
+    std::fill_n(view.data, size, FORMAT::to(clearColor));
 }
+*/
 
-void renderer::cmd::Blit(const ImageView& dst, const ImageView& src, int x, int y, int z)
-{
-}
-
+/*
 void RasterizeScanline(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex)
 {
     const auto& positions = vb.m_Positions;
@@ -208,18 +208,6 @@ void RasterizeScanline(const ImageView& view, const Buffer& vb, U32 vertexCount,
         p1 = verts[1];
         p2 = verts[2];
 
-        // TODO simplify conditionals
-        /*
-        if ((int)p1.y == (int)p2.y)
-        {
-            fill_flat_bottom_triangle(p0, p1, p2, col);
-        }
-        else if ((int)p0.y == (int)p1.y)
-        {
-            fill_flat_top_triangle(p0, p1, p2, col);
-        }
-        else
-        */
         {
             // Split the triangle into 2 triangles 
             // one with a flat top and one with a flat bottom part
@@ -276,15 +264,7 @@ void RasterizeScanline(const ImageView& view, const Buffer& vb, U32 vertexCount,
 
     }
 }
-
-//==========================================
-// Calculates the triangles barycentric coordinate
-//=========================================
-vec3f barycentric(vec3f p0, vec3f p1, vec3f p2)
-{
-    // TODO
-    return {};
-}
+*/
 
 float CalculateTriangleArea(const vec3f& a, const vec3f& b, const vec3f& c)
 {
@@ -297,69 +277,16 @@ float Determinant2D(const vec3f& V, const vec3f& P)
     return (V.x * P.y) - (V.y * P.x);
 }
 
-void RasterizeAABB(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex, CULL_MODE cullMode)
-{
-    // TODO profile with some timer utilities
-    // SCOPED_TIMER()
-
-    const auto& positions = vb.m_Positions;
-    const auto& colors = vb.m_VertexColors;
-
-    for (int i = firstVertex; i < vertexCount; i += 3)
-    {
-        const auto& a = positions[i];
-        const auto& b = positions[i+1];
-        const auto& c = positions[i+2];
-
-        // compute AABB
-        float minX = std::min(a.x, std::min(b.x, c.x));
-        float maxX = std::max(a.x, std::max(b.x, c.x));
-        float minY = std::min(a.y, std::min(b.y, c.y));
-        float maxY = std::max(a.y, std::max(b.y, c.y));
-
-        float totalArea = CalculateTriangleArea(a, b, c);
-
-        for (int x = minX; x <= maxX; ++x)
-        {
-            for (int y = minY; y <= maxY; ++y)
-            {
-                // TODO replace barycentric with Cramer's rule ver
-                vec3f p (x, y, 0);
-                float detAP = Determinant2D(b-a, p-a);
-                float detBP = Determinant2D(c-b, p-b);
-                float detCP = Determinant2D(a-c, p-c);
-                //float u = CalculateTriangleArea(P, b, c) / totalArea;
-                //float v = CalculateTriangleArea(P, c, a) / totalArea;
-                //float w = CalculateTriangleArea(P, a, b) / totalArea;
-                // Causing precision issues
-                //float w = 1.0 - u - v;
-
-                // skip points outside of triangle
-                //if (u < 0 || v < 0 || w < 0) {
-                if (detAP < 0 || detBP < 0 || detCP < 0)
-                    continue;
-
-                // Get col of P based on barycentric weights
-                const vec4f& colA = colors[i];
-                const vec4f& colB = colors[i+1];
-                const vec4f& colC = colors[i+2];
-                vec4f col = colors[i]; //u*colA + v*colB + w*colC;
-                view.at(x, y) = FORMAT_R8G8B8A8::to(col);
-            }
-        }
-    }
-}
-
-void RasterizeAABB(const ImageView& view, const RasterizerState& state, const vec4f& color,
+template<typename T>
+void RasterizeAABB(const ImageView<T>& view, const RasterizerState& state, const vec4f& color,
                    const vec3f& a, const vec3f& b, const vec3f& c)
 {
     // Cull based on right-handed orientation
-    /*
-         C
-        / \
-       A-->B
-       CCW if det(AB, CA) > 0
-    */
+    //   C
+    //  / \
+    // A-->B
+    // CCW if det(AB, CA) > 0
+
     const float totalArea = CalculateTriangleArea(a, b, c);
     const bool isCCW = totalArea > 0.f;
     const bool isFront = (state.frontCounterClockwise && isCCW)
@@ -391,6 +318,7 @@ void RasterizeAABB(const ImageView& view, const RasterizerState& state, const ve
     {
         for (int y = minY; y <= maxY; ++y)
         {
+            // TODO profile perf between the two
             // TODO replace barycentric with Cramer's rule ver
             vec3f P(x, y, 0);
             float u = CalculateTriangleArea(P, b, c) / totalArea;
@@ -404,9 +332,8 @@ void RasterizeAABB(const ImageView& view, const RasterizerState& state, const ve
                 continue;
             }
 
-            // TODO profile perf between the two
-            // TODO replace barycentric with Cramer's rule ver
             vec3f p(x, y, 0);
+            {
             //float detAP = Determinant2D(b - a, p - a);
             //float detBP = Determinant2D(c - b, p - b);
             //float detCP = Determinant2D(a - c, p - c);
@@ -417,7 +344,6 @@ void RasterizeAABB(const ImageView& view, const RasterizerState& state, const ve
             //float w = 1.0 - u - v;
 
             // skip points outside of triangle
-            //if (u < 0 || v < 0 || w < 0) {
             //if (detAP < 0 || detBP < 0 || detCP < 0)
             //    continue;
 
@@ -427,11 +353,17 @@ void RasterizeAABB(const ImageView& view, const RasterizerState& state, const ve
             //const vec4f& colC = colors[i + 2];
             //vec4f col = u * colA + v * colB + w * colC;
             //const vec4f col (1,0,0,1);
-            view.at(x, y) = FORMAT_R8G8B8A8::to(color);
+            }
+            view.at(x, y) = T::to(color);
         }
     }
 }
 
+} // local static funcs
+
+
+/*
+* Disable until API design is finalized with framebuffers
 void renderer::cmd::Draw(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex)
 {
     // Keep scanline for single-threaded mode - ground-truth for visual quality testing
@@ -444,13 +376,14 @@ void renderer::cmd::Draw(const ImageView& view, const Buffer& vb, U32 vertexCoun
         const auto& a = positions[i];
         const auto& b = positions[i + 1];
         const auto& c = positions[i + 2];
-
-        RasterizeAABB(view, vb, vertexCount, firstVertex, CULL_MODE::CULL_MODE_NONE);
+        const auto& col = colors[i % vb.m_VertexColors.size()];
+        RasterizeAABB(view, RasterizerState{}, col, a, b, c);
     }
 }
+*/
 
 // TODO incorporate line, triangle fan, etc
-void renderer::cmd::DrawIndexed(const RasterizerState& state, const ImageView& view, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
+void renderer::cmd::DrawIndexed(const Framebuffer& fb, const RasterizerState& state, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
 {
     const auto& positions = vb.m_Positions;
     const auto& colors = vb.m_VertexColors;
@@ -479,15 +412,17 @@ void renderer::cmd::DrawIndexed(const RasterizerState& state, const ImageView& v
         const auto& c = NDCToViewport(verts[face[2]]);
         const auto col = colors[i % colors.size()];
 
+        const auto& view = fb.colorView;
+
         switch (state.fillMode)
         {
         case (FILL_MODE::FILL_MODE_SOLID):
             RasterizeAABB(view, state, colors[i % colors.size()], a, b, c);
             break;
         case (FILL_MODE::FILL_MODE_WIREFRAME):
-            draw_line(view, a, b, col);
-            draw_line(view, b, c, col);
-            draw_line(view, c, a, col);
+            //draw_line(view, a, b, col);
+            //draw_line(view, b, c, col);
+            //draw_line(view, c, a, col);
             break;
         default:
             //TODO logging utilities

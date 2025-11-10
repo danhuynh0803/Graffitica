@@ -1,24 +1,32 @@
 #pragma once
 #include "core/types.h"
 #include "math/vector.h"
+#include "renderer/resource.h"
 
 // TODO separate to modules
 //export module RenderModule;
 class RasterizerState;
-class ImageView;
+//template<typename T> class ImageView;
 class Buffer;
+class Framebuffer;
 
 namespace renderer::cmd
 {
 
-void Clear(const ImageView& view, const vec4f& clearColor);
+template<typename FORMAT>
+void Clear(const ImageView<FORMAT>& view, const vec4f& clearColor)
+{
+    auto size = view.width * view.height;
+    std::fill_n(view.data, size, FORMAT::to(clearColor));
+}
 
-void Blit(const ImageView& dst, const ImageView& src, int x = 0, int y = 0, int z = 0);
+// TODO extent for src and dst regions
+//void Blit(const ImageView& dst, const ImageView& src, int xOffset = 0, int yOffset = 0, int zOffset = 0);
 
-void Draw(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex);
+//void Draw(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex);
 
-void DrawIndexed(const RasterizerState& state,
-				 const ImageView& view,
+void DrawIndexed(const Framebuffer& fb,
+				 const RasterizerState& state,
 				 const Buffer& vb,
 				 U32 indexCount, U32 firstIndex, int vertexOffset);
 
