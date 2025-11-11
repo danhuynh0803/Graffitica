@@ -48,16 +48,6 @@ int main()
         .frontCounterClockwise = true,
     };
 
-    // TODO refactor as template api is kinda annoying:
-    // ideas: have image generate a view object?
-    // can generate based on desired subresource range
-    // 
-    // pros for current system?
-    // setting both formats allows possible resource alising
-    // and conversion for formats in the backend?
-    Image<FORMAT_D32_SFLOAT> depthImage(width, height);
-    ImageView<FORMAT_D32_SFLOAT> depthView(depthImage);
-
     bool running = true;
     while (running)
     {
@@ -89,6 +79,17 @@ int main()
 
         Image<FORMAT_R8G8B8A8_UNORM> colorImage(width, height);
         ImageView<FORMAT_R8G8B8A8_UNORM> colorView(colorImage);
+
+        // TODO refactor as template api is kinda annoying:
+        // ideas: have image generate a view object?
+        // can generate based on desired subresource range
+        // 
+        // pros for current system?
+        // setting both formats allows possible resource alising
+        // and conversion for formats in the backend?
+        Image<FORMAT_D32_SFLOAT> depthImage(width, height);
+        ImageView<FORMAT_D32_SFLOAT> depthView(depthImage);
+
         Framebuffer fb{
             .colorView = colorView,
             .depthView = depthView
@@ -98,7 +99,7 @@ int main()
         //const auto& color = std::get< ImageView<FORMAT_R8G8B8A8_UNORM> >(fb.colorAttachment);
         //const auto& color2 = cast(fb.colorAttachment);
         renderer::cmd::Clear(fb.colorView, {.4, .5, .7, 1.0});
-
+        renderer::cmd::Clear(fb.depthView, 1.0);
         //ImageView depth(width, height, 
 
         // todo cmdbuffer interface?

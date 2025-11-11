@@ -175,15 +175,6 @@ void draw_line(const ImageView<FORMAT>& view, vec3f p0, vec3f p1, const vec4f& _
 }
 
 /*
-template<typename FORMAT>
-void renderer::cmd::Clear(const ImageView<FORMAT>& view, const vec4f& clearColor)
-{
-    auto size = view.width * view.height;
-    std::fill_n(view.data, size, FORMAT::to(clearColor));
-}
-*/
-
-/*
 void RasterizeScanline(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex)
 {
     const auto& positions = vb.m_Positions;
@@ -277,8 +268,8 @@ float Determinant2D(const vec3f& V, const vec3f& P)
     return (V.x * P.y) - (V.y * P.x);
 }
 
-template<typename T>
-void RasterizeAABB(const ImageView<T>& view, const RasterizerState& state, const vec4f& color,
+//template<typename FORMAT>
+void RasterizeAABB(const Framebuffer& fb, const RasterizerState& state, const vec4f& color,
                    const vec3f& a, const vec3f& b, const vec3f& c)
 {
     // Cull based on right-handed orientation
@@ -354,7 +345,18 @@ void RasterizeAABB(const ImageView<T>& view, const RasterizerState& state, const
             //vec4f col = u * colA + v * colB + w * colC;
             //const vec4f col (1,0,0,1);
             }
-            view.at(x, y) = T::to(color);
+
+            // TODO add depth state
+            float depth = u*a.z + v*b.z + w*c.z;
+            const auto& depthBuffer = fb.depthView;
+            // TODO need to perform depth remapping
+            if (depth >= depthBuffer.at(x, y).Get())
+            {
+                continue;
+            }
+            // update with new depth value
+            depthBuffer.at(x, y) = FORMAT_D32_SFLOAT::to(depth);
+            fb.colorView.at(x, y) = FORMAT_R8G8B8A8_UNORM::to(color);
         }
     }
 }
@@ -401,7 +403,8 @@ void renderer::cmd::DrawIndexed(const Framebuffer& fb, const RasterizerState& st
                 vec3f coords(
                     (int)(0.5f * (width * p.x + width)),
                     (int)(0.5f * (height * p.y + height)),
-                    0
+                    p.z
+                    // need to remap to plane near/far but this should be handled by fixed function part anyway
                 );
 
                 return coords;
@@ -417,7 +420,7 @@ void renderer::cmd::DrawIndexed(const Framebuffer& fb, const RasterizerState& st
         switch (state.fillMode)
         {
         case (FILL_MODE::FILL_MODE_SOLID):
-            RasterizeAABB(view, state, colors[i % colors.size()], a, b, c);
+            RasterizeAABB(fb, state, colors[i % colors.size()], a, b, c);
             break;
         case (FILL_MODE::FILL_MODE_WIREFRAME):
             //draw_line(view, a, b, col);

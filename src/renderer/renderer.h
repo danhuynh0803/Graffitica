@@ -16,8 +16,17 @@ namespace renderer::cmd
 template<typename FORMAT>
 void Clear(const ImageView<FORMAT>& view, const vec4f& clearColor)
 {
+    static_assert(std::is_base_of<ColorFormat, FORMAT>::value, "FORMAT must inherit from a COLOR FORMAT");
     auto size = view.width * view.height;
     std::fill_n(view.data, size, FORMAT::to(clearColor));
+}
+
+template<typename FORMAT>
+void Clear(const ImageView<FORMAT>& view, float clearDepth)
+{
+    static_assert(std::is_base_of<DepthFormat, FORMAT>::value, "FORMAT must inherit from a DEPTH FORMAT");
+    auto size = view.width * view.height;
+    std::fill_n(view.data, size, FORMAT::to(clearDepth));
 }
 
 // TODO extent for src and dst regions
