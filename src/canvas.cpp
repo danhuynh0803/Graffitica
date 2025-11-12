@@ -7,9 +7,7 @@
 #include "canvas.h"
 #include "math/vector.h"
 #include "math/matrix.h"
-#include "shapes.h"
 #include "model.h"
-#include "light.h"
 
 /*
 // Local function prototypes

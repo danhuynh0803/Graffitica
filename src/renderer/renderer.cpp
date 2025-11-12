@@ -7,9 +7,6 @@
 #include <cfloat>
 #include "math/vector.h"
 #include "math/matrix.h"
-#include "shapes.h"
-#include "model.h"
-#include "light.h"
 #include "mesh.h"
 #include "renderer/rasterizer_state.h"
 #include "renderer/resource.h"

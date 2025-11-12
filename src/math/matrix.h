@@ -1,14 +1,14 @@
-#ifndef MATRIX_H
-#define MATRIX_H
+#pragma once
 #define _USE_MATH_DEFINES
 #include <cmath>
-#include <iostream> 
-#include <stdexcept>
+#include <iostream>
 #include <vector>
-#include "vector.h"
+#include <stdexcept>
 #include <numbers>
 
-class mat4; 
+#include "math/vector.h"
+
+class mat4;
 
 inline mat4 zero();
 inline mat4 identity();
@@ -21,32 +21,35 @@ inline void rotate_z(mat4& m_transform, float angle);
 inline void rotate_xyz(mat4& m_transform, float angle_x, float angle_y, float angle_z);
 inline void shear(mat4& m_transform, float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy);
 /*
-void affine_matrix(mat4& m_transform, 
-	float k_x, float k_y, float k_z, 
-	float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy, 
+void affine_matrix(mat4& m_transform,
+	float k_x, float k_y, float k_z,
+	float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy,
 	float t_x, float t_y, float t_z);
 */
 
 #define M_PI std::numbers::pi_v<float>
 
+// TODO
+//template <typename T>
 class mat4
 {
 public:
-    mat4() 
+    mat4()
     {
+        // TODO should default construct an identity matrix instead of zero matrix
         entry.resize(4, std::vector<float>(4, 0));
     }
-    
+
     inline void operator =(const mat4 &rhs);
     inline void operator =(const float (&rhs)[16]);
     inline void operator =(const std::vector<float> &rhs);
 
     inline mat4 operator +(const mat4 &rhs);
     inline mat4 operator -(const mat4 &rhs);
-    inline mat4 operator -() const 
-    { 
-        mat4 negated; 
-        for (int i = 0; i < 4; ++i) 
+    inline mat4 operator -() const
+    {
+        mat4 negated;
+        for (int i = 0; i < 4; ++i)
         {
             for (int j = 0; j < 4; ++j)
             {
@@ -62,14 +65,14 @@ public:
 
     bool operator==(const mat4& rhs) const;
 
-    inline std::vector<float> operator [](int i) const 
-    { 
-        return entry[i]; 
+    inline std::vector<float> operator [](int i) const
+    {
+        return entry[i];
     }
 
-    inline std::vector<float>& operator [](int i) 
-    { 
-        return entry[i]; 
+    inline std::vector<float>& operator [](int i)
+    {
+        return entry[i];
     };
 
     static float det(mat4 m);
@@ -78,10 +81,10 @@ public:
 
     inline friend std::ostream& operator <<(std::ostream& os, const mat4& m);
 
-    std::vector<std::vector<float> > entry;
+    std::vector<std::vector<float>> entry;
 };
 
-inline mat4 zero() 
+inline mat4 zero()
 {
     return mat4();
 }
@@ -89,8 +92,8 @@ inline mat4 zero()
 // Returns a 4x4 identity matrix
 inline mat4 identity()
 {
-    mat4 m; 
-    for (int i = 0; i < 4; ++i) 
+    mat4 m;
+    for (int i = 0; i < 4; ++i)
     {
         // Set the diagonals to 1
         m.entry[i][i] = 1;
@@ -110,12 +113,12 @@ inline void translate(mat4& m_transform, const vec3f& v_translation)
 
 inline void scale(mat4& m_transform, const vec3f& v_scale)
 {
-    mat4 m_scale; 
+    mat4 m_scale;
     m_scale[0][0] = v_scale.x;
     m_scale[1][1] = v_scale.y;
     m_scale[2][2] = v_scale.z;
     m_scale[3][3] = 1;
-    
+
     m_transform = m_scale * m_transform;
 }
 
@@ -242,7 +245,7 @@ inline void mat4::operator =(const float (&rhs)[16])
     {
         throw std::invalid_argument("Number of values assigned does not match mat4 dimensions");
     }
-    
+
     for (int i = 0; i < row; ++i)
     {
         for (int j = 0; j < col; ++j)
@@ -251,14 +254,14 @@ inline void mat4::operator =(const float (&rhs)[16])
         }
     }
 }
- 
+
 inline void mat4::operator =(const std::vector<float> &rhs)
 {
     if (rhs.size() != 16) 
     {
         throw std::invalid_argument("Number of values assigned does not match mat4 dimensions");
     }
-    
+
     int row = 4;
     int col = 4;
     for (int i = 0; i < row; ++i)
@@ -407,17 +410,17 @@ inline bool operator ==(const mat4 &m1, const mat4 &m2)
 inline float mat4::det(mat4 m) 
 {
     return ( ( m[0][3] * m[1][2] - m[0][2] * m[1][3] ) * m[2][1] +
-            ( m[0][1] * m[1][3] - m[0][3] * m[1][1] ) * m[2][2] +
-            ( m[0][2] * m[1][1] - m[0][1] * m[1][2] ) * m[2][3] ) * m[3][0] + 
-        ( ( m[0][2] * m[1][3] - m[0][3] * m[1][2] ) * m[2][0] +
-          ( m[0][3] * m[1][0] - m[0][0] * m[1][3] ) * m[2][2] + 
-          ( m[0][0] * m[1][2] - m[0][2] * m[1][0] ) * m[2][3] ) * m[3][1] +
-        ( ( m[0][3] * m[1][1] - m[0][1] * m[1][3] ) * m[2][0] + 
-          ( m[0][0] * m[1][3] - m[0][3] * m[1][0] ) * m[2][1] +
-          ( m[0][1] * m[1][0] - m[0][0] * m[1][1] ) * m[2][3] ) * m[3][2] +
-        ( ( m[0][1] * m[1][2] - m[0][2] * m[1][1] ) * m[2][0] +
-          ( m[0][2] * m[1][0] - m[0][0] * m[1][2] ) * m[2][1] + 
-          ( m[0][0] * m[1][1] - m[0][1] * m[1][0] ) * m[2][2] ) * m[3][3];
+             ( m[0][1] * m[1][3] - m[0][3] * m[1][1] ) * m[2][2] +
+             ( m[0][2] * m[1][1] - m[0][1] * m[1][2] ) * m[2][3] ) * m[3][0] +
+           ( ( m[0][2] * m[1][3] - m[0][3] * m[1][2] ) * m[2][0] +
+             ( m[0][3] * m[1][0] - m[0][0] * m[1][3] ) * m[2][2] +
+             ( m[0][0] * m[1][2] - m[0][2] * m[1][0] ) * m[2][3] ) * m[3][1] +
+           ( ( m[0][3] * m[1][1] - m[0][1] * m[1][3] ) * m[2][0] +
+             ( m[0][0] * m[1][3] - m[0][3] * m[1][0] ) * m[2][1] +
+             ( m[0][1] * m[1][0] - m[0][0] * m[1][1] ) * m[2][3] ) * m[3][2] +
+           ( ( m[0][1] * m[1][2] - m[0][2] * m[1][1] ) * m[2][0] +
+             ( m[0][2] * m[1][0] - m[0][0] * m[1][2] ) * m[2][1] +
+             ( m[0][0] * m[1][1] - m[0][1] * m[1][0] ) * m[2][2] ) * m[3][3];
 }
 
 //trace
@@ -430,7 +433,7 @@ inline float mat4::tr(mat4 m)
 inline bool mat4::inverse(mat4 m, mat4& inverse) 
 {
     if (det(m) == 0) {
-        std::cout << "The matrix is nonsingular(nondegenerate)" << std::endl;
+        std::cout << "The matrix is nonsingular (nondegenerate)" << std::endl;
         return false;
     }
     inverse = (1.0f/det(m))*
@@ -440,7 +443,7 @@ inline bool mat4::inverse(mat4 m, mat4& inverse)
     return true;
 }
 
-inline std::ostream& operator<<(std::ostream& os, const mat4& m) 
+inline std::ostream& operator<<(std::ostream& os, const mat4& m)
 {
     for (std::vector<std::vector<float> >::const_iterator row = m.entry.begin(); 
             row != m.entry.end(); ++row) 
@@ -462,6 +465,3 @@ inline std::ostream& operator<<(std::ostream& os, const mat4& m)
     os << std::endl;
     return os;
 }
-
-#endif // MATRIX_H
-

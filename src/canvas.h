@@ -4,11 +4,8 @@
 #include <string>
 #include <vector>
 #include "math/vector.h"
-#include "shapes.h"
 #include "math/matrix.h"
 #include "model.h"
-#include "light.h"
-#include "Camera.h"
 
 /*
 class Canvas
