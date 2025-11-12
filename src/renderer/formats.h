@@ -14,10 +14,10 @@ struct FORMAT_R8G8B8A8_UNORM final : ColorFormat
 	static FORMAT_R8G8B8A8_UNORM to(const vec4f& c)
 	{
 		FORMAT_R8G8B8A8_UNORM o;
-		o.r = std::max(0.f, std::min(255.f, c.x() * 255.f));
-		o.g = std::max(0.f, std::min(255.f, c.y() * 255.f));
-		o.b = std::max(0.f, std::min(255.f, c.z() * 255.f));
-		o.a = std::max(0.f, std::min(255.f, c.w() * 255.f));
+		o.r = std::max(0.f, std::min(255.f, c.x * 255.f));
+		o.g = std::max(0.f, std::min(255.f, c.y * 255.f));
+		o.b = std::max(0.f, std::min(255.f, c.z * 255.f));
+		o.a = std::max(0.f, std::min(255.f, c.w * 255.f));
 
 		return o;
 	}

@@ -9,22 +9,15 @@ class vec4
 {
 public:
     vec4() { e[0] = 0.0f, e[1] = 0.0f, e[2] = 0.0f, e[3] = 0.0f; }
+
     vec4(const vec3<T>& v, T w) {
        e[0] = v[0];
        e[1] = v[1];
        e[2] = v[2];
        e[3] = w;
     }
+
     vec4(T e0, T e1, T e2, T e3) { e[0] = e0, e[1] = e1, e[2] = e2, e[3] = e3; }
-    inline T x() const { return e[0]; }
-    inline T y() const { return e[1]; }
-    inline T z() const { return e[2]; }
-    inline T w() const { return e[3]; }
-    inline T r() const { return e[0]; }
-    inline T g() const { return e[1]; }
-    inline T b() const { return e[2]; }
-    inline T a() const { return e[3]; }
-    inline vec3<T> xyz() const { return vec3<T>(e[0], e[1], e[2]); }
 
     inline void operator =(const vec4 &v2);
     inline const vec4& operator +() const { return *this; }
@@ -45,7 +38,15 @@ public:
         return (e[0]*e[0] + e[1]*e[1] + e[2]*e[2]);}
     inline void make_unit_vector();
 
-    T e[4];
+    union {
+        struct {
+            T x,y,z,w;
+        };
+        struct {
+            T r,g,b,a;
+        };
+        T e[4];
+    };
 };
 
 template <typename T>

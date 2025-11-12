@@ -49,75 +49,6 @@ void sort_desc(std::vector<vec3f>& verts)
     }
 }
 
-// ==========================================
-// Draws a model from a *.obj format
-// This is done by processing three vertices
-// within the face
-// ==========================================
-/*
-void draw_model(Model model, const color& _color, bool is_wire)
-{
-    vec3f new_color = _color;
-    int nfaces = model.num_faces();
-    for (int i = 0; i < nfaces; ++i)
-    {
-        bool is_back_face = false;
-        // Check backface by using normal with scene camera
-
-        // Get the index of the vertices that comprise the face
-        std::vector<int> vert_indices = model.face(i);
-
-        vec3f p0 = model.vert(vert_indices[0]);
-        vec3f p1 = model.vert(vert_indices[1]);
-        vec3f p2 = model.vert(vert_indices[2]);
-
-        // TODO rethink how to handle drawing to NDC
-        // Need to rethink how to tie with camera functions
-        // Compute the direction of the normal and compare it with the light
-        vec3f normal = cross((p1 - p0), (p2 - p0));
-        normal.make_unit_vector();
-
-        // TODO check backface based on camera position?
-        vec3f cameraDir = camera.look_from - camera.look_at;
-        cameraDir.make_unit_vector();
-        is_back_face = dot(cameraDir, normal) < 0.0f;
-
-        if (!is_wire && !lights.empty && !is_back_face)
-        {
-            // TODO calculate direction off each fragment instead of a single vertex for more accurate results
-            // TODO base light dir off of the center of the triangle
-            vec3f midPoint = (p2 - ((p0 - p1) * 0.5f)) * 0.5f;
-
-            vec3f diffuse(0.0f);
-            for (auto light : lights)
-            {
-                vec3f light_dir = (light->pos) - midPoint;
-                light_dir.make_unit_vector();
-
-                diffuse += std::max(0.0f, dot(normal, light_dir)) * light->color;
-            }
-
-            float ambient = 0.2f;
-            new_color = (ambient + diffuse) * _color;
-        }
-
-        // TODO add depth buffer
-
-
-        // Back-face culling - don't draw if it's a back-face
-        if (!is_back_face)
-        {
-            // Draw the triangles based on the position of the three vertices
-            draw_triangle(convert_ndc_to_canvas(p0),
-                convert_ndc_to_canvas(p1),
-                convert_ndc_to_canvas(p2),
-                new_color,
-                is_wire);
-        }
-    }
-}
-*/
-
 template <typename FORMAT>
 void draw_line(const ImageView<FORMAT>& view, vec3f p0, vec3f p1, const vec4f& _color)
 {
@@ -423,9 +354,9 @@ void renderer::cmd::DrawIndexed(const Framebuffer& fb, const RasterizerState& st
             RasterizeAABB(fb, state, colors[i % colors.size()], a, b, c);
             break;
         case (FILL_MODE::FILL_MODE_WIREFRAME):
-            //draw_line(view, a, b, col);
-            //draw_line(view, b, c, col);
-            //draw_line(view, c, a, col);
+            draw_line(view, a, b, col);
+            draw_line(view, b, c, col);
+            draw_line(view, c, a, col);
             break;
         default:
             //TODO logging utilities
