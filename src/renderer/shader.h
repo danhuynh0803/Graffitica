@@ -1,17 +1,10 @@
 #pragma once
 
 #include "math/vector.h"
+#include "renderer/resource.h"
 
-namespace pipeline
+namespace renderer
 {
-
-struct VertexAttributes
-{
-    // for now, use just the required attributes
-    vec3f aPos;
-    vec4f aColor;
-    vec2f aTexCoord;
-};
 
 struct PerVertex
 {
@@ -32,4 +25,4 @@ struct ShaderModule
     vec4f frag(const PerVertex& input);
 };
 
-}; // pipeline
+}; // renderer

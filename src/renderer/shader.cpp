@@ -1,6 +1,6 @@
 #include "renderer/shader.h"
 
-namespace pipeline
+namespace renderer
 {
 
 PerVertex ShaderModule::vert(const VertexAttributes& attribs)

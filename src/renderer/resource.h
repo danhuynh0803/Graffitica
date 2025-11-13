@@ -113,6 +113,14 @@ struct ImageView
 };
 */
 
+struct VertexAttributes
+{
+    // for now, use just the required attributes
+    vec3f aPos;
+    vec4f aColor;
+    vec2f aTexCoord;
+};
+
 class Buffer
 {
 public:

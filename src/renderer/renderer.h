@@ -2,6 +2,7 @@
 #include "core/types.h"
 #include "math/vector.h"
 #include "renderer/resource.h"
+#include "renderer/command_buffer.h"
 
 // TODO separate to modules
 //export module RenderModule;
@@ -38,5 +39,10 @@ void DrawIndexed(const Framebuffer& fb,
 				 const RasterizerState& state,
 				 const Buffer& vb,
 				 U32 indexCount, U32 firstIndex, int vertexOffset);
+
+void DrawIndexed(const CommandBuffer& cmd,
+	             const Buffer& vb,
+	             U32 indexCount, U32 firstIndex, int vertexOffset);
+
 
 } // cmd

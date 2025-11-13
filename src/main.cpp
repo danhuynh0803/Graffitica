@@ -11,6 +11,8 @@
 #include "renderer/renderer.h"
 #include "renderer/command.h"
 #include "renderer/framebuffer.h"
+#include "renderer/camera.h"
+#include "renderer/command_buffer.h"
 
 // TODO refactor window and inputs out of main
 int main()
@@ -47,6 +49,9 @@ int main()
         .cullMode = CULL_MODE::CULL_MODE_BACK,
         .frontCounterClockwise = true,
     };
+
+    // Camera testing
+    Camera camera({1,0,0}, {0,0,0}, 90, 1);
 
     bool running = true;
     while (running)
@@ -95,6 +100,12 @@ int main()
             .depthView = depthView
         };
 
+        renderer::CommandBuffer cmd {};
+        cmd.framebuffer = &fb;
+        cmd.rasterizerState = &drawState;
+        cmd.shaderModule = nullptr; // todo
+        cmd.mvp = camera.GetView();
+
         //ImageView colorTarget(width, height, presentSurface->pixels);
         //const auto& color = std::get< ImageView<FORMAT_R8G8B8A8_UNORM> >(fb.colorAttachment);
         //const auto& color2 = cast(fb.colorAttachment);
@@ -104,7 +115,7 @@ int main()
 
         // todo cmdbuffer interface?
         // bind cmds can simply assign pointers to various objects needed for rendering
-        renderer::cmd::DrawIndexed(fb, drawState, model, model.m_MeshData->NumFaces(), 0, 0);
+        renderer::cmd::DrawIndexed(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
         std::memcpy(presentSurface->pixels, fb.colorView.data, width*height*sizeof(FORMAT_R8G8B8A8_UNORM));
 
         SDL_Rect rect{ .x = 0, .y = 0, .w = width, .h = height };

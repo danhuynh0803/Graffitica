@@ -361,3 +361,55 @@ void renderer::cmd::DrawIndexed(const Framebuffer& fb, const RasterizerState& st
         }
     }
 }
+
+void renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
+{
+    const auto& fb = cmd.framebuffer;
+    const auto& state = cmd.rasterizerState;
+
+    const auto& positions = vb.m_Positions;
+    const auto& colors = vb.m_VertexColors;
+
+    for (int i = firstIndex; i < indexCount; ++i)
+    {
+        const std::vector<int>& face = vb.m_MeshData->face(i);
+        const auto& verts = vb.m_MeshData->GetVertices();
+
+        auto NDCToViewport = [&](const vec3f& p)
+            {
+                constexpr U32 width = 800;
+                constexpr U32 height = 599;
+                // hardcode to test
+                vec3f coords(
+                    (int)(0.5f * (width * p.x + width)),
+                    (int)(0.5f * (height * p.y + height)),
+                    p.z
+                    // need to remap to plane near/far but this should be handled by fixed function part anyway
+                );
+
+                return coords;
+            };
+
+        const auto& a = NDCToViewport(verts[face[0]]);
+        const auto& b = NDCToViewport(verts[face[1]]);
+        const auto& c = NDCToViewport(verts[face[2]]);
+        const auto col = colors[i % colors.size()];
+
+        const auto& view = fb->colorView;
+
+        switch (state->fillMode)
+        {
+        case (FILL_MODE::FILL_MODE_SOLID):
+            RasterizeAABB(*fb, *state, colors[i % colors.size()], a, b, c);
+            break;
+        case (FILL_MODE::FILL_MODE_WIREFRAME):
+            draw_line(view, a, b, col);
+            draw_line(view, b, c, col);
+            draw_line(view, c, a, col);
+            break;
+        default:
+            //TODO logging utilities
+            break;
+        }
+    }
+}

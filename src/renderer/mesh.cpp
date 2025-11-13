@@ -129,7 +129,7 @@ Mesh::Mesh(const char* file_name) : m_Verts(), m_Faces()
                 {
                     iss >> vidx;
                     // Decrement by 1 as *.obj format stores vert indices starting at 1
-                    vidx--; 
+                    vidx--;
                     face.push_back(vidx);
                 }
             }
