@@ -100,6 +100,7 @@ int main()
             .depthView = depthView
         };
 
+        // encapsulate commands into commandbuffer interface?
         renderer::CommandBuffer cmd {};
         cmd.framebuffer = &fb;
         cmd.rasterizerState = &drawState;

@@ -366,6 +366,8 @@ void renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 
 {
     const auto& fb = cmd.framebuffer;
     const auto& state = cmd.rasterizerState;
+    const auto& mvp = cmd.mvp;
+    const auto& shaderModule = cmd.shaderModule;
 
     const auto& positions = vb.m_Positions;
     const auto& colors = vb.m_VertexColors;
@@ -375,15 +377,18 @@ void renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 
         const std::vector<int>& face = vb.m_MeshData->face(i);
         const auto& verts = vb.m_MeshData->GetVertices();
 
-        auto NDCToViewport = [&](const vec3f& p)
+        auto NDCToViewport = [&](vec3f p)
             {
                 constexpr U32 width = 800;
                 constexpr U32 height = 599;
+                vec4f pos(p, 1.0);
+                vec4f newPos = mvp * pos;
+
                 // hardcode to test
                 vec3f coords(
-                    (int)(0.5f * (width * p.x + width)),
-                    (int)(0.5f * (height * p.y + height)),
-                    p.z
+                    (int)(0.5f * (width * newPos.x + width)),
+                    (int)(0.5f * (height * newPos.y + height)),
+                    newPos.z
                     // need to remap to plane near/far but this should be handled by fixed function part anyway
                 );
 
