@@ -11,7 +11,7 @@ public:
     vec2() { e[0] = 0.0f, e[1] = 0.0f; }
     vec2(const vec2<T>& v) { e[0] = v.e[0], e[1] = v.e[1]; }
     vec2(T f) { e[0] = f, e[1] = f; }
-    vec2(T e0, T e1, T e2) { e[0] = e0, e[1] = e1; }
+    vec2(T e0, T e1) { e[0] = e0, e[1] = e1; }
 
     inline void operator =(const vec2 &v2);
     inline const vec2<T>& operator +() const { return *this; }

@@ -312,56 +312,6 @@ void renderer::cmd::Draw(const ImageView& view, const Buffer& vb, U32 vertexCoun
 }
 */
 
-// TODO incorporate line, triangle fan, etc
-void renderer::cmd::DrawIndexed(const Framebuffer& fb, const RasterizerState& state, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
-{
-    const auto& positions = vb.m_Positions;
-    const auto& colors = vb.m_VertexColors;
-
-    for (int i = firstIndex; i < indexCount; ++i)
-    {
-        const std::vector<int>& face = vb.m_MeshData->face(i);
-        const auto& verts = vb.m_MeshData->GetVertices();
-
-        auto NDCToViewport = [&](const vec3f& p)
-            {
-                constexpr U32 width = 800;
-                constexpr U32 height = 599;
-                // hardcode to test
-                vec3f coords(
-                    (int)(0.5f * (width * p.x + width)),
-                    (int)(0.5f * (height * p.y + height)),
-                    p.z
-                    // need to remap to plane near/far but this should be handled by fixed function part anyway
-                );
-
-                return coords;
-            };
-
-        const auto& a = NDCToViewport(verts[face[0]]);
-        const auto& b = NDCToViewport(verts[face[1]]);
-        const auto& c = NDCToViewport(verts[face[2]]);
-        const auto col = colors[i % colors.size()];
-
-        const auto& view = fb.colorView;
-
-        switch (state.fillMode)
-        {
-        case (FILL_MODE::FILL_MODE_SOLID):
-            RasterizeAABB(fb, state, colors[i % colors.size()], a, b, c);
-            break;
-        case (FILL_MODE::FILL_MODE_WIREFRAME):
-            draw_line(view, a, b, col);
-            draw_line(view, b, c, col);
-            draw_line(view, c, a, col);
-            break;
-        default:
-            //TODO logging utilities
-            break;
-        }
-    }
-}
-
 void renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
 {
     const auto& fb = cmd.framebuffer;
@@ -372,49 +322,159 @@ void renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 
     const auto& positions = vb.m_Positions;
     const auto& colors = vb.m_VertexColors;
 
-    for (int i = firstIndex; i < indexCount; ++i)
+    for (int tri = firstIndex; tri < indexCount; ++tri)
     {
-        const std::vector<int>& face = vb.m_MeshData->face(i);
+        const std::vector<int>& face = vb.m_MeshData->face(tri);
         const auto& verts = vb.m_MeshData->GetVertices();
 
-        auto NDCToViewport = [&](vec3f p)
-            {
-                constexpr U32 width = 800;
-                constexpr U32 height = 599;
-                vec4f pos(p, 1.0);
-                vec4f newPos = mvp * pos;
+        // assemble attributes for processing
+        VertexAttributes inputAttributes[3];
+        for (int i = 0; i < 3; ++i)
+        {
+            auto& attrib = inputAttributes[i];
+            attrib.aPos = verts[face[i]];
+            attrib.aColor = colors[(tri*3+i) % colors.size()];
+            attrib.aTexCoord = vec2f(0.0f, 0.0f);
+        }
 
-                // hardcode to test
+        // VS runs
+        PerVertex perVertexOutputs[3];
+        for (int i = 0; i < 3; ++i)
+        {
+            perVertexOutputs[i] = shaderModule->vert(inputAttributes[i]);
+        }
+
+        // perspective divide
+
+        // clipping
+
+        // viewport transform
+        auto NDCToViewport = [&](vec4f p)
+            {
+                const U32 width  = 1280; //fb->colorView.width;
+                const U32 height = 720; //fb->colorView.height;
+
                 vec3f coords(
-                    (int)(0.5f * (width * newPos.x + width)),
-                    (int)(0.5f * (height * newPos.y + height)),
-                    newPos.z
+                    (int)(0.5f * (width * p.x + width)),
+                    (int)(0.5f * (height * p.y + height)),
+                    p.z
                     // need to remap to plane near/far but this should be handled by fixed function part anyway
                 );
-
                 return coords;
             };
 
-        const auto& a = NDCToViewport(verts[face[0]]);
-        const auto& b = NDCToViewport(verts[face[1]]);
-        const auto& c = NDCToViewport(verts[face[2]]);
-        const auto col = colors[i % colors.size()];
+        //const auto& a = NDCToViewport(verts[face[0]]);
+        //const auto& b = NDCToViewport(verts[face[1]]);
+        //const auto& c = NDCToViewport(verts[face[2]]);
+        const auto& a = NDCToViewport(perVertexOutputs[0].position);
+        const auto& b = NDCToViewport(perVertexOutputs[1].position);
+        const auto& c = NDCToViewport(perVertexOutputs[2].position);
 
-        const auto& view = fb->colorView;
+        const float totalArea = CalculateTriangleArea(a, b, c);
+        const float invTotalArea = 1.0f / totalArea;
 
-        switch (state->fillMode)
+        // Cull based on right-handed orientation
+        //   C
+        //  / \
+        // A-->B
+        // CCW if det(AB, CA) > 0
+
+        const bool isCCW = totalArea > 0.f;
+        const bool isFront = (state->frontCounterClockwise && isCCW)
+            || (!state->frontCounterClockwise && !isCCW);
+
+        switch (state->cullMode)
         {
-        case (FILL_MODE::FILL_MODE_SOLID):
-            RasterizeAABB(*fb, *state, colors[i % colors.size()], a, b, c);
+        case CULL_MODE::CULL_MODE_BACK:
+            if (!isFront) return;
             break;
-        case (FILL_MODE::FILL_MODE_WIREFRAME):
-            draw_line(view, a, b, col);
-            draw_line(view, b, c, col);
-            draw_line(view, c, a, col);
+        case CULL_MODE::CULL_MODE_FRONT:
+            if (isFront) return;
             break;
         default:
-            //TODO logging utilities
+        case CULL_MODE::CULL_MODE_NONE:
+            // No culling enabled
             break;
         }
+
+        // TODO profile with some timer utilities
+        // SCOPED_TIMER()
+
+        float minX = std::min(a.x, std::min(b.x, c.x));
+        float maxX = std::max(a.x, std::max(b.x, c.x));
+        float minY = std::min(a.y, std::min(b.y, c.y));
+        float maxY = std::max(a.y, std::max(b.y, c.y));
+
+        for (int x = minX; x <= maxX; ++x)
+        {
+            for (int y = minY; y <= maxY; ++y)
+            {
+                // TODO profile perf between the two
+                // TODO replace barycentric with Cramer's rule ver
+                vec3f P(x, y, 0);
+                float u = CalculateTriangleArea(P, b, c) * invTotalArea;
+                float v = CalculateTriangleArea(P, c, a) * invTotalArea;
+                float w = CalculateTriangleArea(P, a, b) * invTotalArea;
+                // Causing precision issues
+                //float w = 1.0 - u - v;
+
+                // skip points outside of triangle
+                if (u < 0 || v < 0 || w < 0) {
+                    continue;
+                }
+
+                // TODO add depth state
+                // early depth test
+                float depth = u * a.z + v * b.z + w * c.z;
+                const auto& depthBuffer = fb->depthView;
+                // TODO need to perform depth remapping
+                if (depth >= depthBuffer.at(x, y).Get())
+                {
+                    continue;
+                }
+
+                // FS
+                // blending
+                // Apply barycentric weights for all attributes
+                // TODO rename PerVertex var for fragInput
+                // PerFragInput? idk
+                PerVertex fragInput{
+                    .position = u*perVertexOutputs[0].position
+                              + v*perVertexOutputs[1].position
+                              + w*perVertexOutputs[2].position,
+
+                    .color    = u*perVertexOutputs[0].color
+                              + v*perVertexOutputs[1].color
+                              + w*perVertexOutputs[2].color,
+
+                    .texCoord = u*perVertexOutputs[0].texCoord
+                              + v*perVertexOutputs[1].texCoord
+                              + w*perVertexOutputs[2].texCoord,
+
+                };
+
+                vec4f fragColor = shaderModule->frag(fragInput);
+
+                // update with new depth value
+                depthBuffer.at(x, y) = FORMAT_D32_SFLOAT::to(depth);
+                fb->colorView.at(x, y) = FORMAT_R8G8B8A8_UNORM::to(fragColor);
+            }
+        }
+
+
+        //switch (state->fillMode)
+        //{
+        //case (FILL_MODE::FILL_MODE_SOLID):
+        //    RasterizeAABB(*fb, *state, col, a, b, c);
+        //    break;
+        //case (FILL_MODE::FILL_MODE_WIREFRAME):
+        //    draw_line(view, a, b, col);
+        //    draw_line(view, b, c, col);
+        //    draw_line(view, c, a, col);
+        //    break;
+        //default:
+        //    //TODO logging utilities
+        //    break;
+        //}
     }
 }

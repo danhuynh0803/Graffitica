@@ -19,8 +19,8 @@ int main()
 {
     SDL_Init(SDL_INIT_VIDEO);
 
-    int width = 1600;
-    int height = 800;
+    int width = 1280;
+    int height = 720;
 
     SDL_Window* window = SDL_CreateWindow("Graffitica",
         width, height,
@@ -46,7 +46,7 @@ int main()
     //vbo.m_VertexCount = vbo.m_Positions.size();
     RasterizerState drawState{
         .fillMode = FILL_MODE::FILL_MODE_SOLID,
-        .cullMode = CULL_MODE::CULL_MODE_BACK,
+        .cullMode = CULL_MODE::CULL_MODE_NONE,
         .frontCounterClockwise = true,
     };
 
@@ -100,12 +100,17 @@ int main()
             .depthView = depthView
         };
 
+        renderer::BasicShader basicShader {};
+        // TODO view projection calculation might be incorrect
+        // not working for certain cases, use identity for now
+        // until pipeline refactoring and optimizations are complete
+        basicShader.MVP = identity();
+
         // encapsulate commands into commandbuffer interface?
         renderer::CommandBuffer cmd {};
         cmd.framebuffer = &fb;
         cmd.rasterizerState = &drawState;
-        cmd.shaderModule = nullptr; // todo
-        cmd.mvp = camera.GetView();
+        cmd.shaderModule = &basicShader;
 
         //ImageView colorTarget(width, height, presentSurface->pixels);
         //const auto& color = std::get< ImageView<FORMAT_R8G8B8A8_UNORM> >(fb.colorAttachment);

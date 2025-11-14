@@ -35,11 +35,6 @@ void Clear(const ImageView<FORMAT>& view, float clearDepth)
 
 //void Draw(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex);
 
-void DrawIndexed(const Framebuffer& fb,
-				 const RasterizerState& state,
-				 const Buffer& vb,
-				 U32 indexCount, U32 firstIndex, int vertexOffset);
-
 void DrawIndexed(const CommandBuffer& cmd,
 	             const Buffer& vb,
 	             U32 indexCount, U32 firstIndex, int vertexOffset);
