@@ -434,7 +434,6 @@ void renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 
                 }
 
                 // FS
-                // blending
                 // Apply barycentric weights for all attributes
                 // TODO rename PerVertex var for fragInput
                 // PerFragInput? idk
@@ -457,6 +456,8 @@ void renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 
 
                 // update with new depth value
                 depthBuffer.at(x, y) = FORMAT_D32_SFLOAT::to(depth);
+
+                // TODO blending
                 fb->colorView.at(x, y) = FORMAT_R8G8B8A8_UNORM::to(fragColor);
             }
         }

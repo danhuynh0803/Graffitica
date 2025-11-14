@@ -1,6 +1,8 @@
 cmake_policy(SET CMP0048 NEW)
 
-project(graffitica
+set(PROJECT_NAME graffitica)
+
+project(${PROJECT_NAME}
     #VERSION 0.1
     #DESCRIPTION "Software Rasterizer"
     #LANGUAGES CXX
@@ -37,16 +39,21 @@ file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.h")
         source_group("${VS_FOLDER}" FILES "${SOURCE_FILE}")
     endforeach()
 
-add_executable(graffitica
+add_executable(${PROJECT_NAME}
     ${SOURCES}
 )
 
-target_include_directories(graffitica PUBLIC
+# Allow for VS cpu instrumentation
+if (MSVC)
+    SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/PROFILE")
+endif()
+
+target_include_directories(${PROJECT_NAME} PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}/src"
 	"${SDL3_Headers}"
 )
 
-target_link_libraries(graffitica PUBLIC
+target_link_libraries(${PROJECT_NAME} PUBLIC
 	SDL3::SDL3
 )
 
