@@ -45,7 +45,7 @@ add_executable(${PROJECT_NAME}
 
 # Allow for VS cpu instrumentation
 if (MSVC)
-    SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/PROFILE")
+    set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/PROFILE")
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -56,6 +56,19 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 target_link_libraries(${PROJECT_NAME} PUBLIC
 	SDL3::SDL3
 )
+
+# OpenMP
+find_package(OpenMP REQUIRED)
+if (OPENMP_FOUND)
+    target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX) # Or OpenMP::OpenMP_C, OpenMP::OpenMP_Fortran
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        ${OpenMP_CXX_FLAGS} # Or OpenMP_C_FLAGS, OpenMP_Fortran_FLAGS
+        /W4     # level 4 warnings
+        #/WX    # warnings as errors
+    )
+endif()
+
+
 
 add_subdirectory(external)
 add_subdirectory(test)

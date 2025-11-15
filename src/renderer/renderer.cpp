@@ -12,6 +12,8 @@
 #include "renderer/resource.h"
 #include "renderer/renderer.h"
 #include "renderer/framebuffer.h"
+#include "util/timer.h"
+#include <omp.h>
 
 namespace
 {
@@ -314,6 +316,8 @@ void renderer::cmd::Draw(const ImageView& view, const Buffer& vb, U32 vertexCoun
 
 void renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
 {
+    SCOPED_TIMER;
+
     const auto& fb = cmd.framebuffer;
     const auto& state = cmd.rasterizerState;
     const auto& mvp = cmd.mvp;
@@ -321,11 +325,11 @@ void renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 
 
     const auto& positions = vb.m_Positions;
     const auto& colors = vb.m_VertexColors;
+    const auto& verts = vb.m_MeshData->GetVertices();
 
     for (int tri = firstIndex; tri < indexCount; ++tri)
     {
         const std::vector<int>& face = vb.m_MeshData->face(tri);
-        const auto& verts = vb.m_MeshData->GetVertices();
 
         // assemble attributes for processing
         VertexAttributes inputAttributes[3];
@@ -351,8 +355,8 @@ void renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 
         // viewport transform
         auto NDCToViewport = [&](vec4f p)
             {
-                const U32 width  = 1280; //fb->colorView.width;
-                const U32 height = 720; //fb->colorView.height;
+                const U32 width  = fb->colorView.width;
+                const U32 height = fb->colorView.height;
 
                 vec3f coords(
                     (int)(0.5f * (width * p.x + width)),
@@ -370,8 +374,15 @@ void renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 
         const auto& b = NDCToViewport(perVertexOutputs[1].position);
         const auto& c = NDCToViewport(perVertexOutputs[2].position);
 
-        const float totalArea = CalculateTriangleArea(a, b, c);
-        const float invTotalArea = 1.0f / totalArea;
+        //const float totalArea = CalculateTriangleArea(a, b, c);
+        //const float invTotalArea = 1.0f / totalArea;
+
+        vec3f v0 = b - a;
+        vec3f v1 = c - a;
+        float d00 = dot(v0, v0);
+        float d01 = dot(v0, v1);
+        float d11 = dot(v1, v1);
+        float invDenom = 1.0f / (d00 * d11 - d01 * d01);
 
         // Cull based on right-handed orientation
         //   C
@@ -379,7 +390,7 @@ void renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 
         // A-->B
         // CCW if det(AB, CA) > 0
 
-        const bool isCCW = totalArea > 0.f;
+        const bool isCCW = invDenom > 0.f;
         const bool isFront = (state->frontCounterClockwise && isCCW)
             || (!state->frontCounterClockwise && !isCCW);
 
@@ -405,16 +416,25 @@ void renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 
         float minY = std::min(a.y, std::min(b.y, c.y));
         float maxY = std::max(a.y, std::max(b.y, c.y));
 
-        for (int x = minX; x <= maxX; ++x)
+#pragma omp parallel for
+        for (int x = minX; x <= static_cast<int>(maxX); ++x)
         {
-            for (int y = minY; y <= maxY; ++y)
+            for (int y = minY; y <= static_cast<int>(maxY); ++y)
             {
                 // TODO profile perf between the two
                 // TODO replace barycentric with Cramer's rule ver
                 vec3f P(x, y, 0);
-                float u = CalculateTriangleArea(P, b, c) * invTotalArea;
-                float v = CalculateTriangleArea(P, c, a) * invTotalArea;
-                float w = CalculateTriangleArea(P, a, b) * invTotalArea;
+
+                vec3f v2 = P - a;
+                float d20 = dot(v2, v0);
+                float d21 = dot(v2, v1);
+                float v = (d11 * d20 - d01 * d21) * invDenom;
+                float w = (d00 * d21 - d01 * d20) * invDenom;
+                float u = 1.0f - v - w;
+
+                //float u = CalculateTriangleArea(P, b, c) * invTotalArea;
+                //float v = CalculateTriangleArea(P, c, a) * invTotalArea;
+                //float w = CalculateTriangleArea(P, a, b) * invTotalArea;
                 // Causing precision issues
                 //float w = 1.0 - u - v;
 
@@ -461,21 +481,5 @@ void renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 
                 fb->colorView.at(x, y) = FORMAT_R8G8B8A8_UNORM::to(fragColor);
             }
         }
-
-
-        //switch (state->fillMode)
-        //{
-        //case (FILL_MODE::FILL_MODE_SOLID):
-        //    RasterizeAABB(*fb, *state, col, a, b, c);
-        //    break;
-        //case (FILL_MODE::FILL_MODE_WIREFRAME):
-        //    draw_line(view, a, b, col);
-        //    draw_line(view, b, c, col);
-        //    draw_line(view, c, a, col);
-        //    break;
-        //default:
-        //    //TODO logging utilities
-        //    break;
-        //}
     }
 }

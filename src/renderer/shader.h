@@ -41,7 +41,7 @@ struct BasicShader final : ShaderModule
     virtual vec4f frag(const PerVertex& input) override
     {
         vec4f col = input.color;
-        col *= std::clamp(std::ceil(input.position.x), 0.0f, 1.0f);
+        //col *= std::clamp(std::ceil(input.position.x), 0.0f, 1.0f);
         return col;
     }
 };
