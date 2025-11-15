@@ -6,7 +6,6 @@
 namespace renderer
 {
 
-
 struct CommandBuffer
 {
     Framebuffer* framebuffer;

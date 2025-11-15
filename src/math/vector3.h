@@ -8,10 +8,21 @@ template <typename T>
 class vec3
 {
 public:
-    vec3() { e[0] = 0.0f, e[1] = 0.0f, e[2] = 0.0f; }
-    vec3(const vec3<T>& v) { e[0] = v.e[0], e[1] = v.e[1], e[2] = v.e[2]; }
-    vec3(T f) { e[0] = f, e[1] = f, e[2] = f; }
-    vec3(T e0, T e1, T e2) { e[0] = e0, e[1] = e1, e[2] = e2; }
+    vec3() = default;
+
+    vec3(const vec3<T>& v) {
+        //e[0] = v.e[0], e[1] = v.e[1], e[2] = v.e[2];
+        memcpy(e, v.e, sizeof(e));
+        //std::cout << "copy construct vec3\n";
+    }
+
+    //vec3(T f) { e[0] = f, e[1] = f, e[2] = f; }
+    vec3(T e0, T e1, T e2)
+        : x(e0), y(e1), z(e2)
+
+    {
+        //std::cout << "construct v3\n";
+    }
 
     inline void operator =(const vec3 &v2);
     inline const vec3<T>& operator +() const { return *this; }

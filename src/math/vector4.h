@@ -8,16 +8,25 @@ template <typename T>
 class vec4
 {
 public:
-    vec4() { e[0] = 0.0f, e[1] = 0.0f, e[2] = 0.0f, e[3] = 0.0f; }
+    vec4() = default;
+    /*
+    vec4() {
+        memset(e, 0, sizeof(e));
+        std::cout << "default construct\n";
+    }
+    */
 
-    vec4(const vec3<T>& v, T w) {
-       e[0] = v[0];
-       e[1] = v[1];
-       e[2] = v[2];
-       e[3] = w;
+    vec4(const vec3<T>& v, T w_)
+        : x(v.x), y(v.y), z(v.z), w(w_)
+    {
+        //std::cout << "construct with vec3\n";
     }
 
-    vec4(T e0, T e1, T e2, T e3) { e[0] = e0, e[1] = e1, e[2] = e2, e[3] = e3; }
+    vec4(const T& e0, const T& e1, const T& e2, const T& e3) :
+        x(e0), y(e1), z(e2), w(e3)
+    {
+        //std::cout << "construct v4\n";
+    }
 
     inline void operator =(const vec4 &v2);
     inline const vec4& operator +() const { return *this; }

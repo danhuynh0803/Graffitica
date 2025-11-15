@@ -13,6 +13,7 @@
 #include "renderer/framebuffer.h"
 #include "renderer/camera.h"
 #include "renderer/command_buffer.h"
+#include "math/matrix_update.h"
 
 // TODO refactor window and inputs out of main
 int main()
@@ -104,7 +105,7 @@ int main()
         // TODO view projection calculation might be incorrect
         // not working for certain cases, use identity for now
         // until pipeline refactoring and optimizations are complete
-        basicShader.MVP = identity();
+        basicShader.MVP = gr::Identity<float,4,4>();
 
         // encapsulate commands into commandbuffer interface?
         renderer::CommandBuffer cmd {};

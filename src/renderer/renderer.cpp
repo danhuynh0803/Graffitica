@@ -7,6 +7,7 @@
 #include <cfloat>
 #include "math/vector.h"
 #include "math/matrix.h"
+#include "math/matrix_update.h"
 #include "mesh.h"
 #include "renderer/rasterizer_state.h"
 #include "renderer/resource.h"
@@ -343,9 +344,14 @@ void renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 
 
         // VS runs
         PerVertex perVertexOutputs[3];
+        Triangle primitive;
         for (int i = 0; i < 3; ++i)
         {
             perVertexOutputs[i] = shaderModule->vert(inputAttributes[i]);
+            primitive.position[i] = perVertexOutputs[i].position;
+            primitive.color   [i] = perVertexOutputs[i].color;
+            primitive.texcoord[i] = perVertexOutputs[i].texcoord;
+
         }
 
         // perspective divide
@@ -353,7 +359,7 @@ void renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 
         // clipping
 
         // viewport transform
-        auto NDCToViewport = [&](vec4f p)
+        auto NDCToViewport = [&](const vec4f& p)
             {
                 const U32 width  = fb->colorView.width;
                 const U32 height = fb->colorView.height;
@@ -367,12 +373,9 @@ void renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 
                 return coords;
             };
 
-        //const auto& a = NDCToViewport(verts[face[0]]);
-        //const auto& b = NDCToViewport(verts[face[1]]);
-        //const auto& c = NDCToViewport(verts[face[2]]);
-        const auto& a = NDCToViewport(perVertexOutputs[0].position);
-        const auto& b = NDCToViewport(perVertexOutputs[1].position);
-        const auto& c = NDCToViewport(perVertexOutputs[2].position);
+        const auto& a = NDCToViewport(primitive.position[0]);
+        const auto& b = NDCToViewport(primitive.position[1]);
+        const auto& c = NDCToViewport(primitive.position[2]);
 
         //const float totalArea = CalculateTriangleArea(a, b, c);
         //const float invTotalArea = 1.0f / totalArea;
@@ -432,12 +435,6 @@ void renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 
                 float w = (d00 * d21 - d01 * d20) * invDenom;
                 float u = 1.0f - v - w;
 
-                //float u = CalculateTriangleArea(P, b, c) * invTotalArea;
-                //float v = CalculateTriangleArea(P, c, a) * invTotalArea;
-                //float w = CalculateTriangleArea(P, a, b) * invTotalArea;
-                // Causing precision issues
-                //float w = 1.0 - u - v;
-
                 // skip points outside of triangle
                 if (u < 0 || v < 0 || w < 0) {
                     continue;
@@ -456,20 +453,25 @@ void renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 
                 // FS
                 // Apply barycentric weights for all attributes
                 // TODO rename PerVertex var for fragInput
-                // PerFragInput? idk
+                //std::cout << "Barycentric part\n";
                 PerVertex fragInput{
-                    .position = u*perVertexOutputs[0].position
-                              + v*perVertexOutputs[1].position
-                              + w*perVertexOutputs[2].position,
+                    //.position = u * primitive.position[0]
+                    //          + v * primitive.position[1]
+                    //          + w * primitive.position[2],
 
-                    .color    = u*perVertexOutputs[0].color
-                              + v*perVertexOutputs[1].color
-                              + w*perVertexOutputs[2].color,
+                    //.color      = u * primitive.color[0]
+                    //            + v * primitive.color[1]
+                    //            + w * primitive.color[2],
 
-                    .texCoord = u*perVertexOutputs[0].texCoord
-                              + v*perVertexOutputs[1].texCoord
-                              + w*perVertexOutputs[2].texCoord,
+                    .color      = vec4f(
+                                    u*primitive.color[0].x + v*primitive.color[1].x + w*primitive.color[2].x,
+                                    u*primitive.color[0].y + v*primitive.color[1].y + w*primitive.color[2].y,
+                                    u*primitive.color[0].z + v*primitive.color[1].z + w*primitive.color[2].z,
+                                    1.0)
 
+                    //.texcoord = u * primitive.texcoord[0]
+                    //          + v * primitive.texcoord[1]
+                    //          + w * primitive.texcoord[2],
                 };
 
                 vec4f fragColor = shaderModule->frag(fragInput);
