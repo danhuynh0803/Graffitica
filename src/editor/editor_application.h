@@ -8,11 +8,8 @@ namespace gr
 class EditorApplication : public Application
 {
 public:
-    EditorApplication(const ApplicationProperties& props)
-        : Application(props)
-    {
-        // layer system
-    }
+    EditorApplication(const ApplicationProperties& props);
+    ~EditorApplication() = default;
 };
 
 }

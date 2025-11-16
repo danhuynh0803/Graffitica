@@ -2,7 +2,9 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 #include "core/window.h"
+#include "core/layer_stack.h"
 
 namespace gr
 {
@@ -23,11 +25,15 @@ public:
 
     void Run();
 
+    void PushLayer(Layer* layer);
+    void PopLayer(Layer* layer);
+
 protected:
     static Application* m_Instance;
 
 private:
     std::unique_ptr<Window> m_Window;
+    LayerStack m_LayerStack;
     bool m_IsRunning = true;
 };
 
