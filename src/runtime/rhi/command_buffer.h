@@ -13,7 +13,7 @@ struct CommandBuffer
     ShaderModule* shaderModule;
     //Pipeline *pipeline;
 
-    mat4 mvp;
+    mat44 mvp;
 
     // Shader resources
     // e.g. texture data, MVP, etc

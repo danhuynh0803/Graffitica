@@ -2,6 +2,9 @@
 #include "util/math/vector.h"
 #include "util/math/matrix.h"
 
+namespace gr
+{
+
 class Camera
 {
 public:
@@ -18,11 +21,12 @@ public:
 
     ~Camera() = default;
 
-    mat4 GetView()
+    mat44 GetView()
     {
-        mat4 view;
         // view matrix values, assuming column vector notation
-        std::vector<float> v_view = {
+        // TODO construct with initializer lists
+        /*
+        mat44 view = {
             right.x, up.x, forward.x, look_from.x,
             right.y, up.y, forward.y, look_from.y,
             right.z, up.z, forward.z, look_from.z,
@@ -31,18 +35,14 @@ public:
 
         view = v_view;
         return view;
+        */
+        return {};
     }
 
-    mat4 GetProjection()
+    mat44 GetProjection()
     {
-        mat4 persp;
-        // perspective values, assuming coloumn vector notation
-        std::vector<float> v_persp = {
-
-
-        };
-
-        persp = v_persp;
+        mat44 persp;
+        // TODO
         return persp;
     }
 
@@ -53,3 +53,5 @@ private:
     float vfov, aspect_ratio;
     float near, far;
 };
+
+}

@@ -7,7 +7,7 @@
 #include <cfloat>
 #include "util/math/vector.h"
 #include "util/math/matrix.h"
-#include "util/math/matrix_update.h"
+#include "util/math/matrix.h"
 #include "mesh.h"
 #include "rhi/rasterizer_state.h"
 #include "rhi/resource.h"

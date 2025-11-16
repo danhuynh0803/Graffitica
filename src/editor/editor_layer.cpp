@@ -21,7 +21,7 @@ namespace
 
     RasterizerState drawState;
 
-    Camera camera({ 1,0,0 }, { 0,0,0 }, 90, 1);
+    gr::Camera camera({ 1,0,0 }, { 0,0,0 }, 90, 1);
 
     uint32_t width = 1600;
     uint32_t height = 900;

@@ -2,7 +2,7 @@
 
 #include "util/math/vector.h"
 #include "rhi/resource.h"
-#include "util/math/matrix_update.h"
+#include "util/math/matrix.h"
 
 namespace gr::renderer
 {
