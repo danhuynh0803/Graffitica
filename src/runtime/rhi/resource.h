@@ -2,7 +2,7 @@
 
 #include "core/types.h"
 #include <vector>
-#include "renderer/formats.h"
+#include "rhi/formats.h"
 
 class Mesh;
 template<typename FORMAT> class ImageView;

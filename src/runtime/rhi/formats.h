@@ -1,6 +1,6 @@
 #pragma once
 #include <algorithm>
-#include "math/vector.h"
+#include "util/math/vector.h"
 #include "core/types.h"
 
 //namespace render

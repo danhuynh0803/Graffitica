@@ -1,6 +1,6 @@
 #pragma once
-#include "math/vector.h"
-#include "math/matrix.h"
+#include "util/math/vector.h"
+#include "util/math/matrix.h"
 
 class Camera
 {

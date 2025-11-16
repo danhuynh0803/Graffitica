@@ -1,8 +1,8 @@
 #pragma once
 
-#include "math/vector2.h"
-#include "math/vector3.h"
-#include "math/vector4.h"
+#include "vector2.h"
+#include "vector3.h"
+#include "vector4.h"
 
 typedef vec2<float> vec2f;
 typedef vec2<int>   vec2i;

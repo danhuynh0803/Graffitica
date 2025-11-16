@@ -1,9 +1,9 @@
 #pragma once
-#include "renderer/framebuffer.h"
-#include "renderer/shader.h"
-#include "math/matrix.h"
+#include "rhi/interface/framebuffer.h"
+#include "rhi/shader.h"
+#include "util/math/matrix.h"
 
-namespace renderer
+namespace gr::renderer
 {
 
 struct CommandBuffer

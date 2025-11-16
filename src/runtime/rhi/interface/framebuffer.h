@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <variant>
-#include "renderer/resource.h"
+#include "rhi/resource.h"
 
 namespace
 {

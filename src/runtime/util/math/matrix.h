@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <numbers>
 
-#include "math/vector.h"
+#include "vector.h"
 
 class mat4;
 

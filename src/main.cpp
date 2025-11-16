@@ -1,20 +1,3 @@
-#include <SDL3/SDL.h>
-#include <memory>
-#include <random>
-
-#include "renderer/resource.h"
-#include "core/types.h"
-#include "renderer/formats.h"
-#include "renderer/mesh.h"
-#include "util/timer.h"
-#include "renderer/rasterizer_state.h"
-#include "renderer/renderer.h"
-#include "renderer/command.h"
-#include "renderer/framebuffer.h"
-#include "renderer/camera.h"
-#include "renderer/command_buffer.h"
-#include "math/matrix_update.h"
-
 // TODO refactor window and inputs out of main
 /*
 int main()

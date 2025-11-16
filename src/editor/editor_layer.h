@@ -8,7 +8,7 @@ namespace gr
 class EditorLayer : public Layer
 {
 public:
-    EditorLayer();
+    EditorLayer(const std::string& name = "EditorLayer");
     virtual ~EditorLayer() = default;
 
     //virtual void OnAttach() override;

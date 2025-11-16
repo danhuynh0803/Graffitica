@@ -4,7 +4,7 @@
 #include <string>
 #include <SDL3/SDL.h>
 
-#include "renderer/formats.h"
+#include "rhi/formats.h"
 
 namespace gr
 {

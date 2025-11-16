@@ -5,14 +5,14 @@
 #include <cmath>
 #include <vector>
 #include <cfloat>
-#include "math/vector.h"
-#include "math/matrix.h"
-#include "math/matrix_update.h"
+#include "util/math/vector.h"
+#include "util/math/matrix.h"
+#include "util/math/matrix_update.h"
 #include "mesh.h"
-#include "renderer/rasterizer_state.h"
-#include "renderer/resource.h"
+#include "rhi/rasterizer_state.h"
+#include "rhi/resource.h"
 #include "renderer/renderer.h"
-#include "renderer/framebuffer.h"
+#include "rhi/interface/framebuffer.h"
 #include "util/timer.h"
 #include <omp.h>
 
@@ -315,7 +315,7 @@ void renderer::cmd::Draw(const ImageView& view, const Buffer& vb, U32 vertexCoun
 }
 */
 
-void renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
+void gr::renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
 {
     SCOPED_TIMER;
 

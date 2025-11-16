@@ -1,10 +1,10 @@
 #pragma once
 
-#include "math/vector.h"
-#include "renderer/resource.h"
-#include "math/matrix_update.h"
+#include "util/math/vector.h"
+#include "rhi/resource.h"
+#include "util/math/matrix_update.h"
 
-namespace renderer
+namespace gr::renderer
 {
 
 struct PerVertex

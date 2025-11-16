@@ -1,9 +1,9 @@
 #pragma once
 
 #include <vector>
-#include "math/vector.h"
-#include "math/matrix.h"
-#include "renderer/resource.h"
+#include "util/math/vector.h"
+#include "util/math/matrix.h"
+#include "rhi/resource.h"
 
 // for testing api
 struct SimpleMesh

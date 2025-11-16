@@ -1,8 +1,8 @@
 #pragma once
 #include "core/types.h"
-#include "math/vector.h"
-#include "renderer/resource.h"
-#include "renderer/command_buffer.h"
+#include "util/math/vector.h"
+#include "rhi/resource.h"
+#include "rhi/command_buffer.h"
 
 // TODO separate to modules
 //export module RenderModule;
@@ -11,7 +11,7 @@ class RasterizerState;
 class Buffer;
 class Framebuffer;
 
-namespace renderer::cmd
+namespace gr::renderer::cmd
 {
 
 template<typename FORMAT>
