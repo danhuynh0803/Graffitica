@@ -82,9 +82,9 @@ struct BasicShader final : ShaderModule
     // TODO Rename struct for frag input since input is now interpolated
     virtual vec4f frag(const PerVertex& input) override
     {
-        //vec4f col = input.color;
+        vec4f col = input.color;
         //col *= std::clamp(std::ceil(input.position.x), 0.0f, 1.0f);
-        return input.color;
+        return col;
     }
 };
 

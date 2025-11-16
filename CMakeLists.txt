@@ -8,7 +8,6 @@ project(${PROJECT_NAME}
     #LANGUAGES CXX
 )
 
-
 cmake_minimum_required(VERSION 3.16)
 
 # Set all libs to be static
@@ -49,25 +48,24 @@ if (MSVC)
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-	"${CMAKE_CURRENT_SOURCE_DIR}/src"
-	"${SDL3_Headers}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"
+    "${SDL3_Headers}"
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
-	SDL3::SDL3
+    SDL3::SDL3
 )
 
 # OpenMP
 find_package(OpenMP REQUIRED)
 if (OPENMP_FOUND)
-    target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX) # Or OpenMP::OpenMP_C, OpenMP::OpenMP_Fortran
+    target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
     target_compile_options(${PROJECT_NAME} PRIVATE
         ${OpenMP_CXX_FLAGS} # Or OpenMP_C_FLAGS, OpenMP_Fortran_FLAGS
         /W4     # level 4 warnings
         #/WX    # warnings as errors
     )
 endif()
-
 
 
 add_subdirectory(external)

@@ -16,6 +16,7 @@
 #include "math/matrix_update.h"
 
 // TODO refactor window and inputs out of main
+/*
 int main()
 {
     SDL_Init(SDL_INIT_VIDEO);
@@ -131,3 +132,4 @@ int main()
         SDL_UpdateWindowSurface(window);
     }
 }
+*/

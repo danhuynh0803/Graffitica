@@ -51,7 +51,9 @@ struct FORMAT_D24_UNORM_S8_UINT final : DepthFormat
 	U32 stencil : 8;
 };
 
-/*
+namespace gr::renderer
+{
+
 enum class ImageFormat
 {
 	UNDEFINED = 0,
@@ -60,6 +62,5 @@ enum class ImageFormat
 	R8_SNORM,
 	D32_SFLOAT,
 };
-*/
 
-//}
+}
