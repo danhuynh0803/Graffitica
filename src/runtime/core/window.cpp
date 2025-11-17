@@ -28,9 +28,7 @@ Window::Window(const WindowProperties& props)
     //    .imageCount = 3,
     //    .format = gr::rhi::ImageFormat::R8G8B8A8_UNORM
     //}
-    //m_GraphicsContext = rhi::IGraphicsContext::Create<rhi::CPUGraphicsContext>(window);
-    m_GraphicsContext = std::make_unique<rhi::CPUGraphicsContext>(window);
-
+    m_GraphicsContext = rhi::IGraphicsContext::Create<rhi::CPUGraphicsContext>(window);
 }
 
 Window::~Window()
