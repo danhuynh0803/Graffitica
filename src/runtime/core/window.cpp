@@ -21,7 +21,6 @@ Window::Window(const WindowProperties& props)
                          m_Width, m_Height,
                          SDL_WINDOW_RESIZABLE);
 
-
     m_GraphicsContext = rhi::IGraphicsContext::Create<rhi::CPUGraphicsContext>(window);
 }
 
