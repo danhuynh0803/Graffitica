@@ -1,5 +1,6 @@
 #pragma once
 
+#include <SDL3/SDL.h>
 #include "rhi/interface/graphics_context.h"
 #include "cpu_swapchain.h"
 #include "core/types.h"
@@ -10,7 +11,9 @@ namespace gr::rhi
 class CPUGraphicsContext final : public IGraphicsContext
 {
 public:
-    CPUGraphicsContext(void* window);
+    CPUGraphicsContext(SDL_Window* window);
+    CPUGraphicsContext(CPUGraphicsContext&&) = delete;
+    CPUGraphicsContext(const CPUGraphicsContext&) = delete;
 
     //CPUSwapchain* GetSwapchain() const { return m_Swapchain.get(); }
     std::weak_ptr<CPUSwapchain> GetSwapchain() const { return m_Swapchain; }
