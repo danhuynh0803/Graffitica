@@ -16,6 +16,7 @@ struct SwapchainProperties
 class ISwapchain
 {
 public:
+    //template<typename TFormat> std::vector<ImageView<TFormat>> GetImageViews();
 
 protected:
 };

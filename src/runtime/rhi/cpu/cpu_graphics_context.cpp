@@ -4,6 +4,14 @@
 namespace gr::rhi
 {
 
+//std::shared_ptr<CPUGraphicsContext> CPUGraphicsContext::s_CPUGraphicsContextInstance = nullptr;
+
+std::shared_ptr<CPUGraphicsContext> CPUGraphicsContext::CreateInstance(SDL_Window* window)
+{
+    s_CPUGraphicsContextInstance = std::make_shared<CPUGraphicsContext>(window);
+    return s_CPUGraphicsContextInstance;
+}
+
 CPUGraphicsContext::CPUGraphicsContext(SDL_Window* window)
 {
     SDL_Surface* surface = SDL_GetWindowSurface(window);
@@ -15,6 +23,11 @@ CPUGraphicsContext::CPUGraphicsContext(SDL_Window* window)
     };
 
     m_Swapchain = std::make_shared<CPUSwapchain>(props);
+}
+
+void CPUGraphicsContext::UpdateBackBuffer(SDL_Surface* surfaceToUpdate)
+{
+    m_Swapchain->UpdateBackBuffer(surfaceToUpdate);
 }
 
 }

@@ -16,12 +16,11 @@ Window::Window(const WindowProperties& props)
 {
     SDL_Init(m_InitFlags);
 
-    SDL_Window* window =
-        SDL_CreateWindow(m_Name.c_str(),
-                         m_Width, m_Height,
-                         SDL_WINDOW_RESIZABLE);
+    m_Window = SDL_CreateWindow(m_Name.c_str(),
+                                m_Width, m_Height,
+                                SDL_WINDOW_RESIZABLE);
 
-    m_GraphicsContext = rhi::IGraphicsContext::Create<rhi::CPUGraphicsContext>(window);
+    m_GraphicsContext = rhi::IGraphicsContext::Create<rhi::CPUGraphicsContext>(m_Window);
 }
 
 Window::~Window()
@@ -51,11 +50,18 @@ void Window::OnUpdate()
     }
 
     // Probably better to abstract to swapchain interface
+    // Update OnResize for Swapchain
     if (!m_PresentSurface)
     {
         m_PresentSurface = SDL_CreateSurface(m_Width, m_Height, SDL_PIXELFORMAT_RGBA32);
         SDL_SetSurfaceBlendMode(m_PresentSurface, SDL_BLENDMODE_NONE);
     }
+
+    m_GraphicsContext->UpdateBackBuffer(m_PresentSurface);
+
+    SDL_Rect rect{ .x = 0, .y = 0, .w = static_cast<int>(m_Width), .h = static_cast<int>(m_Height) };
+    SDL_BlitSurface(m_PresentSurface, &rect, SDL_GetWindowSurface(m_Window), &rect);
+    SDL_UpdateWindowSurface(m_Window);
 }
 
 gr::rhi::ImageFormat Window::GetSurfaceFormat() const

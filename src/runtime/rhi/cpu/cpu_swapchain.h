@@ -16,15 +16,25 @@ public:
     ~CPUSwapchain() = default;
     ImageFormat GetSurfaceFormat() const;
 
+    void UpdateBackBuffer(SDL_Surface* surfaceToUpdate);
+
     U32 GetWidth()  const { return m_Width; }
     U32 GetHeight() const { return m_Height; }
+    U32 GetCurrentBackBufferIndex() const { return m_CurrentFrameIndex; }
+
+    template <typename TFormat>
+    ImageView<TFormat> GetCurrentFrameImageView() const {
+        return m_PresentImageViews.at(m_CurrentFrameIndex);
+    }
 
 private:
     U32 m_Width, m_Height;
     U32 m_ImageCount;
+    U32 m_CurrentFrameIndex;
     ImageFormat m_SwapchainFormat;
     //ImageView<R8G8B8A8_UNORM> m_BackBuffer;
-    std::vector<ImageView<FORMAT_R8G8B8A8_UNORM>> m_Images;
+    std::vector<Image<FORMAT_R8G8B8A8_UNORM>> m_PresentImages;
+    std::vector<ImageView<FORMAT_R8G8B8A8_UNORM>> m_PresentImageViews;
     SDL_Surface* m_PresentSurface;
 };
 

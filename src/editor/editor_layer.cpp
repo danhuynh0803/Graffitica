@@ -12,14 +12,18 @@
 #include "renderer/renderer.h"
 #include "renderer/mesh.h"
 #include "editor_layer.h"
+#include "rhi/cpu/cpu_graphics_context.h"
 
 namespace gr
 {
 
 namespace
 {
+    rhi::CPUGraphicsContext* gfxContext = nullptr;
+    rhi::CPUSwapchain* swapchain = nullptr;
+
     Buffer model{
-        //.m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
+        .m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
     };
 
     RasterizerState drawState;
@@ -52,6 +56,9 @@ EditorLayer::EditorLayer(const std::string& name)
         .cullMode = CULL_MODE::CULL_MODE_NONE,
         .frontCounterClockwise = true,
     };
+
+    gfxContext = rhi::CPUGraphicsContext::GetInstance();
+    swapchain = gfxContext->GetSwapchain();
 }
 
 void EditorLayer::OnUpdate(double dt)
@@ -66,8 +73,11 @@ void EditorLayer::OnUpdate(double dt)
     rhi::Image<FORMAT_D32_SFLOAT> depthImage(width, height);
     rhi::ImageView<FORMAT_D32_SFLOAT> depthView(depthImage);
 
+    // Render to current frame in-flight
+    rhi::ImageView<FORMAT_R8G8B8A8_UNORM> currFrameView = swapchain->GetCurrentFrameImageView<FORMAT_R8G8B8A8_UNORM>();
+
     gr::rhi::Framebuffer fb{
-        .colorView = colorView,
+        .colorView = currFrameView,
         .depthView = depthView
     };
 
@@ -84,6 +94,7 @@ void EditorLayer::OnUpdate(double dt)
     };
 
     //ImageView colorTarget(width, height, presentSurface->pixels);
+    //const auto& currFrameView = 
     //const auto& color = std::get< ImageView<FORMAT_R8G8B8A8_UNORM> >(fb.colorAttachment);
     //const auto& color2 = cast(fb.colorAttachment);
     gr::rhi::cmd::Clear(fb.colorView, {.4, .5, .7, 1.0});
@@ -92,7 +103,7 @@ void EditorLayer::OnUpdate(double dt)
 
     // todo cmdbuffer interface?
     // bind cmds can simply assign pointers to various objects needed for rendering
-    //gr::rhi::cmd::DrawIndexed(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
+    gr::rhi::cmd::DrawIndexed(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
     //std::memcpy(presentSurface->pixels, fb.colorView.data, width*height*sizeof(FORMAT_R8G8B8A8_UNORM));
 }
 

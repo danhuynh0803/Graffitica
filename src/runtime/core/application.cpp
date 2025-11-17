@@ -1,6 +1,8 @@
 #include "core/application.h"
 #include "core/system_time.h"
 #include "core/layer.h"
+#include "rhi/interface/graphics_context.h"
+#include "rhi/interface/swapchain.h"
 
 namespace gr
 {
@@ -36,6 +38,7 @@ void Application::Run()
             layer->OnUpdate(time.deltaTime);
         }
 
+        // Window update logic handles blitting to backbuffer
         m_Window->OnUpdate();
     }
 }

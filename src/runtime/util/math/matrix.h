@@ -326,7 +326,13 @@ template<typename T, size_t ROW, size_t COL>
 inline vec4f Matrix<T, ROW, COL>::operator *(const vec4f& rhs)
 {
     // TODO
-    return {};
+    // Placeholder just to test 4x4
+    return {
+        m_Data[0] * rhs.x + m_Data[1] * rhs.y + m_Data[2] * rhs.z + m_Data[3] * rhs.w,
+        m_Data[4] * rhs.x + m_Data[5] * rhs.y + m_Data[6] * rhs.z + m_Data[7] * rhs.w,
+        m_Data[8] * rhs.x + m_Data[9] * rhs.y + m_Data[10] * rhs.z + m_Data[11] * rhs.w,
+        m_Data[12] * rhs.x + m_Data[13] * rhs.y + m_Data[14] * rhs.z + m_Data[15] * rhs.w,
+    };
 }
 
 template<typename T> // 4x4 specialization

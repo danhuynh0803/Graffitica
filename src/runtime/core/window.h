@@ -39,13 +39,15 @@ private:
     std::string m_Name;
     uint32_t m_Width, m_Height;
     SDL_InitFlags m_InitFlags = SDL_INIT_VIDEO;
+    SDL_Window* m_Window;
     SDL_Surface* m_PresentSurface = nullptr;
     struct MouseEvent
     {
         int x = 0, y = 0;
     } m_MouseEvent;
 
-    std::unique_ptr<gr::rhi::IGraphicsContext> m_GraphicsContext;
+    //std::shared_ptr<gr::rhi::IGraphicsContext> m_GraphicsContext;
+    gr::rhi::IGraphicsContext* m_GraphicsContext;
     //std::unique_ptr<ISwapchain> m_Swapchain;
 };
 
