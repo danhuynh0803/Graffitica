@@ -5,6 +5,7 @@
 #include <SDL3/SDL.h>
 
 #include "rhi/formats.h"
+#include "rhi/interface/graphics_context.h"
 
 namespace gr
 {
@@ -32,7 +33,7 @@ public:
             : nullptr;
     }
 
-    gr::renderer::ImageFormat GetSurfaceFormat() const;
+    gr::rhi::ImageFormat GetSurfaceFormat() const;
 
 private:
     std::string m_Name;
@@ -43,6 +44,9 @@ private:
     {
         int x = 0, y = 0;
     } m_MouseEvent;
+
+    std::unique_ptr<gr::rhi::IGraphicsContext> m_GraphicsContext;
+    //std::unique_ptr<ISwapchain> m_Swapchain;
 };
 
 //class WindowsWindow final : public Window

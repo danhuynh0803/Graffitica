@@ -9,6 +9,7 @@ class vec4
 {
 public:
     vec4() = default;
+    ~vec4() = default;
     /*
     vec4() {
         memset(e, 0, sizeof(e));

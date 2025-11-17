@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
-#include "math/vector.h"
-#include "math/matrix.h"
+#include "runtime/util/math/vector.h"
+#include "runtime/util/math/matrix.h"
 
 std::vector<float> vA = {
     1, 2, 3, 4,
@@ -14,9 +14,9 @@ std::vector<float> vB = {
     2, 4, 6, 8,
     2, 4, 6, 8};
 
-mat4 I = identity();
-mat4 Z = zero();
-mat4 A, B;
+//mat4 I = identity();
+//mat4 Z = zero();
+//mat4 A, B;
 
 /*
 TEST_CASE("mat4 add/sub operator", "[mat4]")

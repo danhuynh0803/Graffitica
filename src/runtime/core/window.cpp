@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include "core/window.h"
+#include "rhi/cpu/cpu_graphics_context.h"
 
 namespace gr
 {
@@ -19,6 +20,17 @@ Window::Window(const WindowProperties& props)
         SDL_CreateWindow(m_Name.c_str(),
                          m_Width, m_Height,
                          SDL_WINDOW_RESIZABLE);
+
+
+    //SwapchainProperties swapchainProps {
+    //    .width = props.width,
+    //    .height = props.height,
+    //    .imageCount = 3,
+    //    .format = gr::rhi::ImageFormat::R8G8B8A8_UNORM
+    //}
+    //m_GraphicsContext = rhi::IGraphicsContext::Create<rhi::CPUGraphicsContext>(window);
+    m_GraphicsContext = std::make_unique<rhi::CPUGraphicsContext>(window);
+
 }
 
 Window::~Window()
@@ -55,19 +67,19 @@ void Window::OnUpdate()
     }
 }
 
-gr::renderer::ImageFormat Window::GetSurfaceFormat() const
+gr::rhi::ImageFormat Window::GetSurfaceFormat() const
 {
     switch (m_PresentSurface->format)
     {
     case (SDL_PIXELFORMAT_RGBA32):
-        return gr::renderer::ImageFormat::R8G8B8A8_UNORM;
+        return gr::rhi::ImageFormat::R8G8B8A8_UNORM;
     default:
         throw std::runtime_error(
             "Missing SDL_PixelFormat->gr::ImageFormat conversion: " + m_PresentSurface->format
         );
     }
 
-    return gr::renderer::ImageFormat::UNDEFINED;
+    return gr::rhi::ImageFormat::UNDEFINED;
 }
 
 }

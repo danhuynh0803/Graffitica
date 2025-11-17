@@ -1,17 +1,23 @@
 #pragma once
 
-#include "renderer/rhi/interface/framebuffer.h"
+#include "core/types.h"
+#include "rhi/interface/framebuffer.h"
 
-namespace gr::renderer::rhi
+namespace gr::rhi
 {
 
-//template <typename T>
-class Swapchain
+struct SwapchainProperties
+{
+    uint32_t width, height;
+    uint32_t imageCount;
+    ImageFormat format;
+};
+
+class ISwapchain
 {
 public:
 
-private:
-    uint32_t m_Width, m_Height;
+protected:
 };
 
 }

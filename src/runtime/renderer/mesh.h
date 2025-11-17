@@ -6,6 +6,7 @@
 #include "rhi/resource.h"
 
 // for testing api
+
 struct SimpleMesh
 {
     std::vector<vec3f> m_Positions;

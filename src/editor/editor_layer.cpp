@@ -13,10 +13,13 @@
 #include "renderer/mesh.h"
 #include "editor_layer.h"
 
+namespace gr
+{
+
 namespace
 {
     Buffer model{
-    .m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
+        //.m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
     };
 
     RasterizerState drawState;
@@ -26,17 +29,14 @@ namespace
     uint32_t width = 1600;
     uint32_t height = 900;
     // TODO swapchain interface?
-    Image<FORMAT_R8G8B8A8_UNORM> colorImage(width, height);
-    ImageView<FORMAT_R8G8B8A8_UNORM> colorView(colorImage);
+    rhi::Image<FORMAT_R8G8B8A8_UNORM> colorImage(width, height);
+    rhi::ImageView<FORMAT_R8G8B8A8_UNORM> colorView(colorImage);
 
-    gr::renderer::BasicShader basicShader{};
+    gr::rhi::BasicShader basicShader{};
 }
 
-namespace gr
-{
-
 EditorLayer::EditorLayer(const std::string& name)
-    : m_Name(name), Layer("Editor")
+    : m_Name(name), Layer("Editor", gr::LayerFlags::DEFAULT)
 {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -63,10 +63,10 @@ void EditorLayer::OnUpdate(double dt)
     // pros for current system?
     // setting both formats allows possible resource alising
     // and conversion for formats in the backend?
-    Image<FORMAT_D32_SFLOAT> depthImage(width, height);
-    ImageView<FORMAT_D32_SFLOAT> depthView(depthImage);
+    rhi::Image<FORMAT_D32_SFLOAT> depthImage(width, height);
+    rhi::ImageView<FORMAT_D32_SFLOAT> depthView(depthImage);
 
-    Framebuffer fb{
+    gr::rhi::Framebuffer fb{
         .colorView = colorView,
         .depthView = depthView
     };
@@ -77,7 +77,7 @@ void EditorLayer::OnUpdate(double dt)
     basicShader.MVP = gr::Identity<float,4,4>();
 
     // encapsulate commands into commandbuffer interface?
-    renderer::CommandBuffer cmd {
+    gr::rhi::CommandBuffer cmd {
         .framebuffer = &fb,
         .rasterizerState = &drawState,
         .shaderModule = &basicShader,
@@ -86,13 +86,13 @@ void EditorLayer::OnUpdate(double dt)
     //ImageView colorTarget(width, height, presentSurface->pixels);
     //const auto& color = std::get< ImageView<FORMAT_R8G8B8A8_UNORM> >(fb.colorAttachment);
     //const auto& color2 = cast(fb.colorAttachment);
-    renderer::cmd::Clear(fb.colorView, {.4, .5, .7, 1.0});
-    renderer::cmd::Clear(fb.depthView, 1.0);
+    gr::rhi::cmd::Clear(fb.colorView, {.4, .5, .7, 1.0});
+    gr::rhi::cmd::Clear(fb.depthView, 1.0);
     //ImageView depth(width, height, 
 
     // todo cmdbuffer interface?
     // bind cmds can simply assign pointers to various objects needed for rendering
-    renderer::cmd::DrawIndexed(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
+    //gr::rhi::cmd::DrawIndexed(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
     //std::memcpy(presentSurface->pixels, fb.colorView.data, width*height*sizeof(FORMAT_R8G8B8A8_UNORM));
 }
 

@@ -49,6 +49,8 @@ void sort_desc(std::vector<vec3f>& verts)
     }
 }
 
+using namespace gr::rhi;
+
 template <typename FORMAT>
 void draw_line(const ImageView<FORMAT>& view, vec3f p0, vec3f p1, const vec4f& _color)
 {
@@ -200,7 +202,7 @@ float Determinant2D(const vec3f& V, const vec3f& P)
 }
 
 //template<typename FORMAT>
-void RasterizeAABB(const Framebuffer& fb, const RasterizerState& state, const vec4f& color,
+void RasterizeAABB(const gr::rhi::Framebuffer& fb, const RasterizerState& state, const vec4f& color,
                    const vec3f& a, const vec3f& b, const vec3f& c)
 {
     // Cull based on right-handed orientation
@@ -315,7 +317,10 @@ void renderer::cmd::Draw(const ImageView& view, const Buffer& vb, U32 vertexCoun
 }
 */
 
-void gr::renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
+namespace gr::rhi::cmd
+{
+
+void DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
 {
     SCOPED_TIMER;
 
@@ -343,8 +348,8 @@ void gr::renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, 
         }
 
         // VS runs
-        PerVertex perVertexOutputs[3];
-        Triangle primitive;
+        gr::rhi::PerVertex perVertexOutputs[3];
+        gr::rhi::Triangle primitive;
         for (int i = 0; i < 3; ++i)
         {
             perVertexOutputs[i] = shaderModule->vert(inputAttributes[i]);
@@ -454,7 +459,7 @@ void gr::renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, 
                 // Apply barycentric weights for all attributes
                 // TODO rename PerVertex var for fragInput
                 //std::cout << "Barycentric part\n";
-                PerVertex fragInput{
+                gr::rhi::PerVertex fragInput{
                     //.position = u * primitive.position[0]
                     //          + v * primitive.position[1]
                     //          + w * primitive.position[2],
@@ -484,4 +489,6 @@ void gr::renderer::cmd::DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, 
             }
         }
     }
+}
+
 }

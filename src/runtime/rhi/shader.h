@@ -4,7 +4,7 @@
 #include "rhi/resource.h"
 #include "util/math/matrix.h"
 
-namespace gr::renderer
+namespace gr::rhi
 {
 
 struct PerVertex

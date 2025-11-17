@@ -11,8 +11,10 @@ class RasterizerState;
 class Buffer;
 class Framebuffer;
 
-namespace gr::renderer::cmd
+namespace gr::rhi::cmd
 {
+
+// TODO Encapsulate with CommandBuffer interface
 
 template<typename FORMAT>
 void Clear(const ImageView<FORMAT>& view, const vec4f& clearColor)

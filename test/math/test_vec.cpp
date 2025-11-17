@@ -1,5 +1,5 @@
 #include <catch2/catch_template_test_macros.hpp>
-#include "math/vector.h"
+#include "runtime/util/math/vector.h"
 
 // Probably worth finding a better way of handling va args? But this suffices for unit tests purposes
 #define TEST_TYPES int, uint32_t, uint64_t, float, double

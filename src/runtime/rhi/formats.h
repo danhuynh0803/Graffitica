@@ -51,16 +51,18 @@ struct FORMAT_D24_UNORM_S8_UINT final : DepthFormat
 	U32 stencil : 8;
 };
 
-namespace gr::renderer
+namespace gr::rhi
 {
 
-enum class ImageFormat
+enum class ImageFormat : uint32_t
 {
 	UNDEFINED = 0,
 	R8G8B8A8_UNORM,
 	R8_UNORM,
 	R8_SNORM,
 	D32_SFLOAT,
+
+	COUNT
 };
 
 }

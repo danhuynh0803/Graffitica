@@ -3,14 +3,14 @@
 #include "rhi/shader.h"
 #include "util/math/matrix.h"
 
-namespace gr::renderer
+namespace gr::rhi
 {
 
 struct CommandBuffer
 {
     Framebuffer* framebuffer;
     RasterizerState* rasterizerState;
-    ShaderModule* shaderModule;
+    gr::rhi::ShaderModule* shaderModule;
     //Pipeline *pipeline;
 
     mat44 mvp;

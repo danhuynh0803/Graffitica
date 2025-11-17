@@ -1,13 +1,34 @@
 #pragma once
 
-#include "core/types.h"
 #include <vector>
+#include "core/types.h"
 #include "rhi/formats.h"
+//#include "renderer/mesh.h"
 
 class Mesh;
+
+struct VertexAttributes
+{
+	// for now, use just the required attributes
+	vec3f aPos;
+	vec4f aColor;
+	vec2f aTexCoord;
+};
+
+struct Buffer
+{
+	std::shared_ptr<Mesh> m_MeshData = nullptr;
+	std::vector<vec3f> m_Positions;
+	std::vector<vec4f> m_VertexColors;
+	uint32_t m_VertexCount;
+
+	std::vector<U32> m_Indices;
+};
+
+namespace gr::rhi
+{
+
 template<typename FORMAT> class ImageView;
-//namespace resource
-//{
 
 // Image is the resource owner
 // Usage during shading will be handled via ImageViews
@@ -113,25 +134,6 @@ struct ImageView
 };
 */
 
-struct VertexAttributes
-{
-    // for now, use just the required attributes
-    vec3f aPos;
-    vec4f aColor;
-    vec2f aTexCoord;
-};
-
-class Buffer
-{
-public:
-	std::shared_ptr<Mesh> m_MeshData = nullptr;
-	std::vector<vec3f> m_Positions;
-	std::vector<vec4f> m_VertexColors;
-	uint32_t m_VertexCount;
-
-	std::vector<U32> m_Indices;
-};
-
 /*
 * TODO organize api like vk/dx12?
 * e.g. have inputlayouts and such to read data from interleaved arrays?
@@ -146,4 +148,4 @@ private:
 };
 */
 
-//} // resource
+}
