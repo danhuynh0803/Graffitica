@@ -420,12 +420,14 @@ void DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32
 
         // TODO profile with some timer utilities
         // SCOPED_TIMER()
+        const float width = colorView.width;
+        const float height = colorView.height;
 
-        float minX = std::min(a.x, std::min(b.x, c.x));
-        float maxX = std::max(a.x, std::max(b.x, c.x));
-        float minY = std::min(a.y, std::min(b.y, c.y));
-        float maxY = std::max(a.y, std::max(b.y, c.y));
-
+        float minX = std::clamp(std::min(a.x, std::min(b.x, c.x)), 0.0f, width-1);
+        float maxX = std::clamp(std::max(a.x, std::max(b.x, c.x)), 0.0f, width-1);
+        float minY = std::clamp(std::min(a.y, std::min(b.y, c.y)), 0.0f, height-1);
+        float maxY = std::clamp(std::max(a.y, std::max(b.y, c.y)), 0.0f, height-1);
+        
 #pragma omp parallel for
         for (int x = minX; x <= static_cast<int>(maxX); ++x)
         {

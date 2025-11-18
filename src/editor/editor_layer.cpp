@@ -13,6 +13,7 @@
 #include "renderer/mesh.h"
 #include "editor_layer.h"
 #include "rhi/cpu/cpu_graphics_context.h"
+#include <numbers>
 
 namespace gr
 {
@@ -85,10 +86,19 @@ void EditorLayer::OnUpdate(double dt)
     // not working for certain cases, use identity for now
     // until pipeline refactoring and optimizations are complete
     basicShader.MVP = gr::Identity<float,4,4>();
-    
+    static float time = 0;
+    time += dt;
     // TODO
-    //float anim = 10.0 * sin(dt * 5.0);
-    //gr::mat44 model = gr::Identity<float, 4, 4>();
+    const float amp = 1.f;
+    const float freq = 1.0f;
+    const float rot = std::numbers::pi + time; // pi radians to reorient model
+    basicShader.MVP.m_Data[0][0] = amp * cos(rot);
+    basicShader.MVP.m_Data[1][1] *= -1; // invert model
+    basicShader.MVP.m_Data[0][2] = amp * sin(rot);
+    basicShader.MVP.m_Data[2][0] = amp * -sin(rot);
+    basicShader.MVP.m_Data[2][2] = amp * cos(rot);
+
+    //gr::Matrix<float,4,4> model = gr::Identity<float,4,4>();
 
     //basicShader.MVP.m_Data[0] += anim;
 

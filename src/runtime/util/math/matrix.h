@@ -80,7 +80,11 @@ public:
     //inline friend std::ostream& operator <<(std::ostream& os, const mat4& m);
 
     //std::vector<std::vector<float>> entry;
-    T m_Data[ROW*COL];
+    union {
+        //T m_Data[ROW*COL];
+    };
+
+    T m_Data[ROW][COL];
 };
 
 typedef Matrix<float, 4, 4> mat44;
@@ -102,20 +106,22 @@ inline Matrix<T, ROW, COL> Identity()
     for (int i = 0; i < COL; ++i)
     {
         // Set diagonals to 1
-        m.m_Data[i*COL + i] = 1;
+        m.m_Data[i][i] = 1;
     }
     return m;
 }
 
-//inline void translate(mat4& m_transform, const vec3f& v_translation)
-//{
-//    mat4 m_translation = identity();
-//    m_translation[0][3] = v_translation.x;
-//    m_translation[1][3] = v_translation.y;
-//    m_translation[2][3] = v_translation.z;
-//
-//    m_transform = m_translation * m_transform;
-//}
+template<typename T>
+inline void translate(Matrix<T, 4, 4>& m_transform, const vec3f& v_translation)
+{
+    Matrix<T,4,4> m_translation = Identity<float,4,4>();
+    m_translation[0][3] = v_translation.x;
+    m_translation[1][3] = v_translation.y;
+    m_translation[2][3] = v_translation.z;
+
+    m_transform = m_translation * m_transform;
+}
+
 //
 //inline void scale(mat4& m_transform, const vec3f& v_scale)
 //{
@@ -327,11 +333,17 @@ inline vec4f Matrix<T, ROW, COL>::operator *(const vec4f& rhs)
 {
     // TODO
     // Placeholder just to test 4x4
+    auto& lhs = m_Data;
     return {
-        m_Data[0] * rhs.x + m_Data[1] * rhs.y + m_Data[2] * rhs.z + m_Data[3] * rhs.w,
-        m_Data[4] * rhs.x + m_Data[5] * rhs.y + m_Data[6] * rhs.z + m_Data[7] * rhs.w,
-        m_Data[8] * rhs.x + m_Data[9] * rhs.y + m_Data[10] * rhs.z + m_Data[11] * rhs.w,
-        m_Data[12] * rhs.x + m_Data[13] * rhs.y + m_Data[14] * rhs.z + m_Data[15] * rhs.w,
+
+        lhs[0][0] * rhs.x + lhs[0][1] * rhs.y + lhs[0][2] * rhs.z + lhs[0][3] * rhs.w,
+        lhs[1][0] * rhs.x + lhs[1][1] * rhs.y + lhs[1][2] * rhs.z + lhs[1][3] * rhs.w,
+        lhs[2][0] * rhs.x + lhs[2][1] * rhs.y + lhs[2][2] * rhs.z + lhs[2][3] * rhs.w,
+        lhs[3][0] * rhs.x + lhs[3][1] * rhs.y + lhs[3][2] * rhs.z + lhs[3][3] * rhs.w,
+        //m_Data[0] * rhs.x + m_Data[1] * rhs.y + m_Data[2] * rhs.z + m_Data[3] * rhs.w,
+        //m_Data[4] * rhs.x + m_Data[5] * rhs.y + m_Data[6] * rhs.z + m_Data[7] * rhs.w,
+        //m_Data[8] * rhs.x + m_Data[9] * rhs.y + m_Data[10] * rhs.z + m_Data[11] * rhs.w,
+        //m_Data[12] * rhs.x + m_Data[13] * rhs.y + m_Data[14] * rhs.z + m_Data[15] * rhs.w,
     };
 }
 
@@ -339,10 +351,17 @@ template<typename T> // 4x4 specialization
 inline vec4f operator *(const Matrix<T, 4, 4>& lhs, const vec4f& rhs)
 {
     return {
+    /*
         lhs[0] * rhs.x + lhs[1] * rhs.y + lhs[2] * rhs.z + lhs[3] * rhs.w,
         lhs[4] * rhs.x + lhs[5] * rhs.y + lhs[6] * rhs.z + lhs[7] * rhs.w,
         lhs[8] * rhs.x + lhs[9] * rhs.y + lhs[10] * rhs.z + lhs[11] * rhs.w,
         lhs[12] * rhs.x + lhs[13] * rhs.y + lhs[14] * rhs.z + lhs[15] * rhs.w,
+    */
+
+        lhs[0][0] * rhs.x + lhs[0][1] * rhs.y + lhs[0][2] * rhs.z + lhs[0][3] * rhs.w,
+        lhs[1][0] * rhs.x + lhs[1][1] * rhs.y + lhs[1][2] * rhs.z + lhs[1][3] * rhs.w,
+        lhs[2][0] * rhs.x + lhs[2][1] * rhs.y + lhs[2][2] * rhs.z + lhs[2][3] * rhs.w,
+        lhs[3][0] * rhs.x + lhs[3][1] * rhs.y + lhs[3][2] * rhs.z + lhs[3][3] * rhs.w,
     };
 }
 
