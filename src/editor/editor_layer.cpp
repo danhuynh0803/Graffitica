@@ -74,10 +74,10 @@ void EditorLayer::OnUpdate(double dt)
     rhi::ImageView<FORMAT_D32_SFLOAT> depthView(depthImage);
 
     // Render to current frame in-flight
-    rhi::ImageView<FORMAT_R8G8B8A8_UNORM> currFrameView = swapchain->GetCurrentFrameImageView<FORMAT_R8G8B8A8_UNORM>();
+    auto currFrameView = swapchain->GetCurrentFrameImageView<FORMAT_R8G8B8A8_UNORM>();
 
     gr::rhi::Framebuffer fb{
-        .colorView = currFrameView,
+        .colorView = *currFrameView,
         .depthView = depthView
     };
 
@@ -85,6 +85,12 @@ void EditorLayer::OnUpdate(double dt)
     // not working for certain cases, use identity for now
     // until pipeline refactoring and optimizations are complete
     basicShader.MVP = gr::Identity<float,4,4>();
+    
+    // TODO
+    //float anim = 10.0 * sin(dt * 5.0);
+    //gr::mat44 model = gr::Identity<float, 4, 4>();
+
+    //basicShader.MVP.m_Data[0] += anim;
 
     // encapsulate commands into commandbuffer interface?
     gr::rhi::CommandBuffer cmd {

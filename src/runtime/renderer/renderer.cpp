@@ -325,6 +325,8 @@ void DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32
     SCOPED_TIMER;
 
     const auto& fb = cmd.framebuffer;
+    auto& colorView = fb->colorView;
+    auto& depthView = fb->depthView;
     const auto& state = cmd.rasterizerState;
     const auto& mvp = cmd.mvp;
     const auto& shaderModule = cmd.shaderModule;
@@ -448,9 +450,9 @@ void DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32
                 // TODO add depth state
                 // early depth test
                 float depth = u * a.z + v * b.z + w * c.z;
-                const auto& depthBuffer = fb->depthView;
+                //const auto& depthBuffer = fb->depthView;
                 // TODO need to perform depth remapping
-                if (depth >= depthBuffer.at(x, y).Get())
+                if (depth >= depthView.at(x, y).Get())
                 {
                     continue;
                 }
@@ -482,13 +484,23 @@ void DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32
                 vec4f fragColor = shaderModule->frag(fragInput);
 
                 // update with new depth value
-                depthBuffer.at(x, y) = FORMAT_D32_SFLOAT::to(depth);
+                depthView.at(x, y) = FORMAT_D32_SFLOAT::to(depth);
 
                 // TODO blending
-                fb->colorView.at(x, y) = FORMAT_R8G8B8A8_UNORM::to(fragColor);
+                //colorView.at(x, y) = FORMAT_R8G8B8A8_UNORM::to(fragColor);
+                colorView.Store(x,y,fragColor);
             }
         }
     }
+
+    // Format converting to match present surface
+    const int viewSize = colorView.colorData.size();
+#pragma omp parallel for
+    for (int i = 0; i < viewSize; ++i)
+    {
+        colorView.data[i] = FORMAT_R8G8B8A8_UNORM::to(colorView.colorData[i]);
+    }
+
 }
 
 }

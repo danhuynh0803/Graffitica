@@ -64,6 +64,8 @@ struct ImageView : BaseImageView
 		: width(image.m_Width), height(image.m_Height)
 	{
 		data = image.m_Data.get();
+		colorData.resize(width * height);
+		//std::fill(colorData.begin(), colorData.end(), {0,0,0,0});
 	}
 
 	ImageView(const ImageView& view) = default;
@@ -71,6 +73,7 @@ struct ImageView : BaseImageView
 	ImageView(ImageView&& view) noexcept
 		: width(view.width), height(view.height), data(view.data)
 	{
+		colorData.resize(width * height);
 		view.data = nullptr;
 	}
 
@@ -85,7 +88,13 @@ struct ImageView : BaseImageView
 	// ViewType
 	// SubresourceRange - at least mipmapLevel
 	U32 width, height;
+	
+	std::vector<vec4f> colorData;
 	FORMAT* data;
+	void Store(U32 x, U32 y, vec4f color)
+	{
+		colorData[x + y*width] = color;
+	}
 
 	FORMAT& at(U32 x, U32 y) const
 	{

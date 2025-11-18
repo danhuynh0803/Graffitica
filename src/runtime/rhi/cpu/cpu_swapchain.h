@@ -23,8 +23,8 @@ public:
     U32 GetCurrentBackBufferIndex() const { return m_CurrentFrameIndex; }
 
     template <typename TFormat>
-    ImageView<TFormat> GetCurrentFrameImageView() const {
-        return m_PresentImageViews.at(m_CurrentFrameIndex);
+    ImageView<TFormat>* GetCurrentFrameImageView() {
+        return &m_PresentImageViews.at(m_CurrentFrameIndex);
     }
 
 private:
