@@ -319,6 +319,191 @@ void renderer::cmd::Draw(const ImageView& view, const Buffer& vb, U32 vertexCoun
 
 namespace gr::rhi::cmd
 {
+    void DrawIndexedOld(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
+    {
+        SCOPED_TIMER;
+
+        const auto& fb = cmd.framebuffer;
+        auto& colorView = fb->colorView;
+        auto& depthView = fb->depthView;
+        const auto& state = cmd.rasterizerState;
+        const auto& mvp = cmd.mvp;
+        const auto& shaderModule = cmd.shaderModule;
+
+        const auto& positions = vb.m_Positions;
+        const auto& colors = vb.m_VertexColors;
+        const auto& verts = vb.m_MeshData->GetVertices();
+
+        for (int tri = firstIndex; tri < indexCount; ++tri)
+        {
+            const std::vector<int>& face = vb.m_MeshData->face(tri);
+
+            // assemble attributes for processing
+            VertexAttributes inputAttributes[3];
+            for (int i = 0; i < 3; ++i)
+            {
+                auto& attrib = inputAttributes[i];
+                attrib.aPos = verts[face[i]];
+                attrib.aColor = colors[(tri*3+i) % colors.size()];
+                attrib.aTexCoord = vec2f(0.0f, 0.0f);
+            }
+
+            // VS runs
+            gr::rhi::PerVertex perVertexOutputs[3];
+            gr::rhi::Triangle primitive;
+            for (int i = 0; i < 3; ++i)
+            {
+                perVertexOutputs[i] = shaderModule->vert(inputAttributes[i]);
+                primitive.position[i] = perVertexOutputs[i].position;
+                primitive.color   [i] = perVertexOutputs[i].color;
+                primitive.texcoord[i] = perVertexOutputs[i].texcoord;
+
+            }
+
+            // perspective divide
+
+            // clipping
+
+            // viewport transform
+            auto NDCToViewport = [&](const vec4f& p)
+                {
+                    const U32 width  = fb->colorView.width;
+                    const U32 height = fb->colorView.height;
+
+                    vec3f coords(
+                        (int)(0.5f * (width * p.x + width)),
+                        (int)(0.5f * (height * p.y + height)),
+                        p.z
+                        // need to remap to plane near/far but this should be handled by fixed function part anyway
+                    );
+                    return coords;
+                };
+
+            const auto& a = NDCToViewport(primitive.position[0]);
+            const auto& b = NDCToViewport(primitive.position[1]);
+            const auto& c = NDCToViewport(primitive.position[2]);
+
+            //const float totalArea = CalculateTriangleArea(a, b, c);
+            //const float invTotalArea = 1.0f / totalArea;
+
+            vec3f v0 = b - a;
+            vec3f v1 = c - a;
+            float d00 = dot(v0, v0);
+            float d01 = dot(v0, v1);
+            float d11 = dot(v1, v1);
+            float invDenom = 1.0f / (d00 * d11 - d01 * d01);
+
+            // Cull based on right-handed orientation
+            //   C
+            //  / \
+            // A-->B
+            // CCW if det(AB, CA) > 0
+
+            const bool isCCW = invDenom > 0.f;
+            const bool isFront = (state->frontCounterClockwise && isCCW)
+                || (!state->frontCounterClockwise && !isCCW);
+
+            switch (state->cullMode)
+            {
+            case CULL_MODE::CULL_MODE_BACK:
+                if (!isFront) return;
+                break;
+            case CULL_MODE::CULL_MODE_FRONT:
+                if (isFront) return;
+                break;
+            default:
+            case CULL_MODE::CULL_MODE_NONE:
+                // No culling enabled
+                break;
+            }
+
+            // TODO profile with some timer utilities
+            // SCOPED_TIMER()
+            const float width = colorView.width;
+            const float height = colorView.height;
+
+            // clipping
+            float minX = std::clamp(std::min(a.x, std::min(b.x, c.x)), 0.0f, width-1);
+            float maxX = std::clamp(std::max(a.x, std::max(b.x, c.x)), 0.0f, width-1);
+            float minY = std::clamp(std::min(a.y, std::min(b.y, c.y)), 0.0f, height-1);
+            float maxY = std::clamp(std::max(a.y, std::max(b.y, c.y)), 0.0f, height-1);
+
+    #pragma omp parallel for
+            for (int x = minX; x <= static_cast<int>(maxX); ++x)
+            {
+                for (int y = minY; y <= static_cast<int>(maxY); ++y)
+                {
+                    // TODO profile perf between the two
+                    // TODO replace barycentric with Cramer's rule ver
+                    vec3f P(x, y, 0);
+
+                    vec3f v2 = P - a;
+                    float d20 = dot(v2, v0);
+                    float d21 = dot(v2, v1);
+                    float v = (d11 * d20 - d01 * d21) * invDenom;
+                    float w = (d00 * d21 - d01 * d20) * invDenom;
+                    float u = 1.0f - v - w;
+
+                    // skip points outside of triangle
+                    if (u < 0 || v < 0 || w < 0) {
+                        continue;
+                    }
+
+                    // TODO add depth state
+                    // early depth test
+                    float depth = u * a.z + v * b.z + w * c.z;
+                    //const auto& depthBuffer = fb->depthView;
+                    // TODO need to perform depth remapping
+                    if (depth >= depthView.at(x, y).Get())
+                    {
+                        continue;
+                    }
+
+                    // FS
+                    // Apply barycentric weights for all attributes
+                    // TODO rename PerVertex var for fragInput
+                    //std::cout << "Barycentric part\n";
+                    gr::rhi::PerVertex fragInput{
+                        //.position = u * primitive.position[0]
+                        //          + v * primitive.position[1]
+                        //          + w * primitive.position[2],
+
+                        //.color      = u * primitive.color[0]
+                        //            + v * primitive.color[1]
+                        //            + w * primitive.color[2],
+
+                        .color      = vec4f(
+                                        u*primitive.color[0].x + v*primitive.color[1].x + w*primitive.color[2].x,
+                                        u*primitive.color[0].y + v*primitive.color[1].y + w*primitive.color[2].y,
+                                        u*primitive.color[0].z + v*primitive.color[1].z + w*primitive.color[2].z,
+                                        1.0)
+
+                        //.texcoord = u * primitive.texcoord[0]
+                        //          + v * primitive.texcoord[1]
+                        //          + w * primitive.texcoord[2],
+                    };
+
+                    vec4f fragColor = shaderModule->frag(fragInput);
+
+                    // update with new depth value
+                    depthView.at(x, y) = FORMAT_D32_SFLOAT::to(depth);
+
+                    // TODO blending
+                    //colorView.at(x, y) = FORMAT_R8G8B8A8_UNORM::to(fragColor);
+                    colorView.Store(x,y,fragColor);
+                }
+            }
+        }
+
+        // Format converting to match present surface
+        const int viewSize = colorView.colorData.size();
+#pragma omp parallel for
+        for (int i = 0; i < viewSize; ++i)
+        {
+            colorView.data[i] = FORMAT_R8G8B8A8_UNORM::to(colorView.colorData[i]);
+        }
+
+    }
 
 void DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
 {
@@ -335,6 +520,167 @@ void DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32
     const auto& colors = vb.m_VertexColors;
     const auto& verts = vb.m_MeshData->GetVertices();
 
+    // Input assembling
+    std::vector<Triangle> triangeList;
+    triangeList.resize(indexCount);
+    for (int tri = firstIndex; tri < indexCount; ++tri)
+    {
+        const std::vector<int>& face = vb.m_MeshData->face(tri);
+
+        // assemble attributes for processing
+        VertexAttributes inputAttributes[3];
+        for (int i = 0; i < 3; ++i)
+        {
+            auto& attrib = inputAttributes[i];
+            attrib.aPos = verts[face[i]];
+            attrib.aColor = colors[(tri * 3 + i) % colors.size()];
+            attrib.aTexCoord = vec2f(0.0f, 0.0f);
+        }
+
+        // VS runs
+        gr::rhi::PerVertex perVertexOutputs[3];
+        gr::rhi::Triangle primitive;
+        for (int i = 0; i < 3; ++i)
+        {
+            perVertexOutputs[i] = shaderModule->vert(inputAttributes[i]);
+            primitive.position[i] = perVertexOutputs[i].position;
+            primitive.color[i] = perVertexOutputs[i].color;
+            primitive.texcoord[i] = perVertexOutputs[i].texcoord;
+        }
+        triangeList.push_back(primitive);
+    }
+
+    auto NDCToViewport = [&](const vec4f& p)
+        {
+            const U32 width = fb->colorView.width;
+            const U32 height = fb->colorView.height;
+
+            vec3f coords(
+                (int)(0.5f * (width * p.x + width)),
+                (int)(0.5f * (height * p.y + height)),
+                p.z
+                // need to remap to plane near/far but this should be handled by fixed function part anyway
+            );
+            return coords;
+        };
+
+    for (int i = 0; i < triangeList.size(); ++i)
+    {
+        const auto& primitive = triangeList[i];
+        // viewport transform
+        const auto& a = NDCToViewport(primitive.position[0]);
+        const auto& b = NDCToViewport(primitive.position[1]);
+        const auto& c = NDCToViewport(primitive.position[2]);
+
+        vec3f v0 = b - a;
+        vec3f v1 = c - a;
+        float d00 = dot(v0, v0);
+        float d01 = dot(v0, v1);
+        float d11 = dot(v1, v1);
+        float invDenom = 1.0f / (d00 * d11 - d01 * d01);
+
+        // Cull based on right-handed orientation
+        //   C
+        //  / \
+        // A-->B
+        // CCW if det(AB, CA) > 0
+
+        const bool isCCW = invDenom > 0.f;
+        const bool isFront = (state->frontCounterClockwise && isCCW)
+            || (!state->frontCounterClockwise && !isCCW);
+
+        switch (state->cullMode)
+        {
+        case CULL_MODE::CULL_MODE_BACK:
+            if (!isFront) return;
+            break;
+        case CULL_MODE::CULL_MODE_FRONT:
+            if (isFront) return;
+            break;
+        default:
+        case CULL_MODE::CULL_MODE_NONE:
+            // No culling enabled
+            break;
+        }
+
+        // TODO profile with some timer utilities
+        // SCOPED_TIMER()
+        const float width = colorView.width;
+        const float height = colorView.height;
+
+        // clipping
+        float minX = std::clamp(std::min(a.x, std::min(b.x, c.x)), 0.0f, width - 1);
+        float maxX = std::clamp(std::max(a.x, std::max(b.x, c.x)), 0.0f, width - 1);
+        float minY = std::clamp(std::min(a.y, std::min(b.y, c.y)), 0.0f, height - 1);
+        float maxY = std::clamp(std::max(a.y, std::max(b.y, c.y)), 0.0f, height - 1);
+
+    #pragma omp parallel for
+        for (int x = minX; x <= static_cast<int>(maxX); ++x)
+        {
+            for (int y = minY; y <= static_cast<int>(maxY); ++y)
+            {
+                // TODO profile perf between the two
+                // TODO replace barycentric with Cramer's rule ver
+                vec3f P(x, y, 0);
+
+                vec3f v2 = P - a;
+                float d20 = dot(v2, v0);
+                float d21 = dot(v2, v1);
+                float v = (d11 * d20 - d01 * d21) * invDenom;
+                float w = (d00 * d21 - d01 * d20) * invDenom;
+                float u = 1.0f - v - w;
+
+                // skip points outside of triangle
+                if (u < 0 || v < 0 || w < 0) {
+                    continue;
+                }
+
+                // TODO add depth state
+                // early depth test
+                float depth = u * a.z + v * b.z + w * c.z;
+                //const auto& depthBuffer = fb->depthView;
+                // TODO need to perform depth remapping
+                if (depth >= depthView.at(x, y).Get())
+                {
+                    continue;
+                }
+
+                // FS
+                // Apply barycentric weights for all attributes
+                // TODO rename PerVertex var for fragInput
+                //std::cout << "Barycentric part\n";
+                gr::rhi::PerVertex fragInput{
+                    //.position = u * primitive.position[0]
+                    //          + v * primitive.position[1]
+                    //          + w * primitive.position[2],
+
+                    //.color      = u * primitive.color[0]
+                    //            + v * primitive.color[1]
+                    //            + w * primitive.color[2],
+
+                    .color = vec4f(
+                                    u * primitive.color[0].x + v * primitive.color[1].x + w * primitive.color[2].x,
+                                    u * primitive.color[0].y + v * primitive.color[1].y + w * primitive.color[2].y,
+                                    u * primitive.color[0].z + v * primitive.color[1].z + w * primitive.color[2].z,
+                                    1.0)
+
+                        //.texcoord = u * primitive.texcoord[0]
+                        //          + v * primitive.texcoord[1]
+                        //          + w * primitive.texcoord[2],
+                };
+
+                vec4f fragColor = shaderModule->frag(fragInput);
+
+                // update with new depth value
+                depthView.at(x, y) = FORMAT_D32_SFLOAT::to(depth);
+
+                // TODO blending
+                //colorView.at(x, y) = FORMAT_R8G8B8A8_UNORM::to(fragColor);
+                colorView.Store(x, y, fragColor);
+            }
+        }
+    }
+    /*
     for (int tri = firstIndex; tri < indexCount; ++tri)
     {
         const std::vector<int>& face = vb.m_MeshData->face(tri);
@@ -423,6 +769,7 @@ void DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32
         const float width = colorView.width;
         const float height = colorView.height;
 
+        // clipping
         float minX = std::clamp(std::min(a.x, std::min(b.x, c.x)), 0.0f, width-1);
         float maxX = std::clamp(std::max(a.x, std::max(b.x, c.x)), 0.0f, width-1);
         float minY = std::clamp(std::min(a.y, std::min(b.y, c.y)), 0.0f, height-1);
@@ -494,6 +841,7 @@ void DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32
             }
         }
     }
+    */
 
     // Format converting to match present surface
     const int viewSize = colorView.colorData.size();

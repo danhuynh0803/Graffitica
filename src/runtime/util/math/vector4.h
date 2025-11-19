@@ -10,6 +10,8 @@ class vec4
 public:
     vec4() = default;
     ~vec4() = default;
+    vec4(const vec4&) = default;
+
     /*
     vec4() {
         memset(e, 0, sizeof(e));
@@ -77,8 +79,9 @@ inline void vec4<T>::make_unit_vector() {
     e[0] *= k; e[1] *= k; e[2] *= k; e[3] *= k;
 }
 
-template <typename T>
-inline void vec4<T>::operator=(const vec4<T> &v2) {
+template<typename T>
+inline void vec4<T>::operator=(const vec4& v2)
+{
     e[0] = v2.e[0];
     e[1] = v2.e[1];
     e[2] = v2.e[2];
