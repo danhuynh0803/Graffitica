@@ -11,7 +11,7 @@ struct DepthFormat {};
 
 struct FORMAT_R8G8B8A8_UNORM final : ColorFormat
 {
-	static FORMAT_R8G8B8A8_UNORM to(const vec4f& c)
+	inline static FORMAT_R8G8B8A8_UNORM to(const vec4f& c)
 	{
 		FORMAT_R8G8B8A8_UNORM o;
 		o.r = std::max(0.f, std::min(255.f, c.x * 255.f));
@@ -26,7 +26,7 @@ struct FORMAT_R8G8B8A8_UNORM final : ColorFormat
 
 struct FORMAT_D32_SFLOAT final : DepthFormat
 {
-	static FORMAT_D32_SFLOAT to(float depth)
+	inline static FORMAT_D32_SFLOAT to(float depth)
 	{
 		FORMAT_D32_SFLOAT o;
 		o.depth = depth;
@@ -39,7 +39,7 @@ struct FORMAT_D32_SFLOAT final : DepthFormat
 
 struct FORMAT_D24_UNORM_S8_UINT final : DepthFormat
 {
-	static FORMAT_D24_UNORM_S8_UINT to(float depth, uint8_t stencil = 0)
+	inline static FORMAT_D24_UNORM_S8_UINT to(float depth, uint8_t stencil = 0)
 	{
 		FORMAT_D24_UNORM_S8_UINT o;
 		o.depth = depth; // todo convert to int range

@@ -85,22 +85,20 @@ void EditorLayer::OnUpdate(double dt)
     // TODO view projection calculation might be incorrect
     // not working for certain cases, use identity for now
     // until pipeline refactoring and optimizations are complete
-    basicShader.MVP = gr::Identity<float,4,4>();
+    auto modelMatrix = gr::Identity<float,4,4>();
     static float time = 0;
     time += dt;
     // TODO
     const float amp = 1.f;
     const float freq = 1.0f;
     const float rot = std::numbers::pi + time; // pi radians to reorient model
-    basicShader.MVP.m_Data[0][0] = amp * cos(rot);
-    basicShader.MVP.m_Data[1][1] *= -1; // invert model
-    basicShader.MVP.m_Data[0][2] = amp * sin(rot);
-    basicShader.MVP.m_Data[2][0] = amp * -sin(rot);
-    basicShader.MVP.m_Data[2][2] = amp * cos(rot);
+    modelMatrix.m_Data[0][0] = amp * cos(rot);
+    modelMatrix.m_Data[1][1] *= -1; // invert model
+    modelMatrix.m_Data[0][2] = amp * sin(rot);
+    modelMatrix.m_Data[2][0] = amp * -sin(rot);
+    modelMatrix.m_Data[2][2] = amp * cos(rot);
 
-    //gr::Matrix<float,4,4> model = gr::Identity<float,4,4>();
-
-    //basicShader.MVP.m_Data[0] += anim;
+    basicShader.MVP = modelMatrix;
 
     // encapsulate commands into commandbuffer interface?
     gr::rhi::CommandBuffer cmd {
@@ -119,7 +117,7 @@ void EditorLayer::OnUpdate(double dt)
 
     // todo cmdbuffer interface?
     // bind cmds can simply assign pointers to various objects needed for rendering
-    gr::rhi::cmd::DrawIndexed(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
+    gr::rhi::cmd::DrawIndexedOld(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
     //std::memcpy(presentSurface->pixels, fb.colorView.data, width*height*sizeof(FORMAT_R8G8B8A8_UNORM));
 }
 

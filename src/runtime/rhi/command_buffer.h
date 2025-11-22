@@ -10,7 +10,9 @@ struct CommandBuffer
 {
     Framebuffer* framebuffer;
     RasterizerState* rasterizerState;
+    //gr::rhi::BasicShader* shaderModule;
     gr::rhi::ShaderModule* shaderModule;
+
     //Pipeline *pipeline;
 
     mat44 mvp;

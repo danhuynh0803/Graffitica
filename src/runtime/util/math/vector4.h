@@ -11,6 +11,8 @@ public:
     vec4() = default;
     ~vec4() = default;
     vec4(const vec4&) = default;
+    vec4(vec4&&) noexcept = default;
+    vec4& operator =(vec4&&) noexcept = default;
 
     /*
     vec4() {

@@ -70,7 +70,7 @@ struct BasicShader final : ShaderModule
     // for quick testing
     gr::mat44 MVP;
 
-    virtual PerVertex vert(const VertexAttributes& attribs) override
+    inline virtual PerVertex vert(const VertexAttributes& attribs) override
     {
         PerVertex v2f{};
         v2f.position = MVP * vec4f(attribs.aPos, 1.0f);
@@ -80,7 +80,7 @@ struct BasicShader final : ShaderModule
     }
 
     // TODO Rename struct for frag input since input is now interpolated
-    virtual vec4f frag(const PerVertex& input) override
+    inline virtual vec4f frag(const PerVertex& input) override
     {
         vec4f col = input.color;
         //col *= std::clamp(std::ceil(input.position.x), 0.0f, 1.0f);
