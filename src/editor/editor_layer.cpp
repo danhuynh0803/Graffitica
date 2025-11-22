@@ -98,6 +98,8 @@ void EditorLayer::OnUpdate(double dt)
     modelMatrix.m_Data[2][0] = amp * -sin(rot);
     modelMatrix.m_Data[2][2] = amp * cos(rot);
 
+    gr::translate(modelMatrix, vec3f(0.5*sin(time), 0.5*cos(time), 0.0f));
+
     basicShader.MVP = modelMatrix;
 
     // encapsulate commands into commandbuffer interface?

@@ -39,6 +39,7 @@ public:
     //    return negated;
     //}
 
+    inline Matrix operator *(const Matrix& rhs);
     inline vec4f operator *(const vec4f& rhs);
     //inline mat4 operator *(float);
 
@@ -65,23 +66,18 @@ public:
         //T m_Data[ROW*COL];
     };
 
+    T* operator[](size_t row) {
+        return m_Data[row];
+    }
+
+    const T* operator[](size_t row) const {
+        return m_Data[row];
+    }
+
     T m_Data[ROW][COL];
 };
 
-// 4x4 specialization
-template<typename T>
-struct Matrix<T, 4, 4>
-{
-    Matrix()
-    {
-        memset(m_Data, 0, sizeof(m_Data));
-    }
-    inline Matrix<T,4,4> operator *(const Matrix<T,4,4>& rhs);
-    T m_Data[4][4];
-};
-
 typedef Matrix<float, 4, 4> mat44;
-
 typedef Matrix<int, 4, 4> imat44;
 
 template <typename T, size_t ROW, size_t COL>
@@ -318,40 +314,39 @@ inline Matrix<T, ROW, COL>::operator *(const Matrix<T,ROW,COL>& rhs) {
 }
 */
 
-template<typename T>
-inline Matrix<T,4,4> Matrix<T,4,4>::operator *(const Matrix<T, 4, 4>& rhs) {
+template<>
+inline Matrix<float,4,4> Matrix<float,4,4>::operator *(const Matrix<float,4,4>& rhs) {
     
-    //Matrix<T,4,4> out{};
-    //return out;
+    Matrix<float,4,4> out{};
     auto& lhs = m_Data;
-    return {
-        /*
-         *  00 01 02 03    00 01 02 03
-         *  10 11 12 13    10 11 12 13
-         *  20 21 22 23    20 21 22 23
-         *  30 31 32 33    30 31 32 33
-         */
-        // laid out in column major notation
-        lhs[0][0] * rhs[0][0] + lhs[0][1] * rhs[1][0] + lhs[0][2] * rhs[2][0] + lhs[0][3] * rhs[3][0], // 00
-        lhs[0][0] * rhs[0][1] + lhs[0][1] * rhs[1][1] + lhs[0][2] * rhs[2][1] + lhs[0][3] * rhs[3][1], // 01
-        lhs[0][0] * rhs[0][2] + lhs[0][1] * rhs[1][2] + lhs[0][2] * rhs[2][2] + lhs[0][3] * rhs[3][2], // 02
-        lhs[0][0] * rhs[0][3] + lhs[0][1] * rhs[1][3] + lhs[0][2] * rhs[2][3] + lhs[0][3] * rhs[3][3], // 03
+    /*
+        *  00 01 02 03    00 01 02 03
+        *  10 11 12 13    10 11 12 13
+        *  20 21 22 23    20 21 22 23
+        *  30 31 32 33    30 31 32 33
+        */
+    // laid out in column major notation
+    out[0][0] = lhs[0][0] * rhs[0][0] + lhs[0][1] * rhs[1][0] + lhs[0][2] * rhs[2][0] + lhs[0][3] * rhs[3][0]; // 00
+    out[0][1] = lhs[0][0] * rhs[0][1] + lhs[0][1] * rhs[1][1] + lhs[0][2] * rhs[2][1] + lhs[0][3] * rhs[3][1]; // 01
+    out[0][2] = lhs[0][0] * rhs[0][2] + lhs[0][1] * rhs[1][2] + lhs[0][2] * rhs[2][2] + lhs[0][3] * rhs[3][2]; // 02
+    out[0][3] = lhs[0][0] * rhs[0][3] + lhs[0][1] * rhs[1][3] + lhs[0][2] * rhs[2][3] + lhs[0][3] * rhs[3][3]; // 03
 
-        lhs[1][0] * rhs[0][0] + lhs[1][1] * rhs[1][0] + lhs[1][2] * rhs[2][0] + lhs[1][3] * rhs[3][0], // 10
-        lhs[1][0] * rhs[0][1] + lhs[1][1] * rhs[1][1] + lhs[1][2] * rhs[2][1] + lhs[1][3] * rhs[3][1], // 11
-        lhs[1][0] * rhs[0][2] + lhs[1][1] * rhs[1][2] + lhs[1][2] * rhs[2][2] + lhs[1][3] * rhs[3][2], // 12
-        lhs[1][0] * rhs[0][3] + lhs[1][1] * rhs[1][3] + lhs[1][2] * rhs[2][3] + lhs[1][3] * rhs[3][3], // 13
+    out[1][0] = lhs[1][0] * rhs[0][0] + lhs[1][1] * rhs[1][0] + lhs[1][2] * rhs[2][0] + lhs[1][3] * rhs[3][0]; // 10
+    out[1][1] = lhs[1][0] * rhs[0][1] + lhs[1][1] * rhs[1][1] + lhs[1][2] * rhs[2][1] + lhs[1][3] * rhs[3][1]; // 11
+    out[1][2] = lhs[1][0] * rhs[0][2] + lhs[1][1] * rhs[1][2] + lhs[1][2] * rhs[2][2] + lhs[1][3] * rhs[3][2]; // 12
+    out[1][3] = lhs[1][0] * rhs[0][3] + lhs[1][1] * rhs[1][3] + lhs[1][2] * rhs[2][3] + lhs[1][3] * rhs[3][3]; // 13
 
-        lhs[2][0] * rhs[0][0] + lhs[2][1] * rhs[1][0] + lhs[2][2] * rhs[2][0] + lhs[2][3] * rhs[3][0], // 20
-        lhs[2][0] * rhs[0][1] + lhs[2][1] * rhs[1][1] + lhs[2][2] * rhs[2][1] + lhs[2][3] * rhs[3][1], // 21
-        lhs[2][0] * rhs[0][2] + lhs[2][1] * rhs[1][2] + lhs[2][2] * rhs[2][2] + lhs[2][3] * rhs[3][2], // 22
-        lhs[2][0] * rhs[0][3] + lhs[2][1] * rhs[1][3] + lhs[2][2] * rhs[2][3] + lhs[2][3] * rhs[3][3], // 23
+    out[2][0] = lhs[2][0] * rhs[0][0] + lhs[2][1] * rhs[1][0] + lhs[2][2] * rhs[2][0] + lhs[2][3] * rhs[3][0]; // 20
+    out[2][1] = lhs[2][0] * rhs[0][1] + lhs[2][1] * rhs[1][1] + lhs[2][2] * rhs[2][1] + lhs[2][3] * rhs[3][1]; // 21
+    out[2][2] = lhs[2][0] * rhs[0][2] + lhs[2][1] * rhs[1][2] + lhs[2][2] * rhs[2][2] + lhs[2][3] * rhs[3][2]; // 22
+    out[2][3] = lhs[2][0] * rhs[0][3] + lhs[2][1] * rhs[1][3] + lhs[2][2] * rhs[2][3] + lhs[2][3] * rhs[3][3]; // 23
 
-        lhs[3][0] * rhs[0][0] + lhs[3][1] * rhs[1][0] + lhs[3][2] * rhs[2][0] + lhs[3][3] * rhs[3][0], // 30
-        lhs[3][0] * rhs[0][1] + lhs[3][1] * rhs[1][1] + lhs[3][2] * rhs[2][1] + lhs[3][3] * rhs[3][1], // 31
-        lhs[3][0] * rhs[0][2] + lhs[3][1] * rhs[1][2] + lhs[3][2] * rhs[2][2] + lhs[3][3] * rhs[3][2], // 32
-        lhs[3][0] * rhs[0][3] + lhs[3][1] * rhs[1][3] + lhs[3][2] * rhs[2][3] + lhs[3][3] * rhs[3][3], // 33
-    };
+    out[3][0] = lhs[3][0] * rhs[0][0] + lhs[3][1] * rhs[1][0] + lhs[3][2] * rhs[2][0] + lhs[3][3] * rhs[3][0]; // 30
+    out[3][1] = lhs[3][0] * rhs[0][1] + lhs[3][1] * rhs[1][1] + lhs[3][2] * rhs[2][1] + lhs[3][3] * rhs[3][1]; // 31
+    out[3][2] = lhs[3][0] * rhs[0][2] + lhs[3][1] * rhs[1][2] + lhs[3][2] * rhs[2][2] + lhs[3][3] * rhs[3][2]; // 32
+    out[3][3] = lhs[3][0] * rhs[0][3] + lhs[3][1] * rhs[1][3] + lhs[3][2] * rhs[2][3] + lhs[3][3] * rhs[3][3]; // 33
+
+    return out;
 }
 
 

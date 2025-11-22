@@ -429,30 +429,29 @@ void DrawIndexedOld(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, 
         float minY = std::clamp(std::min(a.y, std::min(b.y, c.y)), 0.0f, height-1);
         float maxY = std::clamp(std::max(a.y, std::max(b.y, c.y)), 0.0f, height-1);
 
-        vec3f P(minX, minY, 1.0f);
-        vec3f v2 = P - a;
-        float d20 = dot(v2, v0);
-        float d21 = dot(v2, v1);
-        //float v = (d11 * d20 - d01 * d21) * invDenom;
-        //float w = (d00 * d21 - d01 * d20) * invDenom;
-        //float u = 1.0f - v - w;
+        //vec3f P(minX, minY, 1.0f);
+        //vec3f v2 = P - a;
+        //float d20 = dot(v2, v0);
+        //float d21 = dot(v2, v1);
+        ////float v = (d11 * d20 - d01 * d21) * invDenom;
+        ////float w = (d00 * d21 - d01 * d20) * invDenom;
+        ////float u = 1.0f - v - w;
 
-        float w0Row = (d11 * d20 - d01 * d21) * invDenom;
-        float w1Row = (d00 * d21 - d01 * d20) * invDenom;
-        float w2Row = 1.0f - w0Row - w1Row;
+        //float w0Row = (d11 * d20 - d01 * d21) * invDenom;
+        //float w1Row = (d00 * d21 - d01 * d20) * invDenom;
+        //float w2Row = 1.0f - w0Row - w1Row;
 
 #pragma omp parallel for
         for (int y = minY; y <= static_cast<int>(maxY); ++y)
         {
-            float v = w0Row;
-            float w = w1Row;
-            float u = w2Row;
+            //float v = w0Row;
+            //float w = w1Row;
+            //float u = w2Row;
 
             for (int x = minX; x <= static_cast<int>(maxX); ++x)
             {
                 // TODO profile perf between the two
                 // TODO replace barycentric with Cramer's rule ver
-                /*
                 vec3f P(x, y, 0);
 
                 vec3f v2 = P - a;
@@ -461,8 +460,6 @@ void DrawIndexedOld(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, 
                 float v = (d11 * d20 - d01 * d21) * invDenom;
                 float w = (d00 * d21 - d01 * d20) * invDenom;
                 float u = 1.0f - v - w;
-                */
-
 
                 // skip points outside of triangle
                 if (u < 0 || v < 0 || w < 0) {
@@ -512,13 +509,13 @@ void DrawIndexedOld(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, 
                 //colorView.at(x, y) = FORMAT_R8G8B8A8_UNORM::to(fragColor);
                 colorView.Store(x,y,fragColor);
 
-                u += b.y - c.y;
-                v += c.y - a.y;
-                w += a.y - b.y;
+                //u += b.y - c.y;
+                //v += c.y - a.y;
+                //w += a.y - b.y;
             }
-            w0Row += c.x - b.x;
-            w1Row += a.x - c.x;
-            w2Row += b.x - a.x;
+            //w0Row += c.x - b.x;
+            //w1Row += a.x - c.x;
+            //w2Row += b.x - a.x;
         }
     }
 
