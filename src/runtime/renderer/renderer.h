@@ -43,11 +43,11 @@ void Clear(const ImageView<FORMAT>& view, float clearDepth)
 
 //void Draw(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex);
 
-void DrawIndexedOld(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset);
+void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset);
 
-void DrawIndexed(const CommandBuffer& cmd,
-	             const Buffer& vb,
-	             U32 indexCount, U32 firstIndex, int vertexOffset);
+void DrawIndexedTiled(const CommandBuffer& cmd,
+	                  const Buffer& vb,
+	                  U32 indexCount, U32 firstIndex, int vertexOffset);
 
 
 } // cmd

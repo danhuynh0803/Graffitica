@@ -349,6 +349,21 @@ inline Matrix<float,4,4> Matrix<float,4,4>::operator *(const Matrix<float,4,4>& 
     return out;
 }
 
+template<typename T, size_t ROW, size_t COL>
+inline vec4f Matrix<T, ROW, COL>::operator*(const vec4f& rhs)
+{
+    // TODO Refactor for N-size vectors
+    // For now, keep 4x4 calculation here as matrix multiplication will take this path
+    // due to the hardcoded use of vec4f
+    auto& lhs = m_Data;
+    return {
+        lhs[0][0] * rhs.x + lhs[0][1] * rhs.y + lhs[0][2] * rhs.z + lhs[0][3] * rhs.w,
+        lhs[1][0] * rhs.x + lhs[1][1] * rhs.y + lhs[1][2] * rhs.z + lhs[1][3] * rhs.w,
+        lhs[2][0] * rhs.x + lhs[2][1] * rhs.y + lhs[2][2] * rhs.z + lhs[2][3] * rhs.w,
+        lhs[3][0] * rhs.x + lhs[3][1] * rhs.y + lhs[3][2] * rhs.z + lhs[3][3] * rhs.w,
+    };
+}
+
 
 template<typename T, size_t ROW, size_t COL>
 inline vec4f operator *(const Matrix<T, ROW, COL>& lhs, const vec4f &rhs)
@@ -357,27 +372,8 @@ inline vec4f operator *(const Matrix<T, ROW, COL>& lhs, const vec4f &rhs)
     return {};
 }
 
-template<typename T, size_t ROW, size_t COL>
-inline vec4f Matrix<T, ROW, COL>::operator *(const vec4f& rhs)
-{
-    // TODO
-    // Placeholder just to test 4x4
-    auto& lhs = m_Data;
-    return {
-
-        lhs[0][0] * rhs.x + lhs[0][1] * rhs.y + lhs[0][2] * rhs.z + lhs[0][3] * rhs.w,
-        lhs[1][0] * rhs.x + lhs[1][1] * rhs.y + lhs[1][2] * rhs.z + lhs[1][3] * rhs.w,
-        lhs[2][0] * rhs.x + lhs[2][1] * rhs.y + lhs[2][2] * rhs.z + lhs[2][3] * rhs.w,
-        lhs[3][0] * rhs.x + lhs[3][1] * rhs.y + lhs[3][2] * rhs.z + lhs[3][3] * rhs.w,
-        //m_Data[0] * rhs.x + m_Data[1] * rhs.y + m_Data[2] * rhs.z + m_Data[3] * rhs.w,
-        //m_Data[4] * rhs.x + m_Data[5] * rhs.y + m_Data[6] * rhs.z + m_Data[7] * rhs.w,
-        //m_Data[8] * rhs.x + m_Data[9] * rhs.y + m_Data[10] * rhs.z + m_Data[11] * rhs.w,
-        //m_Data[12] * rhs.x + m_Data[13] * rhs.y + m_Data[14] * rhs.z + m_Data[15] * rhs.w,
-    };
-}
-
-template<typename T> // 4x4 specialization
-inline vec4f operator *(const Matrix<T, 4, 4>& lhs_matrix, const vec4f& rhs)
+template<> // 4x4 specialization
+inline vec4f operator *(const mat44& lhs_matrix, const vec4f& rhs)
 {
     auto& lhs = lhs_matrix.m_Data;
     return {
@@ -394,42 +390,6 @@ inline vec4f operator *(const Matrix<T, 3, 3>& lhs, const vec4f& rhs)
     // TODO
 }
 
-////TODO make workable with const mat4
-///*
-//inline vec4f mat4::operator*(const vec4f& rhs) {
-//    vec4f product;
-//    int row = 4, col = 4;
-//    for (int i = 0; i < row; i++) {
-//        for (int j = 0; j < col; j++) {
-//            product[i] += entry[i][j] * rhs[j];
-//        }
-//    }
-//    return product;
-//}
-//*/
-//
-//inline mat4 mat4::operator*(float rhs) {
-//    mat4 product;
-//    int row = 4, col = 4;
-//    for (int i = 0; i < row; i++) {
-//        for (int j = 0; j < col; j++) {
-//            product[i][j] = entry[i][j] * rhs;
-//        }
-//    }
-//    return product;
-//}
-//
-//inline mat4 operator*(float t, const mat4 &m) {
-//    int row = 4;
-//    int col = 4;
-//    mat4 product;
-//    for (int i = 0; i < row; i++) {
-//        for (int j = 0; j < col; j++) {
-//            product[i][j] = m[i][j] * t;
-//        }
-//    }
-//    return product;
-//}
 //
 //inline bool mat4::operator ==(const mat4 &rhs) const
 //{
@@ -468,7 +428,6 @@ inline bool operator ==(const mat4 &m1, const mat4 &m2)
     return true; 
 }
 */
-
 
 //inline float mat4::det(mat4 m) 
 //{

@@ -5,16 +5,20 @@
 #include <cmath>
 #include <vector>
 #include <cfloat>
+#include <omp.h>
+
 #include "util/math/vector.h"
 #include "util/math/matrix.h"
 #include "util/math/matrix.h"
-#include "mesh.h"
+#include "util/timer.h"
+
 #include "rhi/rasterizer_state.h"
 #include "rhi/resource.h"
-#include "renderer/renderer.h"
 #include "rhi/interface/framebuffer.h"
-#include "util/timer.h"
-#include <omp.h>
+
+#include "renderer.h"
+#include "tile.h"
+#include "mesh.h"
 
 namespace
 {
@@ -320,7 +324,7 @@ void renderer::cmd::Draw(const ImageView& view, const Buffer& vb, U32 vertexCoun
 namespace gr::rhi::cmd
 {
 
-void DrawIndexedOld(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
+void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
 {
     SCOPED_TIMER;
 
@@ -528,8 +532,9 @@ void DrawIndexedOld(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, 
     }
 }
 
-void DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
+void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
 {
+    // Draw that includes binning step
     SCOPED_TIMER;
 
     const auto& fb = cmd.framebuffer;
@@ -542,6 +547,8 @@ void DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32
     const auto& positions = vb.m_Positions;
     const auto& colors = vb.m_VertexColors;
     const auto& verts = vb.m_MeshData->GetVertices();
+    const U32 width = fb->colorView.width;
+    const U32 height = fb->colorView.height;
 
     // Input assembling
     std::vector<Triangle> triangeList;
@@ -562,142 +569,180 @@ void DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32
             attrib.aTexCoord = vec2f(0.0f, 0.0f);
 
             // VS runs
-            perVertexOutputs[i] = shaderModule->vert(inputAttributes[i]);
-            primitive.position[i] = perVertexOutputs[i].position;
-            primitive.color[i] = perVertexOutputs[i].color;
+            perVertexOutputs[i]   = shaderModule->vert(inputAttributes[i]);
+
+            auto NDCToViewport = [&](const vec4f& p)
+                {
+                    vec4f coords(
+                        (int)(0.5f * (width * p.x + width)),
+                        (int)(0.5f * (height * p.y + height)),
+                        p.z, // need to remap to plane near/far later
+                        1.0
+                    );
+                    return coords;
+                };
+
+            primitive.position[i] = NDCToViewport(perVertexOutputs[i].position);
+            primitive.color[i]    = perVertexOutputs[i].color;
             primitive.texcoord[i] = perVertexOutputs[i].texcoord;
         }
 
         triangeList.emplace_back(primitive);
     }
 
-    auto NDCToViewport = [&](const vec4f& p)
-        {
-            const U32 width = fb->colorView.width;
-            const U32 height = fb->colorView.height;
-
-            vec3f coords(
-                (int)(0.5f * (width * p.x + width)),
-                (int)(0.5f * (height * p.y + height)),
-                p.z
-                // need to remap to plane near/far but this should be handled by fixed function part anyway
-            );
-            return coords;
-        };
+    constexpr int kTileSizeX = 16;
+    constexpr int kTileSizeY = 16;
+    const int kNumTilesX = (width + kTileSizeX-1) / kTileSizeX;
+    const int kNumTilesY = (height + kTileSizeY-1) / kTileSizeY;
+    std::vector< Tile<kTileSizeX, kTileSizeY> > tileList( kNumTilesX * kNumTilesY );
 
     for (int i = 0; i < triangeList.size(); ++i)
     {
         const auto& primitive = triangeList[i];
         // viewport transform
-        const auto& a = NDCToViewport(primitive.position[0]);
-        const auto& b = NDCToViewport(primitive.position[1]);
-        const auto& c = NDCToViewport(primitive.position[2]);
-
-        vec3f v0 = b - a;
-        vec3f v1 = c - a;
-        float d00 = dot(v0, v0);
-        float d01 = dot(v0, v1);
-        float d11 = dot(v1, v1);
-        float invDenom = 1.0f / (d00 * d11 - d01 * d01);
-
-        // Cull based on right-handed orientation
-        //   C
-        //  / \
-        // A-->B
-        // CCW if det(AB, CA) > 0
-
-        const bool isCCW = invDenom > 0.f;
-        const bool isFront = (state->frontCounterClockwise && isCCW)
-            || (!state->frontCounterClockwise && !isCCW);
-
-        switch (state->cullMode)
-        {
-        case CULL_MODE::CULL_MODE_BACK:
-            if (!isFront) return;
-            break;
-        case CULL_MODE::CULL_MODE_FRONT:
-            if (isFront) return;
-            break;
-        default:
-        case CULL_MODE::CULL_MODE_NONE:
-            // No culling enabled
-            break;
-        }
-
-        // TODO profile with some timer utilities
-        // SCOPED_TIMER()
-        const float width = colorView.width;
-        const float height = colorView.height;
+        const auto& a = primitive.position[0].xyz();
+        const auto& b = primitive.position[1].xyz();
+        const auto& c = primitive.position[2].xyz();
 
         // clipping
-        float minX = std::clamp(std::min(a.x, std::min(b.x, c.x)), 0.0f, width - 1);
-        float maxX = std::clamp(std::max(a.x, std::max(b.x, c.x)), 0.0f, width - 1);
-        float minY = std::clamp(std::min(a.y, std::min(b.y, c.y)), 0.0f, height - 1);
-        float maxY = std::clamp(std::max(a.y, std::max(b.y, c.y)), 0.0f, height - 1);
+        int minX = std::min(a.x, std::min(b.x, c.x));
+        int maxX = std::max(a.x, std::max(b.x, c.x));
+        int minY = std::min(a.y, std::min(b.y, c.y));
+        int maxY = std::max(a.y, std::max(b.y, c.y));
 
-    #pragma omp parallel for
-        for (int y = minY; y <= static_cast<int>(maxY); ++y)
+        // binning
+        int minTileX = std::max(minX / kTileSizeX, 0);
+        int maxTileX = std::min(maxX / kTileSizeX, kNumTilesX);
+
+        int minTileY = std::max(minY / kTileSizeY, 0);
+        int maxTileY = std::min(maxY / kTileSizeY, kNumTilesY);
+
+        for (int ty = minTileY; ty < maxTileY; ++ty)
         {
-            for (int x = minX; x <= static_cast<int>(maxX); ++x)
+            for (int tx = minTileX; tx < maxTileX; ++tx)
             {
-                // TODO profile perf between the two
-                // TODO replace barycentric with Cramer's rule ver
-                vec3f P(x, y, 0);
+                tileList[ty*kNumTilesX + tx].triangleList.emplace_back(i);
+            }
+        }
+    }
 
-                vec3f v2 = P - a;
-                float d20 = dot(v2, v0);
-                float d21 = dot(v2, v1);
-                float v = (d11 * d20 - d01 * d21) * invDenom;
-                float w = (d00 * d21 - d01 * d20) * invDenom;
-                float u = 1.0f - v - w;
+#pragma omp parallel for
+    // Iterate through all tiles
+    for (int ty = 0; ty < kNumTilesY; ++ty)
+    {
+        for (int tx = 0; tx < kNumTilesX; ++tx)
+        {
+            const auto& tile = tileList[ty*kNumTilesX + tx];
 
-                // skip points outside of triangle
-                if (u < 0 || v < 0 || w < 0) {
-                    continue;
-                }
+            // get fb bounds corresponding to tile
+            const U32 startX = tx * kTileSizeX;
+            const U32 startY = ty * kTileSizeY;
 
-                // TODO add depth state
-                // early depth test
-                float depth = u * a.z + v * b.z + w * c.z;
-                //const auto& depthBuffer = fb->depthView;
-                // TODO need to perform depth remapping
-                if (depth >= depthView.at(x, y).Get())
+            const U32 endX   = std::min(startX + kTileSizeX, width - 1);
+            const U32 endY   = std::min(startY + kTileSizeY, height - 1);
+
+            for (int triangleIndex : tile.triangleList) {
+
+                const auto& triangle = triangeList[triangleIndex];
+
+                const vec3f& a = triangle.position[0].xyz();
+                const vec3f& b = triangle.position[1].xyz();
+                const vec3f& c = triangle.position[2].xyz();
+
+                vec3f e0 = b - a;
+                vec3f e1 = c - a;
+                float d00 = dot(e0, e0);
+                float d01 = dot(e0, e1);
+                float d11 = dot(e1, e1);
+                float invDenom = 1.0f / (d00 * d11 - d01 * d01);
+
+                // Cull based on right-handed orientation
+                //   C
+                //  / \
+                // A-->B
+                // CCW if det(AB, CA) > 0
+
+                const bool isCCW = invDenom > 0.f;
+                const bool isFront = (state->frontCounterClockwise && isCCW)
+                    || (!state->frontCounterClockwise && !isCCW);
+
+                switch (state->cullMode)
                 {
-                    continue;
+                case CULL_MODE::CULL_MODE_BACK:
+                    if (!isFront) continue;
+                    break;
+                case CULL_MODE::CULL_MODE_FRONT:
+                    if (isFront) continue;
+                    break;
+                default:
+                case CULL_MODE::CULL_MODE_NONE:
+                    // No culling enabled
+                    break;
                 }
 
-                // FS
-                // Apply barycentric weights for all attributes
-                // TODO rename PerVertex var for fragInput
-                //std::cout << "Barycentric part\n";
-                gr::rhi::PerVertex fragInput{
-                    //.position = u * primitive.position[0]
-                    //          + v * primitive.position[1]
-                    //          + w * primitive.position[2],
+                for (U32 y = startY; y < endY; ++y)
+                for (U32 x = startX; x < endX; ++x)
+                {
+                    vec3f P(x, y, 0);
 
-                    //.color      = u * primitive.color[0]
-                    //            + v * primitive.color[1]
-                    //            + w * primitive.color[2],
+                    vec3f e2 = P - a;
+                    float d20 = dot(e2, e0);
+                    float d21 = dot(e2, e1);
 
-                    .color = vec4f(
-                                    u * primitive.color[0].x + v * primitive.color[1].x + w * primitive.color[2].x,
-                                    u * primitive.color[0].y + v * primitive.color[1].y + w * primitive.color[2].y,
-                                    u * primitive.color[0].z + v * primitive.color[1].z + w * primitive.color[2].z,
-                                    1.0)
+                    // Calculate barycentric weights for attribute interpolation
+                    float w2 = (d11 * d20 - d01 * d21) * invDenom;
+                    float w1 = (d00 * d21 - d01 * d20) * invDenom;
+                    float w0 = 1.0f - w1 - w2;
+
+                    // skip points outside of triangle
+                    if (w0 < 0 || w1 < 0 || w2 < 0) {
+                        continue;
+                    }
+
+                    // TODO add depth state
+                    // early depth test
+                    float depth = (w0 * a.z) + (w1 * b.z) + (w2 * c.z);
+                    //const auto& depthBuffer = fb->depthView;
+                    // TODO need to perform depth remapping
+                    if (depth >= depthView.at(x, y).Get())
+                    {
+                        continue;
+                    }
+
+                    // FS
+                    // Apply barycentric weights for all attributes
+                    // TODO rename PerVertex var for fragInput
+                    //std::cout << "Barycentric part\n";
+                    gr::rhi::PerVertex fragInput{
+                        //.position = u * primitive.position[0]
+                        //          + v * primitive.position[1]
+                        //          + w * primitive.position[2],
+
+                        //.color      = u * primitive.color[0]
+                        //            + v * primitive.color[1]
+                        //            + w * primitive.color[2],
+
+                        .color = vec4f(
+                                w0 * triangle.color[0].x + w1 * triangle.color[1].x + w2 * triangle.color[2].x,
+                                w0 * triangle.color[0].y + w1 * triangle.color[1].y + w2 * triangle.color[2].y,
+                                w0 * triangle.color[0].z + w1 * triangle.color[1].z + w2 * triangle.color[2].z,
+                                1.0)
 
                         //.texcoord = u * primitive.texcoord[0]
                         //          + v * primitive.texcoord[1]
                         //          + w * primitive.texcoord[2],
-                };
+                    };
 
-                vec4f fragColor = shaderModule->frag(fragInput);
+                    vec4f fragColor = shaderModule->frag(fragInput);
+                    //vec4f fragColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-                // update with new depth value
-                depthView.at(x, y).depth = depth;
+                    // update with new depth value
+                    depthView.at(x, y).depth = depth;
 
-                // TODO blending
-                //colorView.at(x, y) = FORMAT_R8G8B8A8_UNORM::to(fragColor);
-                colorView.Store(x, y, fragColor);
+                    // TODO blending
+                    //colorView.at(x, y) = FORMAT_R8G8B8A8_UNORM::to(fragColor);
+                    colorView.Store(x, y, fragColor);
+                }
             }
         }
     }
@@ -709,7 +754,6 @@ void DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32
     {
         colorView.data[i] = FORMAT_R8G8B8A8_UNORM::to(colorView.colorData[i]);
     }
-
 }
 
 }

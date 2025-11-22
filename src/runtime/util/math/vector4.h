@@ -33,6 +33,14 @@ public:
         //std::cout << "construct v4\n";
     }
 
+    vec3<T> xyz() const {
+        return vec3<T>(x, y, z);
+    }
+
+    vec3<T> xyz() {
+        return vec3<T>(x, y, z);
+    }
+
     inline void operator =(const vec4 &v2);
     inline const vec4& operator +() const { return *this; }
     inline vec4 operator -() const { return vec4(-e[0], -e[1], -e[2], -e[3]); }

@@ -109,18 +109,14 @@ void EditorLayer::OnUpdate(double dt)
         .shaderModule = &basicShader,
     };
 
-    //ImageView colorTarget(width, height, presentSurface->pixels);
-    //const auto& currFrameView = 
-    //const auto& color = std::get< ImageView<FORMAT_R8G8B8A8_UNORM> >(fb.colorAttachment);
-    //const auto& color2 = cast(fb.colorAttachment);
-    gr::rhi::cmd::Clear(fb.colorView, {.4, .5, .7, 1.0});
+    gr::rhi::cmd::Clear(fb.colorView, { .4, .5, .7, 1.0 });
     gr::rhi::cmd::Clear(fb.depthView, 1.0);
-    //ImageView depth(width, height, 
+    gr::rhi::cmd::DrawIndexedTiled(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
 
-    // todo cmdbuffer interface?
-    // bind cmds can simply assign pointers to various objects needed for rendering
-    gr::rhi::cmd::DrawIndexedOld(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
-    //std::memcpy(presentSurface->pixels, fb.colorView.data, width*height*sizeof(FORMAT_R8G8B8A8_UNORM));
+    //gr::rhi::cmd::Clear(fb.colorView, { .4, .5, .7, 1.0 });
+    //gr::rhi::cmd::Clear(fb.depthView, 1.0);
+    //gr::rhi::cmd::DrawIndexedImmediate(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
+
 }
 
 };
