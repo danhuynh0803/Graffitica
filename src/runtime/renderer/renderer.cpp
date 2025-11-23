@@ -306,7 +306,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
         }
 
         // VS runs
-        gr::rhi::PerVertex perVertexOutputs[3];
+        gr::rhi::Varyings perVertexOutputs[3];
         gr::rhi::Triangle primitive;
         for (int i = 0; i < 3; ++i)
         {
@@ -378,13 +378,11 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
                 }
 
                 // TODO add depth state
-                // early depth test
                 float depth = u * a.z + v * b.z + w * c.z;
-                //const auto& depthBuffer = fb->depthView;
-                // TODO need to perform depth remapping
+                // TODO what if no depth buffer is provided?
+                // Generate one behind the scenes?
                 if (depth >= depthView.at(x, y).Get())
                 {
-                    //std::cout << "DH depthTest\n";
                     continue;
                 }
 
@@ -393,32 +391,24 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
 
                 // FS
                 // Apply barycentric weights for all attributes
-                // TODO rename PerVertex var for fragInput
+                // TODO rename Varyings var for fragInput
                 //std::cout << "Barycentric part\n";
-                gr::rhi::PerVertex fragInput{
-
-                   .position = vec4f(
+                gr::rhi::Varyings fragInput{
+                    .position = vec4f(
                                     u * a.x + v * b.x + w * c.x,
                                     u * a.y + v * b.y + w * c.y,
                                     u * a.z + v * b.z + w * c.z,
                                     1.0f),
-                    //.position = u * primitive.position[0]
-                    //          + v * primitive.position[1]
-                    //          + w * primitive.position[2],
-
-                    //.color      = u * primitive.color[0]
-                    //            + v * primitive.color[1]
-                    //            + w * primitive.color[2],
 
                     .color      = vec4f(
                                     u*primitive.color[0].x + v*primitive.color[1].x + w*primitive.color[2].x,
                                     u*primitive.color[0].y + v*primitive.color[1].y + w*primitive.color[2].y,
                                     u*primitive.color[0].z + v*primitive.color[1].z + w*primitive.color[2].z,
-                                    1.0f)
+                                    1.0f),
 
-                    //.texcoord = u * primitive.texcoord[0]
-                    //          + v * primitive.texcoord[1]
-                    //          + w * primitive.texcoord[2],
+                    .texcoord = vec2f(
+                                u * primitive.texcoord[0].x + v * primitive.texcoord[1].x + w * primitive.texcoord[2].x,
+                                u * primitive.texcoord[0].y + v * primitive.texcoord[1].y + w * primitive.texcoord[2].y)
                 };
 
                 vec4f fragColor = shaderModule->frag(fragInput);
@@ -426,7 +416,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
                 // TODO blending
                 //colorView.at(x, y) = FORMAT_R8G8B8A8_UNORM::to(fragColor);
                 colorView.Store(x,y,fragColor);
-
+                
                 //u += b.y - c.y;
                 //v += c.y - a.y;
                 //w += a.y - b.y;
@@ -473,7 +463,7 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
 
         // assemble attributes for processing
         VertexAttributes inputAttributes[3];
-        gr::rhi::PerVertex perVertexOutputs[3];
+        gr::rhi::Varyings perVertexOutputs[3];
         gr::rhi::Triangle primitive;
         for (int i = 0; i < 3; ++i)
         {
@@ -600,9 +590,9 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
 
                     // FS
                     // Apply barycentric weights for all attributes
-                    // TODO rename PerVertex var for fragInput
+                    // TODO rename Varyings var for fragInput
                     //std::cout << "Barycentric part\n";
-                    gr::rhi::PerVertex fragInput{
+                    gr::rhi::Varyings fragInput{
                         //.position = u * primitive.position[0]
                         //          + v * primitive.position[1]
                         //          + w * primitive.position[2],

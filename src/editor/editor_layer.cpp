@@ -38,7 +38,10 @@ namespace
 
 
     Buffer model{
-        .m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
+        //.m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
+        //.m_MeshData = std::make_shared<Mesh>("../assets/models/octahedron.obj"),
+        .m_MeshData = std::make_shared<Mesh>("../assets/models/ico.obj"),
+
         //.m_MeshData = std::make_shared<Mesh>(simpleMesh)
     };
 
@@ -120,7 +123,7 @@ void EditorLayer::OnUpdate(double dt)
         vec3f(
             0,//0.5*sin(time),
             0,//0.5*cos(time),
-            -midPoint + midPoint*sin(0.75*time)
+            -1 //-midPoint + midPoint*sin(0.75*time)
         )
     );
     //gr::translate(modelMatrix, vec3f(0.0, 0.0, -1.f));

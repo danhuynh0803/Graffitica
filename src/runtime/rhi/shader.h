@@ -7,7 +7,7 @@
 namespace gr::rhi
 {
 
-struct PerVertex
+struct Varyings
 {
     vec4f position;
     vec4f color;
@@ -32,13 +32,13 @@ struct ShaderModule
     // for quick testing
     gr::mat44 MVP;
 
-    //PerVertex vert(const VertexAttributes& attribs);
+    //Varyings vert(const VertexAttributes& attribs);
 
     // TODO Rename struct for frag input since input is now interpolated
-    //vec4f frag(const PerVertex& input);
+    //vec4f frag(const Varyings& input);
 
-    virtual PerVertex vert(const VertexAttributes& attribs) = 0;
-    virtual vec4f frag(const PerVertex& input) = 0;
+    virtual Varyings vert(const VertexAttributes& attribs) = 0;
+    virtual vec4f frag(const Varyings& input) = 0;
 };
 
 //struct TestShader {};
@@ -48,16 +48,16 @@ struct ShaderModule
 //{
 //    gr::mat44 MVP;
 //
-//    PerVertex vert(const VertexAttributes& attribs)
+//    Varyings vert(const VertexAttributes& attribs)
 //    {
-//        PerVertex v2f{};
+//        Varyings v2f{};
 //        v2f.position = MVP * vec4f(attribs.aPos, 1.0f);
 //        v2f.color = attribs.aColor;
 //        v2f.texcoord = attribs.aTexCoord;
 //        return v2f;
 //    }
 //
-//    vec4f frag(const PerVertex& input)
+//    vec4f frag(const Varyings& input)
 //    {
 //        //vec4f col = input.color;
 //        //col *= std::clamp(std::ceil(input.position.x), 0.0f, 1.0f);
@@ -82,9 +82,9 @@ struct TestShader final : ShaderModule
         return (2.0f * zNear * zFar) / (zFar + zNear - ndcDepth*(zFar-zNear));
     }
 
-    inline virtual PerVertex vert(const VertexAttributes& attribs) override
+    inline virtual Varyings vert(const VertexAttributes& attribs) override
     {
-        PerVertex v2f{};
+        Varyings v2f{};
         //v2f.position = MVP * vec4f(attribs.aPos, 1.0f);
 
         auto world = M * vec4f(attribs.aPos, 1.0f);
@@ -97,7 +97,7 @@ struct TestShader final : ShaderModule
         return v2f;
     }
 
-    vec4f TestDepthInterpolation(const PerVertex& input)
+    vec4f TestDepthInterpolation(const Varyings& input)
     {
         float z = LinearizeDepth(input.position.z, near, far);
         z /= far;
@@ -106,7 +106,7 @@ struct TestShader final : ShaderModule
     }
 
     // TODO Rename struct for frag input since input is now interpolated
-    inline virtual vec4f frag(const PerVertex& input) override
+    inline virtual vec4f frag(const Varyings& input) override
     {
         // Segment each test to separate functions in order to add to testing framework later
         // Need to dump fb output and compare against reference image
