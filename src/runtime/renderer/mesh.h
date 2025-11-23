@@ -18,6 +18,7 @@ class Mesh
 {
 public :
     Mesh(const char* meshFile);
+    Mesh(const SimpleMesh& mesh);
     ~Mesh() = default;
 
     uint32_t NumVertices() const { return m_Verts.size(); }

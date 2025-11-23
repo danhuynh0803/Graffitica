@@ -23,8 +23,23 @@ namespace
     rhi::CPUGraphicsContext* gfxContext = nullptr;
     rhi::CPUSwapchain* swapchain = nullptr;
 
+    SimpleMesh simpleMesh
+    {
+        .m_Positions = {
+            {-0.5,  0.5, 0},
+            {-0.5, -0.5, 0},
+            { 0.5, -0.5, 0},
+
+            { 0.5, -0.5, 0},
+            { 0.5,  0.5, 0},
+            {-0.5,  0.5, 0},
+        },
+    };
+
+
     Buffer model{
-        .m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
+        //.m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
+        .m_MeshData = std::make_shared<Mesh>(simpleMesh)
     };
 
     RasterizerState drawState;
@@ -33,7 +48,7 @@ namespace
 
     uint32_t width = 1600;
     uint32_t height = 900;
-    // TODO swapchain interface?
+
     rhi::Image<FORMAT_R8G8B8A8_UNORM> colorImage(width, height);
     rhi::ImageView<FORMAT_R8G8B8A8_UNORM> colorView(colorImage);
 
@@ -54,6 +69,7 @@ EditorLayer::EditorLayer(const std::string& name)
     //vbo.m_VertexCount = vbo.m_Positions.size();
     drawState = {
         .fillMode = FILL_MODE::FILL_MODE_SOLID,
+        //.cullMode = CULL_MODE::CULL_MODE_BACK,
         .cullMode = CULL_MODE::CULL_MODE_NONE,
         .frontCounterClockwise = true,
     };
@@ -91,14 +107,14 @@ void EditorLayer::OnUpdate(double dt)
     // TODO
     const float amp = 1.f;
     const float freq = 1.0f;
-    const float rot = std::numbers::pi + time; // pi radians to reorient model
+    const float rot = 0; //time;
     modelMatrix.m_Data[0][0] = amp * cos(rot);
     modelMatrix.m_Data[1][1] *= -1; // invert model
     modelMatrix.m_Data[0][2] = amp * sin(rot);
     modelMatrix.m_Data[2][0] = amp * -sin(rot);
     modelMatrix.m_Data[2][2] = amp * cos(rot);
 
-    gr::translate(modelMatrix, vec3f(0.5*sin(time), 0.5*cos(time), 0.0f));
+    //gr::translate(modelMatrix, vec3f(0.5*sin(time), 0.5*cos(time), 0.0f));
 
     basicShader.MVP = modelMatrix;
 
@@ -113,6 +129,7 @@ void EditorLayer::OnUpdate(double dt)
     gr::rhi::cmd::Clear(fb.depthView, 1.0);
     gr::rhi::cmd::DrawIndexedTiled(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
 
+    // TODO switch between tiled and immediate depending on vertex counts
     //gr::rhi::cmd::Clear(fb.colorView, { .4, .5, .7, 1.0 });
     //gr::rhi::cmd::Clear(fb.depthView, 1.0);
     //gr::rhi::cmd::DrawIndexedImmediate(cmd, model, model.m_MeshData->NumFaces(), 0, 0);

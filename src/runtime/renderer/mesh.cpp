@@ -145,6 +145,16 @@ Mesh::Mesh(const char* file_name) : m_Verts(), m_Faces()
     //std::cout << std::endl;
 }
 
+Mesh::Mesh(const SimpleMesh& mesh)
+    : m_Verts(mesh.m_Positions)
+{
+    for (int i = 0; i < m_Verts.size(); i += 3)
+    {
+        std::vector<int> indices = {i, i+1, i+2};
+        m_Faces.emplace_back(indices);
+    }
+}
+
 const std::vector<int>& Mesh::face(int idx) const
 {
     return m_Faces[idx];
