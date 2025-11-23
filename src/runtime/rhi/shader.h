@@ -78,17 +78,20 @@ struct TestShader final : ShaderModule
 
     float LinearizeDepth(float d, float zNear, float zFar)
     {
-        return zNear * zFar / (zFar + d * (zNear - zFar));
+        float ndcDepth = d * 2.0f - 1.0f;
+        return (2.0f * zNear * zFar) / (zFar + zNear - ndcDepth*(zFar-zNear));
     }
 
     inline virtual PerVertex vert(const VertexAttributes& attribs) override
     {
         PerVertex v2f{};
-        v2f.position = MVP * vec4f(attribs.aPos, 1.0f);
-        //auto world = M * vec4f(attribs.aPos, 1.0f);
-        //auto view = V * world;
-        //auto clip = P * view;
-        //v2f.position = clip;
+        //v2f.position = MVP * vec4f(attribs.aPos, 1.0f);
+
+        auto world = M * vec4f(attribs.aPos, 1.0f);
+        auto view = V * world;
+        auto clip = P * view;
+        v2f.position = clip;
+
         v2f.color = attribs.aColor;
         v2f.texcoord = attribs.aTexCoord;
         return v2f;
@@ -97,6 +100,7 @@ struct TestShader final : ShaderModule
     vec4f TestDepthInterpolation(const PerVertex& input)
     {
         float z = LinearizeDepth(input.position.z, near, far);
+        z /= far;
         vec4f col = vec4f(z, z, z, 1.0);
         return col;
     }

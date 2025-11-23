@@ -48,8 +48,6 @@ namespace
     
     constexpr uint32_t width = 1600;
     constexpr uint32_t height = 900;
-    constexpr float kNear = 0.1f;
-    constexpr float kFar = 10.0f;
 
     rhi::Image<FORMAT_R8G8B8A8_UNORM> colorImage(width, height);
     rhi::ImageView<FORMAT_R8G8B8A8_UNORM> colorView(colorImage);
@@ -109,14 +107,23 @@ void EditorLayer::OnUpdate(double dt)
     // TODO
     const float amp = 1.f;
     const float freq = 1.0f;
-    const float rot = 0; //M_PI;//time;
+    const float rot = time;
     modelMatrix.m_Data[0][0] = amp * cos(rot);
     modelMatrix.m_Data[0][2] = amp * sin(rot);
     modelMatrix.m_Data[2][0] = amp * -sin(rot);
     modelMatrix.m_Data[2][2] = amp * cos(rot);
 
-    //gr::translate(modelMatrix, vec3f(0.5*sin(time), 0.5*cos(time), 0.0f));
-    gr::translate(modelMatrix, vec3f(0.0, 0.0, -.1f));
+    constexpr float kNear = 0.1f;
+    constexpr float kFar = 5.0f;
+    constexpr float midPoint = kFar * 0.5f;
+    gr::translate(modelMatrix, 
+        vec3f(
+            0,//0.5*sin(time),
+            0,//0.5*cos(time),
+            -midPoint + midPoint*sin(0.75*time)
+        )
+    );
+    //gr::translate(modelMatrix, vec3f(0.0, 0.0, -1.f));
 
     auto viewMatrix = camera.GetView();
     auto projMatrix = camera.GetPerspectiveProjection(70.0f, static_cast<float>(width) / static_cast<float>(height), kNear, kFar);
