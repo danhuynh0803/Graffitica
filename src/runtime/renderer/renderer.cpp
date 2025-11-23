@@ -199,104 +199,12 @@ float CalculateTriangleArea(const vec3f& a, const vec3f& b, const vec3f& c)
     return .5 * ( (b.y - a.y) * (b.x + a.x) + (c.y - b.y) * (c.x + b.x) + (a.y - c.y) * (a.x + c.x) );
 }
 
-float Determinant2D(const vec3f& V, const vec3f& P)
+float Determinant2D(const vec4f& V, const vec4f& P)
 {
     // ad - bc
     return (V.x * P.y) - (V.y * P.x);
 }
 
-//template<typename FORMAT>
-void RasterizeAABB(const gr::rhi::Framebuffer& fb, const RasterizerState& state, const vec4f& color,
-                   const vec3f& a, const vec3f& b, const vec3f& c)
-{
-    // Cull based on right-handed orientation
-    //   C
-    //  / \
-    // A-->B
-    // CCW if det(AB, CA) > 0
-
-    const float totalArea = CalculateTriangleArea(a, b, c);
-    const bool isCCW = totalArea > 0.f;
-    const bool isFront = (state.frontCounterClockwise && isCCW)
-                      || (!state.frontCounterClockwise && !isCCW);
-
-    switch (state.cullMode)
-    {
-    case CULL_MODE::CULL_MODE_BACK:
-        if (!isFront) return;
-        break;
-    case CULL_MODE::CULL_MODE_FRONT:
-        if (isFront) return;
-        break;
-    default:
-    case CULL_MODE::CULL_MODE_NONE:
-        // No culling enabled
-        break;
-    }
-
-    // TODO profile with some timer utilities
-    // SCOPED_TIMER()
-
-    float minX = std::min(a.x, std::min(b.x, c.x));
-    float maxX = std::max(a.x, std::max(b.x, c.x));
-    float minY = std::min(a.y, std::min(b.y, c.y));
-    float maxY = std::max(a.y, std::max(b.y, c.y));
-
-    for (int x = minX; x <= maxX; ++x)
-    {
-        for (int y = minY; y <= maxY; ++y)
-        {
-            // TODO profile perf between the two
-            // TODO replace barycentric with Cramer's rule ver
-            vec3f P(x, y, 0);
-            float u = CalculateTriangleArea(P, b, c) / totalArea;
-            float v = CalculateTriangleArea(P, c, a) / totalArea;
-            float w = CalculateTriangleArea(P, a, b) / totalArea;
-            // Causing precision issues
-            //float w = 1.0 - u - v;
-
-            // skip points outside of triangle
-            if (u < 0 || v < 0 || w < 0) {
-                continue;
-            }
-
-            vec3f p(x, y, 0);
-            {
-            //float detAP = Determinant2D(b - a, p - a);
-            //float detBP = Determinant2D(c - b, p - b);
-            //float detCP = Determinant2D(a - c, p - c);
-            //float u = CalculateTriangleArea(P, b, c) / totalArea;
-            //float v = CalculateTriangleArea(P, c, a) / totalArea;
-            //float w = CalculateTriangleArea(P, a, b) / totalArea;
-            // Causing precision issues
-            //float w = 1.0 - u - v;
-
-            // skip points outside of triangle
-            //if (detAP < 0 || detBP < 0 || detCP < 0)
-            //    continue;
-
-            // Get col of P based on barycentric weights
-            //const vec4f& colA = colors[i];
-            //const vec4f& colB = colors[i + 1];
-            //const vec4f& colC = colors[i + 2];
-            //vec4f col = u * colA + v * colB + w * colC;
-            //const vec4f col (1,0,0,1);
-            }
-
-            // TODO add depth state
-            float depth = u*a.z + v*b.z + w*c.z;
-            const auto& depthBuffer = fb.depthView;
-            // TODO need to perform depth remapping
-            if (depth >= depthBuffer.at(x, y).Get())
-            {
-                continue;
-            }
-            // update with new depth value
-            depthBuffer.at(x, y) = FORMAT_D32_SFLOAT::to(depth);
-            fb.colorView.at(x, y) = FORMAT_R8G8B8A8_UNORM::to(color);
-        }
-    }
-}
 
 } // local static funcs
 
@@ -324,10 +232,36 @@ void renderer::cmd::Draw(const ImageView& view, const Buffer& vb, U32 vertexCoun
 namespace gr::rhi::cmd
 {
 
-float det2D(const vec4f& e0, const vec4f& e1)
+bool IsCulled(const vec4f& v0, const vec4f& v1, const vec4f& v2, const RasterizerState* const state)
 {
-    return (e0.x * e1.y) - (e0.y * e1.x);
+    // Cull based on right-handed orientation
+    //   V2
+    //  / \
+    // V0-->V1
+    // CCW if det(AB, CA) > 0
+
+    const bool isCCW = Determinant2D(v1-v0, v2-v0) > 0.0f;
+
+    const bool isFront = (state->frontCounterClockwise && isCCW)
+                        || (!state->frontCounterClockwise && !isCCW);
+
+    switch (state->cullMode)
+    {
+    case CULL_MODE::CULL_MODE_BACK:
+        if (!isFront) return true;
+        break;
+    case CULL_MODE::CULL_MODE_FRONT:
+        if (isFront) return true;
+        break;
+    default:
+    case CULL_MODE::CULL_MODE_NONE:
+        // No culling enabled
+        break;
+    }
+
+    return false;
 }
+
 
 void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
 {
@@ -373,35 +307,12 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
         // perspective divide
 
         // clipping
-        const vec4f v0 = primitive.position[1] - primitive.position[0];
-        const vec4f v1 = primitive.position[2] - primitive.position[0];
-        float det012 = det2D(v0, v1);
 
-        // Cull based on right-handed orientation
-        //   C
-        //  / \
-        // A-->B
-        // CCW if det(AB, CA) > 0
-
-        const bool isCCW = det012 < 0.f;
-        const bool isFront = (state->frontCounterClockwise && isCCW)
-                          || (!state->frontCounterClockwise && !isCCW);
-
-        switch (state->cullMode)
-        {
-        case CULL_MODE::CULL_MODE_BACK:
-            if (!isFront) {
-                continue;
-            }
-            break;
-        case CULL_MODE::CULL_MODE_FRONT:
-            if (isFront)
-                continue;
-            break;
-        default:
-        case CULL_MODE::CULL_MODE_NONE:
-            // No culling enabled
-            break;
+        if (IsCulled(primitive.position[0],
+                     primitive.position[1],
+                     primitive.position[2],
+                     state)) {
+            continue;
         }
 
         // viewport transform
@@ -605,36 +516,8 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
         const vec4f& b = perVertexOutputs[1].position;
         const vec4f& c = perVertexOutputs[2].position;
 
-        vec4f e0 = b - a;
-        vec4f e1 = c - a;
-        float det012 = det2D(e0, e1);
-
-        // Cull based on right-handed orientation
-        //   C
-        //  / \
-        // A-->B
-        // CCW if det(AB, CA) > 0
-
-        //const bool isCCW = invDenom > 0.f;
-        const bool isCCW = det012 < 0.f;
-        const bool isFront = (state->frontCounterClockwise && isCCW)
-            || (!state->frontCounterClockwise && !isCCW);
-
-        switch (state->cullMode)
-        {
-        case CULL_MODE::CULL_MODE_BACK:
-            if (!isFront) continue;
-            break;
-        case CULL_MODE::CULL_MODE_FRONT:
-            if (isFront) continue;
-            break;
-        default:
-        case CULL_MODE::CULL_MODE_NONE:
-            // No culling enabled
-            break;
-        }
-
-        triangeList.emplace_back(primitive);
+        if (!IsCulled(a, b, c, state))
+            triangeList.emplace_back(primitive);
     }
 
     constexpr int kTileSizeX = 16;
