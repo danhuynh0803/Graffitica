@@ -46,7 +46,7 @@ CPUSwapchain::CPUSwapchain(const SwapchainProperties& props)
     for (int i = 0; i < imageCount; ++i)
     {
         m_PresentImages.emplace_back(width, height);
-        // Imageview interface requiring image param needs to be cleaned up
+        // Imageview interface requiring image param needs to be cleaned U
         // maybe have Image generate ImageViews per some helper?
         const auto& justInsertedImage = m_PresentImages.at(i);
         m_PresentImageViews.emplace_back(justInsertedImage);

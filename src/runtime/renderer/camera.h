@@ -1,6 +1,7 @@
 #pragma once
 #include "util/math/vector.h"
 #include "util/math/matrix.h"
+#include <numbers>
 
 namespace gr
 {
@@ -8,15 +9,13 @@ namespace gr
 class Camera
 {
 public:
-    Camera() = delete;
-
-    Camera(const vec3f& from, const vec3f& at, float vert_fov, float asp_ratio):
-        look_from(from), look_at(at), vfov(vert_fov), aspect_ratio(asp_ratio)
+    Camera(const vec3f& from, const vec3f& at)
+        : m_LookFrom(from), m_LookAt(at)
     {
        // Camera's local axes
-       forward = unit_vector(look_from - look_at);              // +z
-       right = unit_vector(cross(vec3f(0, 1, 0), forward));     // +x
-       up = cross(forward, right);                              // +y
+       F = unit_vector(m_LookFrom - m_LookAt);      // +z
+       R = unit_vector(cross(vec3f(0, 1, 0), F));   // +x
+       U = cross(F, R);                             // +y
     }
 
     ~Camera() = default;
@@ -25,33 +24,42 @@ public:
     {
         // view matrix values, assuming column vector notation
         // TODO construct with initializer lists
-        /*
-        mat44 view = {
-            right.x, up.x, forward.x, look_from.x,
-            right.y, up.y, forward.y, look_from.y,
-            right.z, up.z, forward.z, look_from.z,
-                  0,    0,         0,           1,
-        };
+        mat44 view{};
+        auto& m = view.m_Data;
+        m[0][0] = R.x; m[0][1] = R.y; m[0][2] = R.z; m[0][3] = 0.0f;
+        m[1][0] = U.x; m[1][1] = U.y; m[1][2] = U.z; m[1][3] = 0.0f;
+        m[2][0] = F.x; m[2][1] = F.y; m[2][2] = F.z; m[2][3] = 0.0f;
 
-        view = v_view;
+        m[0][3] = -dot(R, m_LookFrom);
+        m[1][3] = -dot(U, m_LookFrom);
+        m[2][3] = -dot(F, m_LookFrom);
+        m[3][3] = 1.0f;
+
         return view;
-        */
-        return {};
     }
 
-    mat44 GetProjection()
+    mat44 GetPerspectiveProjection(float vfov, float aspect, float near, float far)
     {
-        mat44 persp;
-        // TODO
+        mat44 persp{};
+        auto& m = persp.m_Data;
+
+        float rad = vfov * (std::_Pi_val / 180);
+        m[0][0] = 1.0f / (std::tan(rad * 0.5f)*aspect);
+        m[1][1] = 1.0f / std::tan(rad * 0.5f);
+
+        m[2][2] = -(far + near) / (far - near);
+        m[2][3] = -(2.0 * far * near) / (far - near);
+        m[3][2] = -1;
+
         return persp;
     }
 
 private:
-    vec3f look_from;
-    vec3f look_at;
-    vec3f right, up, forward;
+    vec3f m_LookFrom;
+    vec3f m_LookAt;
+    vec3f R, U, F;
     float vfov, aspect_ratio;
-    float near, far;
+    float m_Near, m_Far;
 };
 
 }

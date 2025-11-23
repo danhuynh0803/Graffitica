@@ -41,10 +41,10 @@ struct ShaderModule
     virtual vec4f frag(const PerVertex& input) = 0;
 };
 
-//struct BasicShader {};
+//struct TestShader {};
 //
 //template <>
-//struct ShaderModule<BasicShader>
+//struct ShaderModule<TestShader>
 //{
 //    gr::mat44 MVP;
 //
@@ -65,26 +65,48 @@ struct ShaderModule
 //    }
 //};
 
-struct BasicShader final : ShaderModule
+struct TestShader final : ShaderModule
 {
     // for quick testing
     gr::mat44 MVP;
+    gr::mat44 M;
+    gr::mat44 V;
+    gr::mat44 P;
+
+    float near = 0.1f;
+    float far  = 100.0f;
+
+    float LinearizeDepth(float d, float zNear, float zFar)
+    {
+        return zNear * zFar / (zFar + d * (zNear - zFar));
+    }
 
     inline virtual PerVertex vert(const VertexAttributes& attribs) override
     {
         PerVertex v2f{};
         v2f.position = MVP * vec4f(attribs.aPos, 1.0f);
+        //auto world = M * vec4f(attribs.aPos, 1.0f);
+        //auto view = V * world;
+        //auto clip = P * view;
+        //v2f.position = clip;
         v2f.color = attribs.aColor;
         v2f.texcoord = attribs.aTexCoord;
         return v2f;
     }
 
+    vec4f TestDepthInterpolation(const PerVertex& input)
+    {
+        float z = LinearizeDepth(input.position.z, near, far);
+        vec4f col = vec4f(z, z, z, 1.0);
+        return col;
+    }
+
     // TODO Rename struct for frag input since input is now interpolated
     inline virtual vec4f frag(const PerVertex& input) override
     {
-        vec4f col = input.color;
-        //col *= std::clamp(std::ceil(input.position.x), 0.0f, 1.0f);
-        return col;
+        // Segment each test to separate functions in order to add to testing framework later
+        // Need to dump fb output and compare against reference image
+        return TestDepthInterpolation(input);
     }
 };
 

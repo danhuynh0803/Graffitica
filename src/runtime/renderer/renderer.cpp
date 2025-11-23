@@ -194,7 +194,7 @@ void RasterizeScanline(const ImageView& view, const Buffer& vb, U32 vertexCount,
 }
 */
 
-float CalculateTriangleArea(const vec3f& a, const vec3f& b, const vec3f& c)
+float CalculateTriangleArea(const vec4f& a, const vec4f& b, const vec4f& c)
 {
     return .5 * ( (b.y - a.y) * (b.x + a.x) + (c.y - b.y) * (c.x + b.x) + (a.y - c.y) * (a.x + c.x) );
 }
@@ -234,7 +234,7 @@ namespace gr::rhi::cmd
 
 bool IsCulled(const vec4f& v0, const vec4f& v1, const vec4f& v2, const RasterizerState* const state)
 {
-    // Cull based on right-handed orientation
+    // Cull based on R-handed orientation
     //   V2
     //  / \
     // V0-->V1
@@ -266,8 +266,9 @@ auto NDCToViewport = [&](const vec4f& p, int width, int height)
     {
         vec4f coords(
             (0.5f*p.x + 0.5f) * width,
+            //(0.5f * p.y + 0.5f)* height,
             (1.0f - (0.5f*p.y + 0.5)) * height, // map to y-up space
-            p.z, // need to remap to plane near/far later
+            p.z, // TODO remap from [-1,1] -> [0,1]
             1.0
         );
         return coords;
@@ -310,15 +311,13 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
         for (int i = 0; i < 3; ++i)
         {
             perVertexOutputs[i] = shaderModule->vert(inputAttributes[i]);
-            primitive.position[i] = perVertexOutputs[i].position;
+
+            // perspective divide
+            primitive.position[i] = perVertexOutputs[i].position / perVertexOutputs[i].position.w;
             primitive.color   [i] = perVertexOutputs[i].color;
             primitive.texcoord[i] = perVertexOutputs[i].texcoord;
-
         }
 
-        // perspective divide
-
-        // clipping
 
         if (IsCulled(primitive.position[0],
                      primitive.position[1],
@@ -327,19 +326,14 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
             continue;
         }
 
+        // NDC to Viewport Transform
         const auto& a = NDCToViewport(primitive.position[0], width, height);
         const auto& b = NDCToViewport(primitive.position[1], width, height);
         const auto& c = NDCToViewport(primitive.position[2], width, height);
 
-        const vec4f e0 = b - a;
-        const vec4f e1 = c - a;
-        float d00 = dot(e0, e0);
-        float d01 = dot(e0, e1);
-        float d11 = dot(e1, e1);
-        float invDenom = 1.0f / (d00 * d11 - d01 * d01);
 
-        //const float totalArea = CalculateTriangleArea(a, b, c);
-        //const float invTotalArea = 1.0f / totalArea;
+        const float totalArea = CalculateTriangleArea(a, b, c);
+        const float invTotalArea = 1.0f / totalArea;
 
         // TODO profile with some timer utilities
         // SCOPED_TIMER()
@@ -351,18 +345,6 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
         int maxX = std::clamp(std::max(a.x, std::max(b.x, c.x)), 0.0f, width-1);
         int minY = std::clamp(std::min(a.y, std::min(b.y, c.y)), 0.0f, height-1);
         int maxY = std::clamp(std::max(a.y, std::max(b.y, c.y)), 0.0f, height-1);
-
-        //vec3f P(minX, minY, 1.0f);
-        //vec3f v2 = P - a;
-        //float d20 = dot(v2, v0);
-        //float d21 = dot(v2, v1);
-        ////float v = (d11 * d20 - d01 * d21) * invDenom;
-        ////float w = (d00 * d21 - d01 * d20) * invDenom;
-        ////float u = 1.0f - v - w;
-
-        //float w0Row = (d11 * d20 - d01 * d21) * invDenom;
-        //float w1Row = (d00 * d21 - d01 * d20) * invDenom;
-        //float w2Row = 1.0f - w0Row - w1Row;
 
 #pragma omp parallel for
         for (int y = minY; y <= static_cast<int>(maxY); ++y)
@@ -377,12 +359,18 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
                 // TODO replace barycentric with Cramer's rule ver
                 vec4f P(x, y, 0, 1);
 
-                vec4f e2 = P - a;
-                float d20 = dot(e2, e0);
-                float d21 = dot(e2, e1);
-                float v = (d11 * d20 - d01 * d21) * invDenom;
-                float w = (d00 * d21 - d01 * d20) * invDenom;
-                float u = 1.0f - v - w;
+                //vec4f e2 = P - a;
+                //float d20 = dot(e2, e0);
+                //float d21 = dot(e2, e1);
+                //float v = (d11 * d20 - d01 * d21) * invDenom;
+                //float w = (d00 * d21 - d01 * d20) * invDenom;
+                //float u = 1.0f - v - w;
+
+                // Avoid microoptimizing as this approach is fairly straightforward
+                // revisit later
+                float u = CalculateTriangleArea(P, b, c) * invTotalArea;
+                float v = CalculateTriangleArea(P, c, a) * invTotalArea;
+                float w = CalculateTriangleArea(P, a, b) * invTotalArea;
 
                 // skip points outside of triangle
                 if (u < 0 || v < 0 || w < 0) {
@@ -396,14 +384,24 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
                 // TODO need to perform depth remapping
                 if (depth >= depthView.at(x, y).Get())
                 {
+                    //std::cout << "DH depthTest\n";
                     continue;
                 }
+
+                // update with new depth value
+                depthView.at(x, y).depth = depth;// = FORMAT_D32_SFLOAT::to(depth);
 
                 // FS
                 // Apply barycentric weights for all attributes
                 // TODO rename PerVertex var for fragInput
                 //std::cout << "Barycentric part\n";
                 gr::rhi::PerVertex fragInput{
+
+                   .position = vec4f(
+                                    u * a.x + v * b.x + w * c.x,
+                                    u * a.y + v * b.y + w * c.y,
+                                    u * a.z + v * b.z + w * c.z,
+                                    1.0f),
                     //.position = u * primitive.position[0]
                     //          + v * primitive.position[1]
                     //          + w * primitive.position[2],
@@ -424,9 +422,6 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
                 };
 
                 vec4f fragColor = shaderModule->frag(fragInput);
-
-                // update with new depth value
-                depthView.at(x, y).depth = depth;// = FORMAT_D32_SFLOAT::to(depth);
 
                 // TODO blending
                 //colorView.at(x, y) = FORMAT_R8G8B8A8_UNORM::to(fragColor);

@@ -10,7 +10,7 @@ struct CommandBuffer
 {
     Framebuffer* framebuffer;
     RasterizerState* rasterizerState;
-    //gr::rhi::BasicShader* shaderModule;
+    //gr::rhi::TestShader* shaderModule;
     gr::rhi::ShaderModule* shaderModule;
 
     //Pipeline *pipeline;
