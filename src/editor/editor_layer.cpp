@@ -69,8 +69,8 @@ EditorLayer::EditorLayer(const std::string& name)
     //vbo.m_VertexCount = vbo.m_Positions.size();
     drawState = {
         .fillMode = FILL_MODE::FILL_MODE_SOLID,
-        //.cullMode = CULL_MODE::CULL_MODE_BACK,
-        .cullMode = CULL_MODE::CULL_MODE_NONE,
+        .cullMode = CULL_MODE::CULL_MODE_BACK,
+        //.cullMode = CULL_MODE::CULL_MODE_NONE,
         .frontCounterClockwise = true,
     };
 
@@ -109,7 +109,6 @@ void EditorLayer::OnUpdate(double dt)
     const float freq = 1.0f;
     const float rot = 0; //time;
     modelMatrix.m_Data[0][0] = amp * cos(rot);
-    modelMatrix.m_Data[1][1] *= -1; // invert model
     modelMatrix.m_Data[0][2] = amp * sin(rot);
     modelMatrix.m_Data[2][0] = amp * -sin(rot);
     modelMatrix.m_Data[2][2] = amp * cos(rot);

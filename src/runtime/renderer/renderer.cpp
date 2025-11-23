@@ -199,10 +199,10 @@ float CalculateTriangleArea(const vec3f& a, const vec3f& b, const vec3f& c)
     return .5 * ( (b.y - a.y) * (b.x + a.x) + (c.y - b.y) * (c.x + b.x) + (a.y - c.y) * (a.x + c.x) );
 }
 
-float Determinant2D(const vec4f& V, const vec4f& P)
+float Determinant2D(const vec4f& v1, const vec4f& v2)
 {
     // ad - bc
-    return (V.x * P.y) - (V.y * P.x);
+    return (v1.x * v2.y) - (v1.y * v2.x);
 }
 
 
@@ -262,6 +262,16 @@ bool IsCulled(const vec4f& v0, const vec4f& v1, const vec4f& v2, const Rasterize
     return false;
 }
 
+auto NDCToViewport = [&](const vec4f& p, int width, int height)
+    {
+        vec4f coords(
+            (0.5f*p.x + 0.5f) * width,
+            (1.0f - (0.5f*p.y + 0.5)) * height, // map to y-up space
+            p.z, // need to remap to plane near/far later
+            1.0
+        );
+        return coords;
+    };
 
 void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
 {
@@ -277,6 +287,8 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
     const auto& positions = vb.m_Positions;
     const auto& colors = vb.m_VertexColors;
     const auto& verts = vb.m_MeshData->GetVertices();
+    const int width = fb->colorView.width;
+    const int height = fb->colorView.height;
 
     for (int tri = firstIndex; tri < indexCount; ++tri)
     {
@@ -315,25 +327,9 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
             continue;
         }
 
-        // viewport transform
-        auto NDCToViewport = [&](const vec4f& p)
-            {
-                const U32 width  = fb->colorView.width;
-                const U32 height = fb->colorView.height;
-
-                vec4f coords(
-                    (int)(0.5f * (width * p.x + width)),
-                    (int)(0.5f * (height * p.y + height)),
-                    p.z,
-                    1.0
-                    // need to remap to plane near/far but this should be handled by fixed function part anyway
-                );
-                return coords;
-            };
-
-        const auto& a = NDCToViewport(primitive.position[0]);
-        const auto& b = NDCToViewport(primitive.position[1]);
-        const auto& c = NDCToViewport(primitive.position[2]);
+        const auto& a = NDCToViewport(primitive.position[0], width, height);
+        const auto& b = NDCToViewport(primitive.position[1], width, height);
+        const auto& c = NDCToViewport(primitive.position[2], width, height);
 
         const vec4f e0 = b - a;
         const vec4f e1 = c - a;
@@ -494,18 +490,7 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
             // VS runs
             perVertexOutputs[i]   = shaderModule->vert(inputAttributes[i]);
 
-            auto NDCToViewport = [&](const vec4f& p)
-                {
-                    vec4f coords(
-                        (int)(0.5f * (width * p.x + width)),
-                        (int)(0.5f * (height * p.y + height)),
-                        p.z, // need to remap to plane near/far later
-                        1.0
-                    );
-                    return coords;
-                };
-
-            primitive.position[i] = NDCToViewport(perVertexOutputs[i].position);
+            primitive.position[i] = NDCToViewport(perVertexOutputs[i].position, width, height);
             primitive.color[i]    = perVertexOutputs[i].color;
             primitive.texcoord[i] = perVertexOutputs[i].texcoord;
         }
