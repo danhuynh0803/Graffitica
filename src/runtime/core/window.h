@@ -35,6 +35,10 @@ public:
 
     gr::rhi::ImageFormat GetSurfaceFormat() const;
 
+    // Event system
+    using EventCallbackFn = std::function<void(Event&)>;
+    void SetEventCallback(const EventCallbackFn& callback);
+
 private:
     std::string m_Name;
     uint32_t m_Width, m_Height;

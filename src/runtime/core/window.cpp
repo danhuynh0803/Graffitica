@@ -21,6 +21,10 @@ Window::Window(const WindowProperties& props)
                                 SDL_WINDOW_RESIZABLE);
 
     m_GraphicsContext = rhi::IGraphicsContext::Create<rhi::CPUGraphicsContext>(m_Window);
+
+    // Set SDL event callbacks
+    
+
 }
 
 Window::~Window()

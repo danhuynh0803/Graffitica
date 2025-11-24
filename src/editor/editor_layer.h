@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/layer.h"
+#include "core/event.h"
 
 namespace gr
 {
@@ -15,7 +16,7 @@ public:
     //virtual void OnDetach() override;
     virtual void OnUpdate(double dt) override;
     //virtual void OnOverlayUpdate() {};
-    //virtual void OnEvent() override;
+    virtual void OnEvent() override;
 
 private:
     std::string m_Name;

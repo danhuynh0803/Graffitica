@@ -32,6 +32,9 @@ protected:
     static Application* m_Instance;
 
 private:
+    
+
+private:
     std::unique_ptr<Window> m_Window;
     LayerStack m_LayerStack;
     bool m_IsRunning = true;

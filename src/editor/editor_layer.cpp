@@ -23,16 +23,17 @@ namespace
     rhi::CPUGraphicsContext* gfxContext = nullptr;
     rhi::CPUSwapchain* swapchain = nullptr;
 
+    // TODO set up interleaved buffer support with vertex attributes
     SimpleMesh simpleMesh
     {
         .m_Positions = {
-            {-0.5,  0.5, 0},
-            {-0.5, -0.5, 0},
-            { 0.5, -0.5, 0},
+            { 0.0,  1.0, -3},
+            {-1.0, -1.0, -1},
+            { 1.0, -1.0, -1},
 
-            { 0.5, -0.5, 0},
-            { 0.5,  0.5, 0},
-            {-0.5,  0.5, 0},
+            //{ 0.5, -0.5, 0},
+            //{ 0.5,  0.5, 0},
+            //{-0.5,  0.5, 0},
         },
     };
 
@@ -40,9 +41,9 @@ namespace
     Buffer model{
         //.m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
         //.m_MeshData = std::make_shared<Mesh>("../assets/models/octahedron.obj"),
-        .m_MeshData = std::make_shared<Mesh>("../assets/models/ico.obj"),
+        //.m_MeshData = std::make_shared<Mesh>("../assets/models/ico.obj"),
 
-        //.m_MeshData = std::make_shared<Mesh>(simpleMesh)
+        .m_MeshData = std::make_shared<Mesh>(simpleMesh)
     };
 
     RasterizerState drawState;
@@ -110,7 +111,7 @@ void EditorLayer::OnUpdate(double dt)
     // TODO
     const float amp = 1.f;
     const float freq = 1.0f;
-    const float rot = time;
+    const float rot = 0; //time;
     modelMatrix.m_Data[0][0] = amp * cos(rot);
     modelMatrix.m_Data[0][2] = amp * sin(rot);
     modelMatrix.m_Data[2][0] = amp * -sin(rot);
@@ -123,10 +124,15 @@ void EditorLayer::OnUpdate(double dt)
         vec3f(
             0,//0.5*sin(time),
             0,//0.5*cos(time),
-            -1 //-midPoint + midPoint*sin(0.75*time)
+            0 //-midPoint + midPoint*sin(0.75*time)
         )
     );
     //gr::translate(modelMatrix, vec3f(0.0, 0.0, -1.f));
+
+    // TODO update event system to work with camera controller
+    // Fix tiling renderer
+    // edge rules
+    // SIMD tiles
 
     auto viewMatrix = camera.GetView();
     auto projMatrix = camera.GetPerspectiveProjection(70.0f, static_cast<float>(width) / static_cast<float>(height), kNear, kFar);
@@ -153,6 +159,8 @@ void EditorLayer::OnUpdate(double dt)
     gr::rhi::cmd::Clear(fb.depthView, 1.0);
     //gr::rhi::cmd::DrawIndexedTiled(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
     gr::rhi::cmd::DrawIndexedImmediate(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
+
+    //gr::rhi::cmd::DrawIndexedImmediate(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
 }
 
 };

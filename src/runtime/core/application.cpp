@@ -53,4 +53,20 @@ void Application::PopLayer(Layer* layer)
     m_LayerStack.PopLayer(layer);
 }
 
+void OnEvent(Event& e)
+{
+
+}
+
+bool OnWindowResize(WindowResizeEvent& e)
+{
+
+}
+
+bool OnClose(WindowCloseEvent& e)
+{
+    m_IsRunning = false;
+    return false;
+}
+
 }
