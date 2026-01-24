@@ -60,6 +60,12 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     Vulkan::Headers
 )
 
+# TODO split to different cmake?
+find_package(Vulkan COMPONENTS glslc
+                               shaderc_combined
+                               dxc
+)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE
     SDL3::SDL3
     Vulkan::Vulkan
