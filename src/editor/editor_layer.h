@@ -16,7 +16,7 @@ public:
     //virtual void OnDetach() override;
     virtual void OnUpdate(double dt) override;
     //virtual void OnOverlayUpdate() {};
-    virtual void OnEvent() override;
+    virtual void OnEvent(Event& event) override;
 
 private:
     std::string m_Name;

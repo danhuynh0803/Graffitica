@@ -3,6 +3,34 @@
 namespace gr
 {
 
+#define BIT(x) (1 << x)
+
+#define EVENT_CLASS_TYPE(eventType)  static EventType GetStaticType() { return EventType::eventType; }                \
+                                virtual EventType GetEventType() const override { return GetStaticType(); } \
+                                //virtual const char* GetName() const override { return #eventType; }
+
+enum class EventType
+{
+    // to add more events as needed, but keep it simple with the most commonly used ones
+    NONE = 0,
+    WINDOW_CLOSE,
+    WINDOW_RESIZE,
+    KEY_PRESSED,
+    KEY_RELEASED,
+    MOUSE_BUTTON_PRESSED,
+    MOUSE_BUTTON_RELEASED,
+    MOUSE_MOVED,
+    //MOUSE_BUTTON_SCROLLED,
+};
+
+enum class EventCategory
+{
+    NONE = 0,
+    WINDOW      = BIT(1),
+    KEYBOARD    = BIT(2),
+    MOUSE       = BIT(3),
+};
+
 class Event
 {
 public:
@@ -12,7 +40,7 @@ public:
     //virtual std::string ToString() const { return GetName(); }
 
 public:
-    bool m_Handled = false;
+    bool isHandled = false;
 };
 
 class EventDispatcher
@@ -25,9 +53,9 @@ public:
     template<typename TEvent, typename Function>
     bool Dispatch(const Function& fn)
     {
-        if (event.GetEventType() == TEvent::GetStaticType())
+        if (m_Event.GetEventType() == TEvent::GetStaticType())
         {
-            m_Event.handled = fn(static_cast<TEvent&>(m_Event));
+            m_Event.isHandled = fn(static_cast<TEvent&>(m_Event));
             return true;
         }
         return false;
@@ -35,6 +63,24 @@ public:
 
 private:
     Event& m_Event;
+};
+
+class WindowResizeEvent : public Event
+{
+public:
+
+    EVENT_CLASS_TYPE(WINDOW_RESIZE)
+
+private:
+};
+
+class WindowCloseEvent : public Event
+{
+public:
+
+    EVENT_CLASS_TYPE(WINDOW_CLOSE)
+
+private:
 };
 
 class MouseMovedEvent : public Event
@@ -47,9 +93,10 @@ public:
     float GetX() const { return m_MouseX; }
     float GetY() const { return m_MouseY; }
 
+    EVENT_CLASS_TYPE(MOUSE_MOVED)
+
 private:
     float m_MouseX, m_MouseY;
-
 };
 
 }

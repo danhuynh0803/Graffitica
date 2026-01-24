@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <string>
 
+#include "core/event.h"
+
 namespace gr
 {
 
@@ -22,7 +24,7 @@ public:
     virtual ~Layer() = default;
 
     virtual void OnUpdate(double dt) {};
-    virtual void OnEvent() {};
+    virtual void OnEvent(Event& event) {};
 
 private:
     std::string m_Name;

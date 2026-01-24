@@ -3,7 +3,9 @@
 #include <memory>
 #include <string>
 #include <SDL3/SDL.h>
+#include <functional>
 
+#include "core/event.h"
 #include "rhi/formats.h"
 #include "rhi/interface/graphics_context.h"
 

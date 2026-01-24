@@ -5,6 +5,7 @@
 #include <vector>
 #include "core/window.h"
 #include "core/layer_stack.h"
+#include "core/event.h"
 
 namespace gr
 {
@@ -27,6 +28,11 @@ public:
 
     void PushLayer(Layer* layer);
     void PopLayer(Layer* layer);
+
+private:
+    void OnEvent(Event& e);
+    bool OnWindowResize(const WindowResizeEvent& e);
+    bool OnWindowClose(const WindowCloseEvent& e);
 
 protected:
     static Application* m_Instance;

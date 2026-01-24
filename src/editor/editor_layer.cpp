@@ -163,4 +163,9 @@ void EditorLayer::OnUpdate(double dt)
     //gr::rhi::cmd::DrawIndexedImmediate(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
 }
 
+void EditorLayer::OnEvent(Event& event)
+{
+
+}
+
 };
