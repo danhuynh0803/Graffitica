@@ -47,14 +47,27 @@ if (MSVC)
     set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/PROFILE")
 endif()
 
+# TODO split to different cmake?
+find_package(Vulkan COMPONENTS glslc
+                               shaderc_combined
+                               dxc
+)
+
 target_include_directories(${PROJECT_NAME} PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/runtime"
     "${SDL3_Headers}"
+    Vulkan::Headers
 )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC
+target_link_libraries(${PROJECT_NAME} PRIVATE
     SDL3::SDL3
+    Vulkan::Vulkan
+    Vulkan::shaderc_combined
+
+    d3d12.lib
+    dxgi.lib
+    d3dcompiler.lib
 )
 
 # OpenMP
