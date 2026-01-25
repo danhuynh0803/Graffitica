@@ -132,7 +132,7 @@ inline vec4<T> operator*(const vec4<T> &v, T t) {
 }
 
 template <typename T>
-inline vec4<T> operator/(vec4<T> v, T t) {
+inline vec4<T> operator/(const vec4<T> &v, T t) {
     return vec4(v.e[0] / t, v.e[1] / t, v.e[2] / t, v.e[3] / t);
 }
 
