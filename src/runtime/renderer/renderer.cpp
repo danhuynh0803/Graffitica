@@ -291,6 +291,8 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
     const int width = fb->colorView.width;
     const int height = fb->colorView.height;
 
+    std::vector<vec4f>& colorData = colorView.colorData;
+
     for (int tri = firstIndex; tri < indexCount; ++tri)
     {
         const std::vector<int>& face = vb.m_MeshData->face(tri);
@@ -359,45 +361,33 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
                 // TODO replace barycentric with Cramer's rule ver
                 vec4f P(x, y, 0, 1);
 
-                //vec4f e2 = P - a;
-                //float d20 = dot(e2, e0);
-                //float d21 = dot(e2, e1);
-                //float v = (d11 * d20 - d01 * d21) * invDenom;
-                //float w = (d00 * d21 - d01 * d20) * invDenom;
-                //float u = 1.0f - v - w;
-
-                // Avoid microoptimizing as this approach is fairly straightforward
-                // revisit later
+				// TODO Calculate barycentric coordinates using edge functions
                 float u = CalculateTriangleArea(P, b, c) * invTotalArea;
                 float v = CalculateTriangleArea(P, c, a) * invTotalArea;
-                float w = CalculateTriangleArea(P, a, b) * invTotalArea;
+                float w = 1.0 - u - v; //CalculateTriangleArea(P, a, b) * invTotalArea;
 
                 // skip points outside of triangle
                 if (u < 0 || v < 0 || w < 0) {
                     continue;
                 }
 
-                // TODO add depth state
+                // TODO incorporate depth state
                 float depth = u * a.z + v * b.z + w * c.z;
-                // TODO what if no depth buffer is provided?
-                // Generate one behind the scenes?
                 if (depth >= depthView.at(x, y).Get())
                 {
                     continue;
                 }
 
                 // update with new depth value
-                depthView.at(x, y).depth = depth;// = FORMAT_D32_SFLOAT::to(depth);
+                depthView.at(x, y).depth = depth;
 
                 // FS
-                // Apply barycentric weights for all attributes
-                // TODO rename Varyings var for fragInput
-                //std::cout << "Barycentric part\n";
+                // Apply barycentric weights for all varying attributes
                 gr::rhi::Varyings fragInput{
                     .position = vec4f(
                                     u * a.x + v * b.x + w * c.x,
                                     u * a.y + v * b.y + w * c.y,
-                                    u * a.z + v * b.z + w * c.z,
+                                    depth,
                                     1.0f),
 
                     .color      = vec4f(
@@ -436,6 +426,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
     }
 }
 
+/*
 void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
 {
     // Draw that includes binning step
@@ -469,18 +460,17 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
         {
             auto& attrib = inputAttributes[i];
             attrib.aPos = verts[face[i]];
+            // TODO added this for debugging, but the IA code shouldnt mod back the colors
             attrib.aColor = colors[(triangleIndex * 3 + i) % colors.size()];
             attrib.aTexCoord = vec2f(0.0f, 0.0f);
 
             // VS runs
-            perVertexOutputs[i]   = shaderModule->vert(inputAttributes[i]);
+            perVertexOutputs[i] = shaderModule->vert(inputAttributes[i]);
 
             primitive.position[i] = NDCToViewport(perVertexOutputs[i].position, width, height);
-            primitive.color[i]    = perVertexOutputs[i].color;
+            primitive.color[i] = perVertexOutputs[i].color;
             primitive.texcoord[i] = perVertexOutputs[i].texcoord;
         }
-
-        const auto& triangle = triangeList[triangleIndex];
 
         const vec4f& a = perVertexOutputs[0].position;
         const vec4f& b = perVertexOutputs[1].position;
@@ -492,9 +482,9 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
 
     constexpr int kTileSizeX = 16;
     constexpr int kTileSizeY = 16;
-    const int kNumTilesX = (width + kTileSizeX-1) / kTileSizeX;
-    const int kNumTilesY = (height + kTileSizeY-1) / kTileSizeY;
-    std::vector< Tile<kTileSizeX, kTileSizeY> > tileList( kNumTilesX * kNumTilesY );
+    const int kNumTilesX = (width + kTileSizeX - 1) / kTileSizeX;
+    const int kNumTilesY = (height + kTileSizeY - 1) / kTileSizeY;
+    std::vector< Tile<kTileSizeX, kTileSizeY> > tileList(kNumTilesX * kNumTilesY);
 
     for (int i = 0; i < triangeList.size(); ++i)
     {
@@ -521,7 +511,7 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
         {
             for (int tx = minTileX; tx < maxTileX; ++tx)
             {
-                tileList[ty*kNumTilesX + tx].triangleList.emplace_back(i);
+                tileList[ty * kNumTilesX + tx].triangleList.emplace_back(i);
             }
         }
     }
@@ -533,14 +523,14 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
     {
         for (int tx = 0; tx < kNumTilesX; ++tx)
         {
-            const auto& tile = tileList[ty*kNumTilesX + tx];
+            const auto& tile = tileList[ty * kNumTilesX + tx];
 
             // get fb bounds corresponding to tile
             const U32 startX = tx * kTileSizeX;
             const U32 startY = ty * kTileSizeY;
 
-            const U32 endX   = std::min(startX + kTileSizeX, width - 1);
-            const U32 endY   = std::min(startY + kTileSizeY, height - 1);
+            const U32 endX = std::min(startX + kTileSizeX, width - 1);
+            const U32 endY = std::min(startY + kTileSizeY, height - 1);
 
             for (int triangleIndex : tile.triangleList) {
 
@@ -559,70 +549,63 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
 
 
                 for (U32 y = startY; y < endY; ++y)
-                for (U32 x = startX; x < endX; ++x)
-                {
-                    vec4f P(x, y, 0, 1);
-
-                    vec4f e2 = P - a;
-                    float d20 = dot(e2, e0);
-                    float d21 = dot(e2, e1);
-
-                    // Calculate barycentric weights for attribute interpolation
-                    float w2 = (d11 * d20 - d01 * d21) * invDenom;
-                    float w1 = (d00 * d21 - d01 * d20) * invDenom;
-                    float w0 = 1.0f - w1 - w2;
-
-                    // skip points outside of triangle
-                    if (w0 < 0 || w1 < 0 || w2 < 0) {
-                        continue;
-                    }
-
-                    // TODO add depth state
-                    // early depth test
-                    float depth = (w0 * a.z) + (w1 * b.z) + (w2 * c.z);
-                    //const auto& depthBuffer = fb->depthView;
-                    // TODO need to perform depth remapping
-                    if (depth >= depthView.at(x, y).Get())
+                    for (U32 x = startX; x < endX; ++x)
                     {
-                        //std::cout << "DH EarlyZ Test\n";
-                        continue;
+                        vec4f P(x, y, 0, 1);
+
+                        vec4f e2 = P - a;
+                        float d20 = dot(e2, e0);
+                        float d21 = dot(e2, e1);
+
+                        // Calculate barycentric weights for attribute interpolation
+                        float w2 = (d11 * d20 - d01 * d21) * invDenom;
+                        float w1 = (d00 * d21 - d01 * d20) * invDenom;
+                        float w0 = 1.0f - w1 - w2;
+
+                        // skip points outside of triangle
+                        if (w0 < 0 || w1 < 0 || w2 < 0) {
+                            continue;
+                        }
+
+                        // TODO add depth state
+                        // early depth test
+                        float depth = (w0 * a.z) + (w1 * b.z) + (w2 * c.z);
+                        //const auto& depthBuffer = fb->depthView;
+                        // TODO need to perform depth remapping
+                        if (depth >= depthView.at(x, y).Get())
+                        {
+                            //std::cout << "DH EarlyZ Test\n";
+                            continue;
+                        }
+
+                        // FS
+                        // Apply barycentric weights for all attributes
+                        // TODO rename Varyings var for fragInput
+                        //std::cout << "Barycentric part\n";
+                        gr::rhi::Varyings fragInput{
+                            //.position = u * primitive.position[0]
+                            //          + v * primitive.position[1]
+                            //          + w * primitive.position[2],
+                            .color = vec4f(
+                                    w0 * triangle.color[0].x + w1 * triangle.color[1].x + w2 * triangle.color[2].x,
+                                    w0 * triangle.color[0].y + w1 * triangle.color[1].y + w2 * triangle.color[2].y,
+                                    w0 * triangle.color[0].z + w1 * triangle.color[1].z + w2 * triangle.color[2].z,
+                                    w0 * triangle.color[0].w + w1 * triangle.color[1].w + w2 * triangle.color[2].w
+                                )
+                                //.texcoord = u * primitive.texcoord[0]
+                                //          + v * primitive.texcoord[1]
+                                //          + w * primitive.texcoord[2],
+                        };
+
+                        vec4f fragColor = shaderModule->frag(fragInput);
+                        //vec4f fragColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+                        // update with new depth value
+                        depthView.at(x, y).depth = depth;
+
+                        // TODO blending
+                        colorView.Store(x, y, fragColor);
                     }
-
-                    // FS
-                    // Apply barycentric weights for all attributes
-                    // TODO rename Varyings var for fragInput
-                    //std::cout << "Barycentric part\n";
-                    gr::rhi::Varyings fragInput{
-                        //.position = u * primitive.position[0]
-                        //          + v * primitive.position[1]
-                        //          + w * primitive.position[2],
-                        .color = vec4f(
-                                w0 * triangle.color[0].x + w1 * triangle.color[1].x + w2 * triangle.color[2].x,
-                                w0 * triangle.color[0].y + w1 * triangle.color[1].y + w2 * triangle.color[2].y,
-                                w0 * triangle.color[0].z + w1 * triangle.color[1].z + w2 * triangle.color[2].z,
-                                w0 * triangle.color[0].w + w1 * triangle.color[1].w + w2 * triangle.color[2].w
-                            )
-                        //.texcoord = u * primitive.texcoord[0]
-                        //          + v * primitive.texcoord[1]
-                        //          + w * primitive.texcoord[2],
-                    };
-
-                    vec4f fragColor = shaderModule->frag(fragInput);
-                    //vec4f fragColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-                    // update with new depth value
-                    depthView.at(x, y).depth = depth;
-
-                    // TODO blending
-                    colorView.Store(x, y, fragColor);
-                }
-
-                /*
-                * Test performance of writing out per tile to FB instead of all at once at end
-                for (U32 y = startY; y < endY; ++y)
-                for (U32 x = startX; x < endX; ++x)
-                    colorView.at(x, y) = FORMAT_R8G8B8A8_UNORM::to(colorView.colorData[]);
-                */
             }
         }
     }
@@ -635,5 +618,6 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
         colorView.data[i] = FORMAT_R8G8B8A8_UNORM::to(colorView.colorData[i]);
     }
 }
+*/
 
 }

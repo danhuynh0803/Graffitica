@@ -98,7 +98,8 @@ struct ImageView : BaseImageView
 	
 	std::vector<vec4f> colorData;
 	FORMAT* data;
-	void Store(U32 x, U32 y, vec4f color)
+
+	void Store(U32 x, U32 y, const vec4f& color)
 	{
 		colorData[x + y*width] = color;
 	}

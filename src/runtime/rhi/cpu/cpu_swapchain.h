@@ -27,6 +27,11 @@ public:
         return &m_PresentImageViews.at(m_CurrentFrameIndex);
     }
 
+    template <typename TFormat>
+    ImageView<TFormat>* GetFrameImageView(int i) {
+        return &m_PresentImageViews.at(i);
+    }
+
 private:
     U32 m_Width, m_Height;
     U32 m_ImageCount;

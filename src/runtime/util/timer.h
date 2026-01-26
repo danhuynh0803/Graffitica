@@ -4,6 +4,7 @@
 #include <print>
 #include <ratio>
 
+// TODO store frame times from every scope call and log average per second or so
 namespace util
 {
 class Timer

@@ -27,7 +27,7 @@ namespace
     SimpleMesh simpleMesh
     {
         .m_Positions = {
-            { 0.0,  1.0, -3},
+            { 0.0,  1.0, -1},
             {-1.0, -1.0, -1},
             { 1.0, -1.0, -1},
 
@@ -39,10 +39,9 @@ namespace
 
 
     Buffer model{
-        //.m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
         //.m_MeshData = std::make_shared<Mesh>("../assets/models/octahedron.obj"),
         //.m_MeshData = std::make_shared<Mesh>("../assets/models/ico.obj"),
-
+        //.m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
         .m_MeshData = std::make_shared<Mesh>(simpleMesh)
     };
 
@@ -57,6 +56,16 @@ namespace
     rhi::ImageView<FORMAT_R8G8B8A8_UNORM> colorView(colorImage);
 
     gr::rhi::TestShader shader{};
+
+    // TODO refactor as template api is kinda annoying:
+    // ideas: have image generate a view object?
+    // can generate based on desired subresource range
+    // 
+    // pros for current system?
+    // setting both formats allows possible resource alising
+    // and conversion for formats in the backend?
+    rhi::Image<FORMAT_D32_SFLOAT> depthImage(width, height);
+    rhi::ImageView<FORMAT_D32_SFLOAT> depthView(depthImage);
 }
 
 EditorLayer::EditorLayer(const std::string& name)
@@ -84,34 +93,36 @@ EditorLayer::EditorLayer(const std::string& name)
 
 void EditorLayer::OnUpdate(double dt)
 {
-    // TODO refactor as template api is kinda annoying:
-    // ideas: have image generate a view object?
-    // can generate based on desired subresource range
-    // 
-    // pros for current system?
-    // setting both formats allows possible resource alising
-    // and conversion for formats in the backend?
-    rhi::Image<FORMAT_D32_SFLOAT> depthImage(width, height);
-    rhi::ImageView<FORMAT_D32_SFLOAT> depthView(depthImage);
+    static rhi::Framebuffer presentFrameBuffers[3]
+    {
+        {
+            .colorView = *swapchain->GetFrameImageView<FORMAT_R8G8B8A8_UNORM>(0),
+            .depthView = depthView,
+        },
+        {
+            .colorView = *swapchain->GetFrameImageView<FORMAT_R8G8B8A8_UNORM>(1),
+            .depthView = depthView,
+        },
+        {
+            .colorView = *swapchain->GetFrameImageView<FORMAT_R8G8B8A8_UNORM>(2),
+            .depthView = depthView,
+        },
+    };
 
     // Render to current frame in-flight
-    auto currFrameView = swapchain->GetCurrentFrameImageView<FORMAT_R8G8B8A8_UNORM>();
-
-    gr::rhi::Framebuffer fb{
-        .colorView = *currFrameView,
-        .depthView = depthView
-    };
+    auto currFrameIndex = swapchain->GetCurrentBackBufferIndex();
+	auto& fb = presentFrameBuffers[currFrameIndex];
 
     // TODO view projection calculation might be incorrect
     // not working for certain cases, use identity for now
     // until pipeline refactoring and optimizations are complete
     auto modelMatrix = gr::Identity<float,4,4>();
     static float time = 0;
-    //time += dt;
+    time += dt;
 
     const float amp = 1.f;
     const float freq = 1.0f;
-    const float rot = time;
+    const float rot = 0.; //time;
     modelMatrix.m_Data[0][0] = amp * cos(rot);
     modelMatrix.m_Data[0][2] = amp * sin(rot);
     modelMatrix.m_Data[2][0] = amp * -sin(rot);
@@ -124,10 +135,9 @@ void EditorLayer::OnUpdate(double dt)
         vec3f(
             0.0,//0.5*sin(time),
             0.0,//*cos(time),
-            0.0//-midPoint + midPoint*sin(0.75*time)
+            -.5//-midPoint + midPoint*sin(0.75*time)
         )
     );
-    gr::translate(modelMatrix, vec3f(0.0, 0.0, -0.5f));
 
     // TODO update event system to work with camera controller
     // Fix tiling renderer
@@ -160,8 +170,6 @@ void EditorLayer::OnUpdate(double dt)
     gr::rhi::cmd::Clear(fb.depthView, 1.0);
     //gr::rhi::cmd::DrawIndexedTiled(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
     gr::rhi::cmd::DrawIndexedImmediate(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
-
-    //gr::rhi::cmd::DrawIndexedImmediate(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
 }
 
 void EditorLayer::OnEvent(Event& event)
