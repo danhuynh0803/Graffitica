@@ -15,7 +15,7 @@ class alignas(16) vec4_128<float>
 public:
     vec4_128() = default;
 
-    vec4_128(const vec3<float>& v3, float w_)
+    vec4_128(const vec3<float>& v3, float w)
     {
         e128 = _mm_set_ps(w, v3.z, v3.y, v3.x);
     }
@@ -105,7 +105,9 @@ inline vec4_128<float> operator*(const vec4_128<float>& v, float t) {
 }
 
 inline vec4_128<float> operator/(vec4_128<float> v, float t) {
-    return vec4_128<float>(v.e[0] / t, v.e[1] / t, v.e[2] / t, v.e[3] / t);
+    const __m128 rcp = _mm_set1_ps(1.0f / t);
+    return vec4_128<float>(_mm_mul_ps(v.e128, rcp));
+    //return vec4_128<float>(v.e[0] / t, v.e[1] / t, v.e[2] / t, v.e[3] / t);
 }
 
 inline vec4_128<float> operator*(float t, const vec4_128<float>& vec) {

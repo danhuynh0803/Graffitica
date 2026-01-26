@@ -314,6 +314,7 @@ inline Matrix<T, ROW, COL>::operator *(const Matrix<T,ROW,COL>& rhs) {
 }
 */
 
+// TODO vectorize
 template<>
 inline Matrix<float,4,4> Matrix<float,4,4>::operator *(const Matrix<float,4,4>& rhs) {
     
@@ -364,11 +365,10 @@ inline vec4f Matrix<T, ROW, COL>::operator*(const vec4f& rhs)
     };
 }
 
-
 template<typename T, size_t ROW, size_t COL>
 inline vec4f operator *(const Matrix<T, ROW, COL>& lhs, const vec4f &rhs)
 {
-    // TODO
+    // TODO for same size Column vector
     return {};
 }
 

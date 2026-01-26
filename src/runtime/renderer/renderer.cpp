@@ -276,7 +276,7 @@ auto NDCToViewport = [&](const vec4f& p, int width, int height)
 
 void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
 {
-    SCOPED_TIMER;
+    SCOPED_TIMER
 
     const auto& fb = cmd.framebuffer;
     auto& colorView = fb->colorView;

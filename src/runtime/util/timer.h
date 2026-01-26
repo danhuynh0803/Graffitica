@@ -1,3 +1,5 @@
+#pragma once
+
 #include <chrono>
 #include <print>
 #include <ratio>
@@ -17,6 +19,7 @@ public:
 	{
 		m_End = std::chrono::steady_clock::now();
 		std::print("{0}: {1}\n", m_Name, std::chrono::duration<double, std::milli>(m_End - m_Start));
+		//std::print("{0}\n", std::chrono::duration<double, std::milli>(m_End - m_Start));
 	}
 
 	void Reset()
@@ -31,6 +34,6 @@ private:
 };
 
 #define CAT(x, y) x ## y
-#define SCOPED_TIMER util::Timer CAT(timer, __LINE__)(__FUNCTION__)
+#define SCOPED_TIMER util::Timer CAT(timer, __LINE__)(__FUNCTION__);
 
 }

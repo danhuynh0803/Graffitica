@@ -107,11 +107,11 @@ void EditorLayer::OnUpdate(double dt)
     // until pipeline refactoring and optimizations are complete
     auto modelMatrix = gr::Identity<float,4,4>();
     static float time = 0;
-    time += dt;
-    // TODO
+    //time += dt;
+
     const float amp = 1.f;
     const float freq = 1.0f;
-    const float rot = 0; //time;
+    const float rot = time;
     modelMatrix.m_Data[0][0] = amp * cos(rot);
     modelMatrix.m_Data[0][2] = amp * sin(rot);
     modelMatrix.m_Data[2][0] = amp * -sin(rot);
@@ -122,12 +122,12 @@ void EditorLayer::OnUpdate(double dt)
     constexpr float midPoint = kFar * 0.5f;
     gr::translate(modelMatrix, 
         vec3f(
-            0,//0.5*sin(time),
-            0,//0.5*cos(time),
-            0 //-midPoint + midPoint*sin(0.75*time)
+            0.0,//0.5*sin(time),
+            0.0,//*cos(time),
+            0.0//-midPoint + midPoint*sin(0.75*time)
         )
     );
-    //gr::translate(modelMatrix, vec3f(0.0, 0.0, -1.f));
+    gr::translate(modelMatrix, vec3f(0.0, 0.0, -0.5f));
 
     // TODO update event system to work with camera controller
     // Fix tiling renderer
@@ -141,9 +141,10 @@ void EditorLayer::OnUpdate(double dt)
         viewMatrix *
         modelMatrix;
 
-    shader.M = modelMatrix;
-    shader.V = viewMatrix;
-    shader.P = projMatrix;
+    // Debug individual matrices
+    //shader.M = modelMatrix;
+    //shader.V = viewMatrix;
+    //shader.P = projMatrix;
     shader.near = kNear;
     shader.far = kFar;
 

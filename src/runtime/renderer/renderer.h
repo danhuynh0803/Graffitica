@@ -23,11 +23,11 @@ void Clear(ImageView<FORMAT>& view, const vec4f& clearColor)
     auto size = view.width * view.height;
     //std::fill_n(view.data, size, FORMAT::to(clearColor));
     //std::fill(view.colorData.begin(), view.colorData.end(), clearColor);
+    //std::memset(view.colorData, clearColor, size);
     for (int i = 0; i < size; ++i)
     {
         view.colorData[i] = clearColor;
     }
-
 }
 
 template<typename FORMAT>

@@ -69,9 +69,8 @@ template <typename FORMAT>
 struct ImageView : BaseImageView
 {
 	ImageView(const Image<FORMAT>& image)
-		: width(image.m_Width), height(image.m_Height)
+		: width(image.m_Width), height(image.m_Height), data(image.m_Data.get())
 	{
-		data = image.m_Data.get();
 		colorData.resize(width * height);
 		//std::fill(colorData.begin(), colorData.end(), {0,0,0,0});
 	}

@@ -3,6 +3,7 @@
 #include "util/math/vector.h"
 #include "rhi/resource.h"
 #include "util/math/matrix.h"
+#include "util/timer.h"
 
 namespace gr::rhi
 {
@@ -85,12 +86,13 @@ struct TestShader final : ShaderModule
     inline virtual Varyings vert(const VertexAttributes& attribs) override
     {
         Varyings v2f{};
-        //v2f.position = MVP * vec4f(attribs.aPos, 1.0f);
+        v2f.position = MVP * vec4f(attribs.aPos, 1.0f);
 
-        auto world = M * vec4f(attribs.aPos, 1.0f);
-        auto view = V * world;
-        auto clip = P * view;
-        v2f.position = clip;
+        // Split for debugging purposes
+        //auto world = M * vec4f(attribs.aPos, 1.0f);
+        //auto view = V * world;
+        //auto clip = P * view;
+        //v2f.position = clip;
 
         v2f.color = attribs.aColor;
         v2f.texcoord = attribs.aTexCoord;
