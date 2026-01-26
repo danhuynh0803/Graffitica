@@ -39,6 +39,7 @@ endif()
 add_executable(tests
     math/test_vec.cpp
     math/test_matrix.cpp
+    math/perf_vector.cpp
 )
 
 target_include_directories(tests PUBLIC
