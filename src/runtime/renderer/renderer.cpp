@@ -390,11 +390,11 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
                                     depth,
                                     1.0f),
 
-                    .color      = vec4f(
-                                    u*primitive.color[0].x + v*primitive.color[1].x + w*primitive.color[2].x,
-                                    u*primitive.color[0].y + v*primitive.color[1].y + w*primitive.color[2].y,
-                                    u*primitive.color[0].z + v*primitive.color[1].z + w*primitive.color[2].z,
-                                    1.0f),
+                    .color = vec4f( 
+                                u*primitive.color[0].x + v*primitive.color[1].x + w*primitive.color[2].x,
+                                u*primitive.color[0].y + v*primitive.color[1].y + w*primitive.color[2].y,
+                                u*primitive.color[0].z + v*primitive.color[1].z + w*primitive.color[2].z,
+                                1.0f),
 
                     .texcoord = vec2f(
                                 u * primitive.texcoord[0].x + v * primitive.texcoord[1].x + w * primitive.texcoord[2].x,

@@ -56,6 +56,14 @@ CPUSwapchain::CPUSwapchain(const SwapchainProperties& props)
 void CPUSwapchain::UpdateBackBuffer(SDL_Surface* surfaceToUpdate)
 {
     const auto& currBackBufferImageView = m_PresentImageViews.at(m_CurrentFrameIndex);
+
+    // Format converting to match present surface
+    #pragma omp parallel for
+    //for (int i = 0; i < currBackBufferImageView.colorData.size(); ++i)
+    {
+        //currBackBufferImageView.data[i] = FORMAT_R8G8B8A8_UNORM::to(currBackBufferImageView.colorData[i]);
+    }
+
     std::memcpy(surfaceToUpdate->pixels, currBackBufferImageView.data, m_Width * m_Height * sizeof(FORMAT_R8G8B8A8_UNORM));
 
     m_CurrentFrameIndex = (m_CurrentFrameIndex + 1) % m_ImageCount;

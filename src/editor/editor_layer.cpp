@@ -27,13 +27,13 @@ namespace
     SimpleMesh simpleMesh
     {
         .m_Positions = {
-            { 0.0,  1.0, -1},
-            {-1.0, -1.0, -1},
-            { 1.0, -1.0, -1},
+            //{ 0.0,  1.0, -1},
+            //{-1.0, -1.0, -1},
+            //{ 1.0, -1.0, -1},
 
-            //{ 0.5, -0.5, 0},
-            //{ 0.5,  0.5, 0},
-            //{-0.5,  0.5, 0},
+            { 0.5, -0.5, 0},
+            { 0.5,  0.5, 0},
+            {-0.5,  0.5, 0},
         },
     };
 
@@ -41,8 +41,8 @@ namespace
     Buffer model{
         //.m_MeshData = std::make_shared<Mesh>("../assets/models/octahedron.obj"),
         //.m_MeshData = std::make_shared<Mesh>("../assets/models/ico.obj"),
-        //.m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
-        .m_MeshData = std::make_shared<Mesh>(simpleMesh)
+        .m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
+        //.m_MeshData = std::make_shared<Mesh>(simpleMesh)
     };
 
     RasterizerState drawState;
@@ -66,6 +66,7 @@ namespace
     // and conversion for formats in the backend?
     rhi::Image<FORMAT_D32_SFLOAT> depthImage(width, height);
     rhi::ImageView<FORMAT_D32_SFLOAT> depthView(depthImage);
+    std::vector<rhi::Framebuffer> presentFrameBuffers;
 }
 
 EditorLayer::EditorLayer(const std::string& name)
@@ -89,26 +90,20 @@ EditorLayer::EditorLayer(const std::string& name)
 
     gfxContext = rhi::CPUGraphicsContext::GetInstance();
     swapchain = gfxContext->GetSwapchain();
+
+    for (int i = 0; i < swapchain->GetImageCount(); ++i)
+    {
+        presentFrameBuffers.emplace_back(
+            rhi::Framebuffer{
+                .colorView = *swapchain->GetFrameImageView<FORMAT_R8G8B8A8_UNORM>(i),
+                .depthView = depthView,
+            }
+        );
+    }
 }
 
 void EditorLayer::OnUpdate(double dt)
 {
-    static rhi::Framebuffer presentFrameBuffers[3]
-    {
-        {
-            .colorView = *swapchain->GetFrameImageView<FORMAT_R8G8B8A8_UNORM>(0),
-            .depthView = depthView,
-        },
-        {
-            .colorView = *swapchain->GetFrameImageView<FORMAT_R8G8B8A8_UNORM>(1),
-            .depthView = depthView,
-        },
-        {
-            .colorView = *swapchain->GetFrameImageView<FORMAT_R8G8B8A8_UNORM>(2),
-            .depthView = depthView,
-        },
-    };
-
     // Render to current frame in-flight
     auto currFrameIndex = swapchain->GetCurrentBackBufferIndex();
 	auto& fb = presentFrameBuffers[currFrameIndex];

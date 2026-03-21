@@ -21,6 +21,7 @@ public:
     U32 GetWidth()  const { return m_Width; }
     U32 GetHeight() const { return m_Height; }
     U32 GetCurrentBackBufferIndex() const { return m_CurrentFrameIndex; }
+	U32 GetImageCount() const { return m_ImageCount; }
 
     template <typename TFormat>
     ImageView<TFormat>* GetCurrentFrameImageView() {
