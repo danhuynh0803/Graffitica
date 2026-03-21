@@ -416,14 +416,6 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
             //w2Row += b.x - a.x;
         }
     }
-
-    // Format converting to match present surface
-    const int viewSize = colorView.colorData.size();
-#pragma omp parallel for
-    for (int i = 0; i < viewSize; ++i)
-    {
-        colorView.data[i] = FORMAT_R8G8B8A8_UNORM::to(colorView.colorData[i]);
-    }
 }
 
 /*

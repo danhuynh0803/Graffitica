@@ -59,7 +59,7 @@ void CPUSwapchain::UpdateBackBuffer(SDL_Surface* surfaceToUpdate)
 
     // Format converting to match present surface
     #pragma omp parallel for
-    //for (int i = 0; i < currBackBufferImageView.colorData.size(); ++i)
+    for (int i = 0; i < currBackBufferImageView.colorData.size(); ++i)
     {
         //currBackBufferImageView.data[i] = FORMAT_R8G8B8A8_UNORM::to(currBackBufferImageView.colorData[i]);
     }

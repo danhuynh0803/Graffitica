@@ -52,8 +52,8 @@ namespace
     constexpr uint32_t width = 1600;
     constexpr uint32_t height = 900;
 
-    rhi::Image<FORMAT_R8G8B8A8_UNORM> colorImage(width, height);
-    rhi::ImageView<FORMAT_R8G8B8A8_UNORM> colorView(colorImage);
+    //rhi::Image<FORMAT_R8G8B8A8_UNORM> colorImage(width, height);
+    //rhi::ImageView<FORMAT_R8G8B8A8_UNORM> colorView(colorImage);
 
     gr::rhi::TestShader shader{};
 
@@ -165,6 +165,14 @@ void EditorLayer::OnUpdate(double dt)
     gr::rhi::cmd::Clear(fb.depthView, 1.0);
     //gr::rhi::cmd::DrawIndexedTiled(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
     gr::rhi::cmd::DrawIndexedImmediate(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
+
+    // Format converting to match present surface
+    const int viewSize = fb.colorView.colorData.size();
+#pragma omp parallel for
+    for (int i = 0; i < viewSize; ++i)
+    {
+        fb.colorView.data[i] = FORMAT_R8G8B8A8_UNORM::to(fb.colorView.colorData[i]);
+    }
 }
 
 void EditorLayer::OnEvent(Event& event)
