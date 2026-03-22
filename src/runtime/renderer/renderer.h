@@ -25,8 +25,6 @@ void Clear(ImageView<FORMAT>& view, const vec4f& clearColor)
     {
         view.colorData[i] = clearColor;
 	}
-    //std::fill_n(view.data, size, FORMAT::to(clearColor));
-
 }
 
 template<typename FORMAT>

@@ -23,8 +23,8 @@ namespace
 
 struct Framebuffer
 {
-    ImageView<FORMAT_R8G8B8A8_UNORM> colorView;
-    ImageView<FORMAT_D32_SFLOAT> depthView;
+    ImageView<FORMAT_R8G8B8A8_UNORM> *colorView;
+    ImageView<FORMAT_D32_SFLOAT> *depthView;
 
     // TODO list of color attachments
     //ColorVariants colorAttachment;

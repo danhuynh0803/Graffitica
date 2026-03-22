@@ -266,7 +266,6 @@ auto NDCToViewport = [&](const vec4f& p, int width, int height)
     {
         vec4f coords(
             (0.5f*p.x + 0.5f) * width,
-            //(0.5f * p.y + 0.5f)* height,
             (1.0f - (0.5f*p.y + 0.5)) * height, // map to y-up space
             p.z, // TODO remap from [-1,1] -> [0,1]
             1.0
@@ -276,7 +275,8 @@ auto NDCToViewport = [&](const vec4f& p, int width, int height)
 
 void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
 {
-    SCOPED_TIMER
+    // TODO Log this to profiler and not output to console
+    //SCOPED_TIMER
 
     const auto& fb = cmd.framebuffer;
     auto& colorView = fb->colorView;
@@ -288,10 +288,10 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
     const auto& positions = vb.m_Positions;
     const auto& colors = vb.m_VertexColors;
     const auto& verts = vb.m_MeshData->GetVertices();
-    const int width = fb->colorView.width;
-    const int height = fb->colorView.height;
+    const int width = fb->colorView->width;
+    const int height = fb->colorView->height;
 
-    std::vector<vec4f>& colorData = colorView.colorData;
+    std::vector<vec4f>& colorData = colorView->colorData;
 
     for (int tri = firstIndex; tri < indexCount; ++tri)
     {
@@ -339,8 +339,8 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
 
         // TODO profile with some timer utilities
         // SCOPED_TIMER()
-        const float width = colorView.width;
-        const float height = colorView.height;
+        const float width = colorView->width;
+        const float height = colorView->height;
 
         // clipping
         int minX = std::clamp(std::min(a.x, std::min(b.x, c.x)), 0.0f, width-1);
@@ -373,13 +373,13 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
 
                 // TODO incorporate depth state
                 float depth = u * a.z + v * b.z + w * c.z;
-                if (depth >= depthView.at(x, y).Get())
+                if (depth >= depthView->at(x, y).Get())
                 {
                     continue;
                 }
 
                 // update with new depth value
-                depthView.at(x, y).depth = depth;
+                depthView->at(x, y).depth = depth;
 
                 // FS
                 // Apply barycentric weights for all varying attributes
@@ -405,7 +405,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
 
                 // TODO blending
                 //colorView.at(x, y) = FORMAT_R8G8B8A8_UNORM::to(fragColor);
-                colorView.Store(x,y,fragColor);
+                colorView->Store(x,y,fragColor);
                 
                 //u += b.y - c.y;
                 //v += c.y - a.y;

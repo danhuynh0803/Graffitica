@@ -95,8 +95,8 @@ EditorLayer::EditorLayer(const std::string& name)
     {
         presentFrameBuffers.emplace_back(
             rhi::Framebuffer{
-                .colorView = *swapchain->GetFrameImageView<FORMAT_R8G8B8A8_UNORM>(i),
-                .depthView = depthView,
+                .colorView = swapchain->GetFrameImageView<FORMAT_R8G8B8A8_UNORM>(i),
+                .depthView = &depthView,
             }
         );
     }
@@ -117,7 +117,7 @@ void EditorLayer::OnUpdate(double dt)
 
     const float amp = 1.f;
     const float freq = 1.0f;
-    const float rot = 0.; //time;
+    const float rot = time;
     modelMatrix.m_Data[0][0] = amp * cos(rot);
     modelMatrix.m_Data[0][2] = amp * sin(rot);
     modelMatrix.m_Data[2][0] = amp * -sin(rot);
@@ -161,18 +161,10 @@ void EditorLayer::OnUpdate(double dt)
     };
 
     // TODO switch between tiled and immediate depending on vertex counts
-    gr::rhi::cmd::Clear(fb.colorView, { .4, .5, .7, 1.0 });
-    gr::rhi::cmd::Clear(fb.depthView, 1.0);
+    gr::rhi::cmd::Clear(*fb.colorView, { .4, .5, .7, 1.0 });
+    gr::rhi::cmd::Clear(*fb.depthView, 1.0);
     //gr::rhi::cmd::DrawIndexedTiled(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
     gr::rhi::cmd::DrawIndexedImmediate(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
-
-    // Format converting to match present surface
-    const int viewSize = fb.colorView.colorData.size();
-#pragma omp parallel for
-    for (int i = 0; i < viewSize; ++i)
-    {
-        fb.colorView.data[i] = FORMAT_R8G8B8A8_UNORM::to(fb.colorView.colorData[i]);
-    }
 }
 
 void EditorLayer::OnEvent(Event& event)

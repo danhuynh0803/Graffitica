@@ -58,10 +58,12 @@ void CPUSwapchain::UpdateBackBuffer(SDL_Surface* surfaceToUpdate)
     const auto& currBackBufferImageView = m_PresentImageViews.at(m_CurrentFrameIndex);
 
     // Format converting to match present surface
+    // TODO: better than it's original location in renderer to quickly test,
+    // but should consolidate with cpu blit command to match rhi
     #pragma omp parallel for
     for (int i = 0; i < currBackBufferImageView.colorData.size(); ++i)
     {
-        //currBackBufferImageView.data[i] = FORMAT_R8G8B8A8_UNORM::to(currBackBufferImageView.colorData[i]);
+        currBackBufferImageView.data[i] = FORMAT_R8G8B8A8_UNORM::to(currBackBufferImageView.colorData[i]);
     }
 
     std::memcpy(surfaceToUpdate->pixels, currBackBufferImageView.data, m_Width * m_Height * sizeof(FORMAT_R8G8B8A8_UNORM));
