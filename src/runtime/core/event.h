@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/mouse_codes.h"
+
 namespace gr
 {
 
@@ -17,8 +19,9 @@ enum class EventType
     WINDOW_RESIZE,
     KEY_PRESSED,
     KEY_RELEASED,
-    MOUSE_BUTTON_PRESSED,
-    MOUSE_BUTTON_RELEASED,
+    MOUSE_BUTTON_HELD,
+    MOUSE_BUTTON_DOWN,
+    MOUSE_BUTTON_UP,
     MOUSE_MOVED,
     //MOUSE_BUTTON_SCROLLED,
 };
@@ -97,6 +100,39 @@ public:
 
 private:
     float m_MouseX, m_MouseY;
+};
+
+
+class MouseButtonEvent : public Event
+{
+public:
+    inline MouseCode GetMouseButton() const { return m_Button; }
+
+    //EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
+protected:
+    MouseButtonEvent(MouseCode button)
+        : m_Button(button)
+    {}
+
+    EVENT_CLASS_TYPE(MOUSE_BUTTON_HELD)
+
+private:
+    MouseCode m_Button;
+};
+
+class MouseButtonPressedEvent : public Event
+{
+public:
+    inline MouseCode GetMouseButtonDown() const { return m_ButtonDown; }
+
+    MouseButtonPressedEvent(MouseCode button)
+        : m_ButtonDown(button)
+    {}
+
+    EVENT_CLASS_TYPE(MOUSE_BUTTON_DOWN)
+
+private:
+    MouseCode m_ButtonDown;
 };
 
 }

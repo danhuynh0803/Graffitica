@@ -41,12 +41,25 @@ void Window::OnUpdate()
     for (SDL_Event event; SDL_PollEvent(&event);) switch (event.type)
     {
     case SDL_EVENT_QUIT: {
-		WindowCloseEvent closeEvent;
+        WindowCloseEvent closeEvent;
+        data.eventCallback(closeEvent);
         break;
     }
     case SDL_EVENT_MOUSE_MOTION: {
-		MouseMovedEvent mouseMovedEvent(event.motion.x, event.motion.y);
-		data.eventCallback(mouseMovedEvent);
+        MouseMovedEvent mouseMovedEvent(event.motion.x, event.motion.y);
+        data.eventCallback(mouseMovedEvent);
+        break;
+    }
+    case SDL_EVENT_MOUSE_BUTTON_DOWN: {
+        MouseCode buttonCode = static_cast<MouseCode>(event.button.button);
+        MouseButtonPressedEvent mouseButtonDownEvent(buttonCode);
+        data.eventCallback(mouseButtonDownEvent);
+        break;
+    }
+    case SDL_EVENT_MOUSE_BUTTON_UP: {
+        MouseCode buttonCode = static_cast<MouseCode>(event.button.button);
+        //MouseButtonPressedEvent mouseButtonDownEvent(buttonCode);
+        //data.eventCallback(mouseButtonDownEvent);
         break;
     }
     case SDL_EVENT_WINDOW_RESIZED:
@@ -55,6 +68,7 @@ void Window::OnUpdate()
         m_PresentSurface = nullptr;
         m_Width = event.window.data1;
         m_Height = event.window.data2;
+        break;
     }
 
     // Probably better to abstract to swapchain interface
@@ -89,7 +103,7 @@ gr::rhi::ImageFormat Window::GetSurfaceFormat() const
 
 void Window::SetEventCallback(const EventCallbackFn& callback)
 {
-	m_WindowData.eventCallback = callback;
+    m_WindowData.eventCallback = callback;
 }
 
 }

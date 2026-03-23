@@ -18,6 +18,10 @@ public:
     //virtual void OnOverlayUpdate() {};
     virtual void OnEvent(Event& event) override;
 
+    bool OnWindowResize(WindowResizeEvent& e);
+    bool OnMouseMoved(MouseMovedEvent& e);
+    bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
+
 private:
     std::string m_Name;
 };

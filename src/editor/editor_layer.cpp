@@ -14,6 +14,7 @@
 #include "editor_layer.h"
 #include "rhi/cpu/cpu_graphics_context.h"
 #include <numbers>
+#include <functional>
 
 namespace gr
 {
@@ -169,7 +170,28 @@ void EditorLayer::OnUpdate(double dt)
 
 void EditorLayer::OnEvent(Event& event)
 {
+    EventDispatcher disp(event);
+     // TODO add more events as needed
+     disp.Dispatch<WindowResizeEvent>(std::bind(&EditorLayer::OnWindowResize, this, std::placeholders::_1));
+     disp.Dispatch<MouseMovedEvent>(std::bind(&EditorLayer::OnMouseMoved, this, std::placeholders::_1));
+     disp.Dispatch<MouseButtonPressedEvent>(std::bind(&EditorLayer::OnMouseButtonPressed, this, std::placeholders::_1));
+}
 
+bool EditorLayer::OnWindowResize(WindowResizeEvent& e)
+{
+    return false;
+}
+
+bool EditorLayer::OnMouseMoved(MouseMovedEvent& e)
+{
+    //std::cout << "Mouse moved: " << e.GetX() << ", " << e.GetY() << std::endl;
+    return false;
+}
+
+bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e)
+{
+    //std::cout << "Mouse button pressed: " << e.GetMouseButtonDown() << std::endl;
+    return false;
 }
 
 };
