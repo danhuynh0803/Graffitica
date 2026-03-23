@@ -54,6 +54,8 @@ public:
         return persp;
     }
 
+    friend class CameraController;
+
 private:
     vec3f m_LookFrom;
     vec3f m_LookAt;
