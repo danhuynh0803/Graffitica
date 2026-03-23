@@ -47,10 +47,12 @@ private:
     SDL_InitFlags m_InitFlags = SDL_INIT_VIDEO;
     SDL_Window* m_Window;
     SDL_Surface* m_PresentSurface = nullptr;
-    struct MouseEvent
+
+    struct WindowData
     {
-        int x = 0, y = 0;
-    } m_MouseEvent;
+        WindowData() = default;
+        EventCallbackFn eventCallback;
+    } m_WindowData;
 
     //std::shared_ptr<gr::rhi::IGraphicsContext> m_GraphicsContext;
     gr::rhi::IGraphicsContext* m_GraphicsContext;

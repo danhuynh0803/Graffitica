@@ -13,7 +13,7 @@ Application::Application(const ApplicationProperties& props)
 {
     // Initialize various subsystems
     m_Window = Window::Create({ props.name, props.width, props.height });
-
+	m_Window->SetEventCallback(std::bind(&Application::OnEvent, this, std::placeholders::_1));
     m_Instance = this;
 }
 
@@ -59,16 +59,31 @@ void Application::OnEvent(Event& e)
 
     disp.Dispatch<WindowResizeEvent>(std::bind(&Application::OnWindowResize, this, std::placeholders::_1));
     disp.Dispatch<WindowCloseEvent>(std::bind(&Application::OnWindowClose, this, std::placeholders::_1));
+	disp.Dispatch<MouseMovedEvent>(std::bind(&Application::OnMouseMoved, this, std::placeholders::_1));
+
+    for (auto reverseIt = m_LayerStack.rbegin(); reverseIt != m_LayerStack.rend(); ++reverseIt)
+    {
+		// Don't propagate the event to other layers if it's already handled by one layer
+        if (e.isHandled)
+            break;
+        (*reverseIt)->OnEvent(e);
+	}
 }
 
 bool Application::OnWindowResize(const WindowResizeEvent& e)
 {
-    return true;
+    return false;
 }
 
 bool Application::OnWindowClose(const WindowCloseEvent& e)
 {
     m_IsRunning = false;
+    return true;
+}
+
+bool Application::OnMouseMoved(const MouseMovedEvent& e)
+{
+	std::cout << "Mouse moved to (" << e.GetX() << ", " << e.GetY() << ")\n";
     return true;
 }
 

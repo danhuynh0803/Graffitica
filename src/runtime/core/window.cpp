@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include "core/window.h"
 #include "rhi/cpu/cpu_graphics_context.h"
+#include "core/event.h"
 
 namespace gr
 {
@@ -35,16 +36,19 @@ Window::~Window()
 
 void Window::OnUpdate()
 {
+    WindowData& data = m_WindowData;
     // TODO create event callbacks SDL_AddEventWatch
     for (SDL_Event event; SDL_PollEvent(&event);) switch (event.type)
     {
-    case SDL_EVENT_QUIT:
-        //running = false;
+    case SDL_EVENT_QUIT: {
+		WindowCloseEvent closeEvent;
         break;
-    case SDL_EVENT_MOUSE_MOTION:
-        m_MouseEvent.x = event.motion.x;
-        m_MouseEvent.y = event.motion.y;
+    }
+    case SDL_EVENT_MOUSE_MOTION: {
+		MouseMovedEvent mouseMovedEvent(event.motion.x, event.motion.y);
+		data.eventCallback(mouseMovedEvent);
         break;
+    }
     case SDL_EVENT_WINDOW_RESIZED:
         if (m_PresentSurface)
             SDL_DestroySurface(m_PresentSurface);
@@ -81,6 +85,11 @@ gr::rhi::ImageFormat Window::GetSurfaceFormat() const
     }
 
     return gr::rhi::ImageFormat::UNDEFINED;
+}
+
+void Window::SetEventCallback(const EventCallbackFn& callback)
+{
+	m_WindowData.eventCallback = callback;
 }
 
 }

@@ -5,9 +5,9 @@ namespace gr
 
 #define BIT(x) (1 << x)
 
-#define EVENT_CLASS_TYPE(eventType)  static EventType GetStaticType() { return EventType::eventType; }                \
-                                virtual EventType GetEventType() const override { return GetStaticType(); } \
-                                //virtual const char* GetName() const override { return #eventType; }
+#define EVENT_CLASS_TYPE(eventType) static EventType GetStaticType() { return EventType::eventType; }           \
+                                    virtual EventType GetEventType() const override { return GetStaticType(); } \
+                                    virtual const char* GetName() const override { return #eventType; }
 
 enum class EventType
 {
