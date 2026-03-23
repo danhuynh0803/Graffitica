@@ -20,6 +20,7 @@ public:
 
     bool OnWindowResize(WindowResizeEvent& e);
     bool OnMouseMoved(MouseMovedEvent& e);
+    bool OnMouseButtonHeld(MouseButtonEvent& e);
     bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
 
 private:

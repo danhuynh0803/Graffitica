@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/mouse_codes.h"
+#include "core/types.h"
 
 namespace gr
 {
@@ -106,18 +107,18 @@ private:
 class MouseButtonEvent : public Event
 {
 public:
-    inline MouseCode GetMouseButton() const { return m_Button; }
+    inline U32 GetMouseButtons() const { return m_Buttons; }
+    bool IsButtonDown(MouseCode button) const { return (m_Buttons & static_cast<U32>(button)) != 0; }
 
     //EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
-protected:
-    MouseButtonEvent(MouseCode button)
-        : m_Button(button)
+    MouseButtonEvent(U32 buttons)
+        : m_Buttons(buttons)
     {}
 
     EVENT_CLASS_TYPE(MOUSE_BUTTON_HELD)
 
 private:
-    MouseCode m_Button;
+    U32 m_Buttons;
 };
 
 class MouseButtonPressedEvent : public Event

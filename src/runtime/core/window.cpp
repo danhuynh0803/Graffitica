@@ -71,6 +71,19 @@ void Window::OnUpdate()
         break;
     }
 
+    // TODO keyboard and mouse held down state
+    const bool* keyState = SDL_GetKeyboardState(NULL);
+    if (keyState != nullptr) {
+        // Process Event since something is else down
+        //std::cout << "Process KeyEvent since something is else down" << std::endl;
+    }
+
+    const auto mouseStateFlags = SDL_GetMouseState(NULL, NULL);
+    if (mouseStateFlags != 0) {
+        MouseButtonEvent mouseButtonEvent(mouseStateFlags);
+        data.eventCallback(mouseButtonEvent);
+    }
+
     // Probably better to abstract to swapchain interface
     // Update OnResize for Swapchain
     if (!m_PresentSurface)

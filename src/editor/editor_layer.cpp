@@ -107,7 +107,7 @@ void EditorLayer::OnUpdate(double dt)
 {
     // Render to current frame in-flight
     auto currFrameIndex = swapchain->GetCurrentBackBufferIndex();
-	auto& fb = presentFrameBuffers[currFrameIndex];
+    auto& fb = presentFrameBuffers[currFrameIndex];
 
     // TODO view projection calculation might be incorrect
     // not working for certain cases, use identity for now
@@ -171,10 +171,11 @@ void EditorLayer::OnUpdate(double dt)
 void EditorLayer::OnEvent(Event& event)
 {
     EventDispatcher disp(event);
-     // TODO add more events as needed
-     disp.Dispatch<WindowResizeEvent>(std::bind(&EditorLayer::OnWindowResize, this, std::placeholders::_1));
-     disp.Dispatch<MouseMovedEvent>(std::bind(&EditorLayer::OnMouseMoved, this, std::placeholders::_1));
-     disp.Dispatch<MouseButtonPressedEvent>(std::bind(&EditorLayer::OnMouseButtonPressed, this, std::placeholders::_1));
+    // TODO add more events as needed
+    disp.Dispatch<WindowResizeEvent>(std::bind(&EditorLayer::OnWindowResize, this, std::placeholders::_1));
+    disp.Dispatch<MouseMovedEvent>(std::bind(&EditorLayer::OnMouseMoved, this, std::placeholders::_1));
+    disp.Dispatch<MouseButtonPressedEvent>(std::bind(&EditorLayer::OnMouseButtonPressed, this, std::placeholders::_1));
+    disp.Dispatch<MouseButtonEvent>(std::bind(&EditorLayer::OnMouseButtonHeld, this, std::placeholders::_1));
 }
 
 bool EditorLayer::OnWindowResize(WindowResizeEvent& e)
@@ -188,9 +189,20 @@ bool EditorLayer::OnMouseMoved(MouseMovedEvent& e)
     return false;
 }
 
+bool EditorLayer::OnMouseButtonHeld(MouseButtonEvent& e)
+{
+    if (e.IsButtonDown(MOUSE_BUTTON_RIGHT))
+    {
+        std::cout << "Mouse button held: " << e.GetMouseButtons() << std::endl;
+    }
+    return false;
+}
+
 bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e)
 {
-    //std::cout << "Mouse button pressed: " << e.GetMouseButtonDown() << std::endl;
+    if (e.GetMouseButtonDown() == MOUSE_BUTTON_RIGHT)
+    {
+    }
     return false;
 }
 
