@@ -71,7 +71,7 @@ namespace
     rhi::ImageView<FORMAT_D32_SFLOAT> depthView(depthImage);
     std::vector<rhi::Framebuffer> presentFrameBuffers;
 
-    CameraController cameraController;
+    CameraController cameraController(&camera);
 }
 
 EditorLayer::EditorLayer(const std::string& name)
@@ -109,6 +109,8 @@ EditorLayer::EditorLayer(const std::string& name)
 
 void EditorLayer::OnUpdate(double dt)
 {
+    cameraController.OnUpdate(dt);
+
     //SCOPED_TIMER
     // Render to current frame in-flight
     auto currFrameIndex = swapchain->GetCurrentBackBufferIndex();

@@ -197,4 +197,9 @@ inline vec3<T> unit_vector(vec3<T> v) {
     return v / v.length();
 }
 
+template <typename T>
+inline vec3<T> normalize(vec3<T> v) {
+    return v / v.length();
+}
+
 

@@ -78,14 +78,17 @@ void Window::OnUpdate()
 
     // Keyboard and mouse held down state
     const bool* keyState = SDL_GetKeyboardState(NULL);
-    KeyHeldEvent keyHeldEvent(keyState);
-    data.eventCallback(keyHeldEvent);
+    //KeyHeldEvent keyHeldEvent(keyState);
+    //data.eventCallback(keyHeldEvent);
 
     const auto mouseStateFlags = SDL_GetMouseState(NULL, NULL);
     if (mouseStateFlags != 0) {
-        MouseButtonHeldEvent mouseButtonEvent(mouseStateFlags);
-        data.eventCallback(mouseButtonEvent);
+        //MouseButtonHeldEvent mouseButtonEvent(mouseStateFlags);
+        //data.eventCallback(mouseButtonEvent);
     }
+
+    InputStateEvent inputStateEvent(keyState, mouseStateFlags);
+    data.eventCallback(inputStateEvent);
 
     // Probably better to abstract to swapchain interface
     // Update OnResize for Swapchain

@@ -22,6 +22,10 @@ public:
 
     mat44 GetView()
     {
+        //F = unit_vector(m_LookFrom - m_LookAt);      // +z
+        //R = unit_vector(cross(vec3f(0, 1, 0), F));   // +x
+        //U = cross(F, R);
+
         // view matrix values, assuming column vector notation
         // TODO construct with initializer lists
         mat44 view{};
@@ -43,7 +47,7 @@ public:
         mat44 persp{};
         auto& m = persp.m_Data;
 
-        float rad = vfov * (std::_Pi_val / 180);
+        float rad = vfov * (std::numbers::pi / 180);
         m[0][0] = 1.0f / (std::tan(rad * 0.5f)*aspect);
         m[1][1] = 1.0f / std::tan(rad * 0.5f);
 

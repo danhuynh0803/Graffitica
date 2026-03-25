@@ -180,4 +180,26 @@ private:
     const bool* m_KeyStates;
 };
 
+class InputStateEvent final : public Event
+{
+public:
+    InputStateEvent(const bool* keyStates, U32 mouseStates)
+        : m_KeyStates(keyStates), m_MouseStates(mouseStates)
+    {
+    }
+
+    inline bool IsKeyPressed(ScanCode key) const {
+        return m_KeyStates[static_cast<U32>(key)];
+    }
+
+    inline bool IsMouseButtonPressed(MouseCode button) const {
+        return (m_MouseStates & static_cast<U32>(button)) != 0;
+    }
+
+    EVENT_CLASS_TYPE(KEY_HELD)
+
+private:
+    const bool* m_KeyStates;
+    U32 m_MouseStates;
+};
 }
