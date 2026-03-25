@@ -62,6 +62,11 @@ void Window::OnUpdate()
         //data.eventCallback(mouseButtonDownEvent);
         break;
     }
+    case SDL_EVENT_MOUSE_WHEEL: {
+        MouseScrolledEvent mouseScrolledEvent(event.wheel.x, event.wheel.y);
+        data.eventCallback(mouseScrolledEvent);
+        break;
+    }
     case SDL_EVENT_WINDOW_RESIZED:
         if (m_PresentSurface)
             SDL_DestroySurface(m_PresentSurface);
@@ -73,10 +78,6 @@ void Window::OnUpdate()
 
     // TODO keyboard and mouse held down state
     const bool* keyState = SDL_GetKeyboardState(NULL);
-    if (keyState != nullptr) {
-        // Process Event since something is else down
-        //std::cout << "Process KeyEvent since something is else down" << std::endl;
-    }
 
     const auto mouseStateFlags = SDL_GetMouseState(NULL, NULL);
     if (mouseStateFlags != 0) {

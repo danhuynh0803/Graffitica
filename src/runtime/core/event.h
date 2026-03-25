@@ -20,11 +20,11 @@ enum class EventType
     WINDOW_RESIZE,
     KEY_PRESSED,
     KEY_RELEASED,
+    MOUSE_MOVED,
     MOUSE_BUTTON_HELD,
     MOUSE_BUTTON_DOWN,
     MOUSE_BUTTON_UP,
-    MOUSE_MOVED,
-    //MOUSE_BUTTON_SCROLLED,
+    MOUSE_BUTTON_SCROLLED,
 };
 
 enum class EventCategory
@@ -134,6 +134,22 @@ public:
 
 private:
     MouseCode m_ButtonDown;
+};
+
+class MouseScrolledEvent : public Event
+{
+public:
+    MouseScrolledEvent(float xOffset, float yOffset)
+        : m_XOffset(xOffset), m_YOffset(yOffset)
+    {}
+    
+    float GetXOffset() const { return m_XOffset; }
+    float GetYOffset() const { return m_YOffset; }
+    
+    EVENT_CLASS_TYPE(MOUSE_BUTTON_SCROLLED)
+
+private:
+    float m_XOffset, m_YOffset;
 };
 
 }

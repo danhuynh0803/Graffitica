@@ -9,6 +9,7 @@
 #include "rhi/shader.h"
 #include "rhi/command_buffer.h"
 #include "renderer/camera.h"
+#include "renderer/camera_controller.h"
 #include "renderer/renderer.h"
 #include "renderer/mesh.h"
 #include "editor_layer.h"
@@ -105,6 +106,7 @@ EditorLayer::EditorLayer(const std::string& name)
 
 void EditorLayer::OnUpdate(double dt)
 {
+    SCOPED_TIMER
     // Render to current frame in-flight
     auto currFrameIndex = swapchain->GetCurrentBackBufferIndex();
     auto& fb = presentFrameBuffers[currFrameIndex];
@@ -193,7 +195,7 @@ bool EditorLayer::OnMouseButtonHeld(MouseButtonEvent& e)
 {
     if (e.IsButtonDown(MOUSE_BUTTON_RIGHT))
     {
-        std::cout << "Mouse button held: " << e.GetMouseButtons() << std::endl;
+        //std::cout << "Mouse button held: " << e.GetMouseButtons() << std::endl;
     }
     return false;
 }
