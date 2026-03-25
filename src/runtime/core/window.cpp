@@ -46,7 +46,7 @@ void Window::OnUpdate()
         break;
     }
     case SDL_EVENT_MOUSE_MOTION: {
-        MouseMovedEvent mouseMovedEvent(event.motion.x, event.motion.y);
+        MouseMovedEvent mouseMovedEvent(event.motion.state, event.motion.x, event.motion.y, event.motion.xrel, event.motion.yrel);
         data.eventCallback(mouseMovedEvent);
         break;
     }

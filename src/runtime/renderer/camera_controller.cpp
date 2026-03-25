@@ -11,7 +11,6 @@ void CameraController::OnUpdate(float dt)
 void CameraController::OnEvent(Event& e)
 {
     EventDispatcher disp(e);
-    // TODO add more events as needed
     disp.Dispatch<KeyHeldEvent>(std::bind(&CameraController::OnKeyHeld, this, std::placeholders::_1));
     disp.Dispatch<MouseMovedEvent>(std::bind(&CameraController::OnMouseMoved, this, std::placeholders::_1));
     disp.Dispatch<MouseButtonPressedEvent>(std::bind(&CameraController::OnMouseButtonPressed, this, std::placeholders::_1));
@@ -38,6 +37,9 @@ bool CameraController::OnKeyHeld(KeyHeldEvent& e)
 
 bool CameraController::OnMouseMoved(MouseMovedEvent& e)
 {
+    if (e.IsButtonPressed(static_cast<U32>(MOUSE_BUTTON_RIGHT) | static_cast<U32>(MOUSE_BUTTON_LEFT))) {
+        std::cout << "Mouse moved with either pressed: " << e.GetXRelative() << ", " << e.GetYRelative() << std::endl;
+    }
     return false;
 }
 

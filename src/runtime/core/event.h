@@ -92,17 +92,26 @@ private:
 class MouseMovedEvent final : public Event
 {
 public:
-    MouseMovedEvent(float x, float y)
-        : m_MouseX(x), m_MouseY(y)
+    MouseMovedEvent(U32 buttonState, float x, float y, float xrel, float yrel)
+        : m_ButtonState(buttonState), m_MouseX(x), m_MouseY(y), m_XRelative(xrel), m_YRelative(yrel)
     {}
 
+    bool IsButtonPressed(MouseCode code) const { return static_cast<U32>(code) & m_ButtonState; }
+    // Allow checking multiple buttons at once by passing in a bitmask of button flags
+    bool IsButtonPressed(U32 buttonFlags) const { return buttonFlags & m_ButtonState; }
+    
     float GetX() const { return m_MouseX; }
     float GetY() const { return m_MouseY; }
+    float GetXRelative() const { return m_XRelative; }
+    float GetYRelative() const { return m_YRelative; }
 
     EVENT_CLASS_TYPE(MOUSE_MOVED)
 
 private:
+    U32 m_ButtonState;
     float m_MouseX, m_MouseY;
+    float m_XRelative, m_YRelative;
+
 };
 
 
