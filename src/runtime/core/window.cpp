@@ -76,12 +76,14 @@ void Window::OnUpdate()
         break;
     }
 
-    // TODO keyboard and mouse held down state
+    // Keyboard and mouse held down state
     const bool* keyState = SDL_GetKeyboardState(NULL);
+    KeyHeldEvent keyHeldEvent(keyState);
+    data.eventCallback(keyHeldEvent);
 
     const auto mouseStateFlags = SDL_GetMouseState(NULL, NULL);
     if (mouseStateFlags != 0) {
-        MouseButtonEvent mouseButtonEvent(mouseStateFlags);
+        MouseButtonHeldEvent mouseButtonEvent(mouseStateFlags);
         data.eventCallback(mouseButtonEvent);
     }
 

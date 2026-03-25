@@ -20,8 +20,9 @@ public:
 
     bool OnWindowResize(WindowResizeEvent& e);
     bool OnMouseMoved(MouseMovedEvent& e);
-    bool OnMouseButtonHeld(MouseButtonEvent& e);
+    bool OnMouseButtonHeld(MouseButtonHeldEvent& e);
     bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
+    bool OnMouseScrolled(MouseScrolledEvent& e);
 
 private:
     std::string m_Name;

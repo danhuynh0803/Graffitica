@@ -16,6 +16,7 @@
 #include "rhi/cpu/cpu_graphics_context.h"
 #include <numbers>
 #include <functional>
+#include "renderer/camera_controller.h"
 
 namespace gr
 {
@@ -69,6 +70,8 @@ namespace
     rhi::Image<FORMAT_D32_SFLOAT> depthImage(width, height);
     rhi::ImageView<FORMAT_D32_SFLOAT> depthView(depthImage);
     std::vector<rhi::Framebuffer> presentFrameBuffers;
+
+    CameraController cameraController;
 }
 
 EditorLayer::EditorLayer(const std::string& name)
@@ -106,7 +109,7 @@ EditorLayer::EditorLayer(const std::string& name)
 
 void EditorLayer::OnUpdate(double dt)
 {
-    SCOPED_TIMER
+    //SCOPED_TIMER
     // Render to current frame in-flight
     auto currFrameIndex = swapchain->GetCurrentBackBufferIndex();
     auto& fb = presentFrameBuffers[currFrameIndex];
@@ -172,12 +175,15 @@ void EditorLayer::OnUpdate(double dt)
 
 void EditorLayer::OnEvent(Event& event)
 {
+    cameraController.OnEvent(event);
+
     EventDispatcher disp(event);
     // TODO add more events as needed
     disp.Dispatch<WindowResizeEvent>(std::bind(&EditorLayer::OnWindowResize, this, std::placeholders::_1));
     disp.Dispatch<MouseMovedEvent>(std::bind(&EditorLayer::OnMouseMoved, this, std::placeholders::_1));
     disp.Dispatch<MouseButtonPressedEvent>(std::bind(&EditorLayer::OnMouseButtonPressed, this, std::placeholders::_1));
-    disp.Dispatch<MouseButtonEvent>(std::bind(&EditorLayer::OnMouseButtonHeld, this, std::placeholders::_1));
+    disp.Dispatch<MouseButtonHeldEvent>(std::bind(&EditorLayer::OnMouseButtonHeld, this, std::placeholders::_1));
+    disp.Dispatch<MouseScrolledEvent>(std::bind(&EditorLayer::OnMouseScrolled, this, std::placeholders::_1));
 }
 
 bool EditorLayer::OnWindowResize(WindowResizeEvent& e)
@@ -191,7 +197,7 @@ bool EditorLayer::OnMouseMoved(MouseMovedEvent& e)
     return false;
 }
 
-bool EditorLayer::OnMouseButtonHeld(MouseButtonEvent& e)
+bool EditorLayer::OnMouseButtonHeld(MouseButtonHeldEvent& e)
 {
     if (e.IsButtonDown(MOUSE_BUTTON_RIGHT))
     {
@@ -202,9 +208,15 @@ bool EditorLayer::OnMouseButtonHeld(MouseButtonEvent& e)
 
 bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e)
 {
-    if (e.GetMouseButtonDown() == MOUSE_BUTTON_RIGHT)
+    if (e.GetMouseButtonPressed() == MOUSE_BUTTON_RIGHT)
     {
     }
+    return false;
+}
+
+bool EditorLayer::OnMouseScrolled(MouseScrolledEvent& e)
+{
+    std::cout << "Mouse scrolled: " << e.GetXOffset() << ", " << e.GetYOffset() << std::endl;
     return false;
 }
 

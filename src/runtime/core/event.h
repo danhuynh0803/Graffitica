@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/keyboard_codes.h"
 #include "core/mouse_codes.h"
 #include "core/types.h"
 
@@ -20,10 +21,11 @@ enum class EventType
     WINDOW_RESIZE,
     KEY_PRESSED,
     KEY_RELEASED,
+    KEY_HELD,
     MOUSE_MOVED,
+    MOUSE_BUTTON_PRESSED,
+    MOUSE_BUTTON_RELEASED,
     MOUSE_BUTTON_HELD,
-    MOUSE_BUTTON_DOWN,
-    MOUSE_BUTTON_UP,
     MOUSE_BUTTON_SCROLLED,
 };
 
@@ -69,7 +71,7 @@ private:
     Event& m_Event;
 };
 
-class WindowResizeEvent : public Event
+class WindowResizeEvent final : public Event
 {
 public:
 
@@ -78,7 +80,7 @@ public:
 private:
 };
 
-class WindowCloseEvent : public Event
+class WindowCloseEvent final : public Event
 {
 public:
 
@@ -87,7 +89,7 @@ public:
 private:
 };
 
-class MouseMovedEvent : public Event
+class MouseMovedEvent final : public Event
 {
 public:
     MouseMovedEvent(float x, float y)
@@ -104,14 +106,14 @@ private:
 };
 
 
-class MouseButtonEvent : public Event
+class MouseButtonHeldEvent final : public Event
 {
 public:
     inline U32 GetMouseButtons() const { return m_Buttons; }
     bool IsButtonDown(MouseCode button) const { return (m_Buttons & static_cast<U32>(button)) != 0; }
 
     //EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
-    MouseButtonEvent(U32 buttons)
+    MouseButtonHeldEvent(U32 buttons)
         : m_Buttons(buttons)
     {}
 
@@ -121,22 +123,22 @@ private:
     U32 m_Buttons;
 };
 
-class MouseButtonPressedEvent : public Event
+class MouseButtonPressedEvent final : public Event
 {
 public:
-    inline MouseCode GetMouseButtonDown() const { return m_ButtonDown; }
+    inline MouseCode GetMouseButtonPressed() const { return m_ButtonDown; }
 
     MouseButtonPressedEvent(MouseCode button)
         : m_ButtonDown(button)
     {}
 
-    EVENT_CLASS_TYPE(MOUSE_BUTTON_DOWN)
+    EVENT_CLASS_TYPE(MOUSE_BUTTON_PRESSED)
 
 private:
     MouseCode m_ButtonDown;
 };
 
-class MouseScrolledEvent : public Event
+class MouseScrolledEvent final : public Event
 {
 public:
     MouseScrolledEvent(float xOffset, float yOffset)
@@ -150,6 +152,23 @@ public:
 
 private:
     float m_XOffset, m_YOffset;
+};
+
+class KeyHeldEvent final : public Event
+{
+public:
+    KeyHeldEvent(const bool* keyStates)
+        : m_KeyStates(keyStates)
+    {}
+
+    inline bool IsKeyPressed(ScanCode key) {
+        return m_KeyStates[static_cast<U32>(key)];
+    }
+
+    EVENT_CLASS_TYPE(KEY_HELD)
+
+private:
+    const bool* m_KeyStates;
 };
 
 }
