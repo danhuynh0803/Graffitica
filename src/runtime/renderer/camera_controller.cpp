@@ -44,26 +44,24 @@ void CameraController::OnEvent(Event& e)
 
 bool CameraController::OnInputHeld(InputStateEvent& e)
 {
-    m_MovementSpeed = 0.0f;
-    if (e.IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
-        m_MovementSpeed = m_BaseSpeed;
+    m_MovementDirection = CameraMovement::NONE;
+
+    if (e.IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
+    {
+        if (e.IsKeyPressed(KEY_W)) {
+            m_MovementDirection = CameraMovement::FORWARD;
+        }
+        else if (e.IsKeyPressed(KEY_S)) {
+            m_MovementDirection = CameraMovement::BACKWARD;
+        }
+        else if (e.IsKeyPressed(KEY_A)) {
+            m_MovementDirection = CameraMovement::LEFT;
+        }
+        else if (e.IsKeyPressed(KEY_D)) {
+            m_MovementDirection = CameraMovement::RIGHT;
+        }
     }
 
-    if (e.IsKeyPressed(KEY_W)) {
-        m_MovementDirection = CameraMovement::FORWARD;
-    }
-    else if (e.IsKeyPressed(KEY_S)) {
-        m_MovementDirection = CameraMovement::BACKWARD;
-    }
-    else if (e.IsKeyPressed(KEY_A)) {
-        m_MovementDirection = CameraMovement::LEFT;
-    }
-    else if (e.IsKeyPressed(KEY_D)) {
-        m_MovementDirection = CameraMovement::RIGHT;
-    }
-    else {
-        m_MovementDirection = CameraMovement::NONE;
-    }
     return false;
 }
 
@@ -72,7 +70,6 @@ bool CameraController::OnMouseMoved(MouseMovedEvent& e)
     float xRel = e.GetXRelative();
     float yRel = e.GetYRelative();
 
-    // TODO camera orientation
     if (e.IsButtonPressed(MOUSE_BUTTON_RIGHT)) {
 
         xRel *= m_MouseSensitivity;
@@ -90,13 +87,14 @@ bool CameraController::OnMouseMoved(MouseMovedEvent& e)
         // Normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
         m_Right = normalize(cross(m_Front, m_WorldUp));
         m_Up = normalize(cross(m_Right, m_Front));
-
+        
+        // TODO Front orientation is inverted at the moment, revisit and add some unit tests for this
         m_ActiveCamera->F = -m_Front;
         m_ActiveCamera->R = m_Right;
         m_ActiveCamera->U = m_Up;
 
     }
-    std::cout << "Front: " << m_ActiveCamera->F << " Right: " << m_ActiveCamera->R << " Up: " << m_ActiveCamera->U << std::endl;
+    //std::cout << "Front: " << m_ActiveCamera->F << " Right: " << m_ActiveCamera->R << " Up: " << m_ActiveCamera->U << std::endl;
 
     return false;
 }
