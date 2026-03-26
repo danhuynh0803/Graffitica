@@ -3,6 +3,7 @@
 #include "core/layer.h"
 #include "rhi/interface/graphics_context.h"
 #include "rhi/interface/swapchain.h"
+#include "developer/profiler/profiler.h"
 
 namespace gr
 {
@@ -40,6 +41,8 @@ void Application::Run()
 
         // Window update logic handles blitting to backbuffer
         m_Window->OnUpdate();
+
+        FrameMark;
     }
 }
 

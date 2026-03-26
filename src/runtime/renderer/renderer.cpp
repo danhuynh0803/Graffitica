@@ -275,6 +275,8 @@ auto NDCToViewport = [&](const vec4f& p, int width, int height)
 
 void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
 {
+    GR_TRACE_START(SYS_RENDERING);
+
     // TODO Log this to profiler and not output to console
     //SCOPED_TIMER
 
@@ -295,37 +297,44 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
 
     for (int tri = firstIndex; tri < indexCount; ++tri)
     {
+        ZoneScopedN("TriangleLoop");
         const std::vector<int>& face = vb.m_MeshData->face(tri);
 
         // assemble attributes for processing
         VertexAttributes inputAttributes[3];
-        for (int i = 0; i < 3; ++i)
-        {
-            auto& attrib = inputAttributes[i];
-            attrib.aPos = verts[face[i]];
-            attrib.aColor = colors[(tri*3+i) % colors.size()];
-            attrib.aTexCoord = vec2f(0.0f, 0.0f);
+        { ZoneScopedN("InputAssembly");
+            for (int i = 0; i < 3; ++i)
+            {
+                auto& attrib = inputAttributes[i];
+                attrib.aPos = verts[face[i]];
+                attrib.aColor = colors[(tri * 3 + i) % colors.size()];
+                attrib.aTexCoord = vec2f(0.0f, 0.0f);
+            }
         }
 
         // VS runs
         gr::rhi::Varyings perVertexOutputs[3];
         gr::rhi::Triangle primitive;
-        for (int i = 0; i < 3; ++i)
-        {
-            perVertexOutputs[i] = shaderModule->vert(inputAttributes[i]);
+        {   ZoneScoped("VertexShader");
+            for (int i = 0; i < 3; ++i)
+            {
+                perVertexOutputs[i] = shaderModule->vert(inputAttributes[i]);
 
-            // perspective divide
-            primitive.position[i] = perVertexOutputs[i].position / perVertexOutputs[i].position.w;
-            primitive.color   [i] = perVertexOutputs[i].color;
-            primitive.texcoord[i] = perVertexOutputs[i].texcoord;
+                // perspective divide
+                primitive.position[i] = perVertexOutputs[i].position / perVertexOutputs[i].position.w;
+                primitive.color   [i] = perVertexOutputs[i].color;
+                primitive.texcoord[i] = perVertexOutputs[i].texcoord;
+            }
         }
 
-
-        if (IsCulled(primitive.position[0],
-                     primitive.position[1],
-                     primitive.position[2],
-                     state)) {
-            continue;
+        {   ZoneScopedN("BackfaceCulling");
+            // Backface culling}
+            if (IsCulled(primitive.position[0],
+                         primitive.position[1],
+                         primitive.position[2],
+                         state)) {
+                continue;
+            }
         }
 
         // NDC to Viewport Transform
@@ -348,6 +357,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
         int minY = std::clamp(std::min(a.y, std::min(b.y, c.y)), 0.0f, height-1);
         int maxY = std::clamp(std::max(a.y, std::max(b.y, c.y)), 0.0f, height-1);
 
+        { ZoneScopedN("Rasterization");
 #pragma omp parallel for
         for (int y = minY; y <= static_cast<int>(maxY); ++y)
         {
@@ -361,7 +371,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
                 // TODO replace barycentric with Cramer's rule ver
                 vec4f P(x, y, 0, 1);
 
-				// TODO Calculate barycentric coordinates using edge functions
+				            // TODO Calculate barycentric coordinates using edge functions
                 float u = CalculateTriangleArea(P, b, c) * invTotalArea;
                 float v = CalculateTriangleArea(P, c, a) * invTotalArea;
                 float w = 1.0 - u - v; //CalculateTriangleArea(P, a, b) * invTotalArea;
@@ -383,6 +393,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
 
                 // FS
                 // Apply barycentric weights for all varying attributes
+                ZoneScopedN("FragmentShader");
                 gr::rhi::Varyings fragInput{
                     .position = vec4f(
                                     u * a.x + v * b.x + w * c.x,
@@ -390,7 +401,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
                                     depth,
                                     1.0f),
 
-                    .color = vec4f( 
+                    .color = vec4f(
                                 u*primitive.color[0].x + v*primitive.color[1].x + w*primitive.color[2].x,
                                 u*primitive.color[0].y + v*primitive.color[1].y + w*primitive.color[2].y,
                                 u*primitive.color[0].z + v*primitive.color[1].z + w*primitive.color[2].z,
@@ -406,7 +417,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
                 // TODO blending
                 //colorView.at(x, y) = FORMAT_R8G8B8A8_UNORM::to(fragColor);
                 colorView->Store(x,y,fragColor);
-                
+
                 //u += b.y - c.y;
                 //v += c.y - a.y;
                 //w += a.y - b.y;
@@ -414,6 +425,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
             //w0Row += c.x - b.x;
             //w1Row += a.x - c.x;
             //w2Row += b.x - a.x;
+        }
         }
     }
 }

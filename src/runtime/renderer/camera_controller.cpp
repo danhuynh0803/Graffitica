@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm>
 #include <tracy/Tracy.hpp>
+#include "developer/profiler/profiler.h"
 
 namespace gr
 {
@@ -14,32 +15,36 @@ namespace {
 
 void CameraController::OnUpdate(float dt)
 {
-    ZoneScoped;
-    if (!m_ActiveCamera) return;
+    GR_TRACE_START(SYS_GAME);
 
-    float velocity = m_MovementSpeed * dt;
-    switch (m_MovementDirection)
+    if (m_ActiveCamera)
     {
-    default:
-        break;
-    case CameraMovement::FORWARD:
-        m_Position += m_Front * velocity;
-        break;
-    case CameraMovement::BACKWARD:
-        m_Position -= m_Front * velocity;
-        break;
-    case CameraMovement::LEFT:
-        m_Position -= m_Right * velocity;
-        break;
-    case CameraMovement::RIGHT:
-        m_Position += m_Right * velocity;
-        break;
+        float velocity = m_MovementSpeed * dt;
+        switch (m_MovementDirection)
+        {
+        default:
+            break;
+        case CameraMovement::FORWARD:
+            m_Position += m_Front * velocity;
+            break;
+        case CameraMovement::BACKWARD:
+            m_Position -= m_Front * velocity;
+            break;
+        case CameraMovement::LEFT:
+            m_Position -= m_Right * velocity;
+            break;
+        case CameraMovement::RIGHT:
+            m_Position += m_Right * velocity;
+            break;
+        }
+        m_ActiveCamera->m_LookFrom = m_Position;
     }
-    m_ActiveCamera->m_LookFrom = m_Position;
 }
 
 void CameraController::OnEvent(Event& e)
 {
+    GR_TRACE_START(SYS_IO);
+
     EventDispatcher disp(e);
     disp.Dispatch<InputStateEvent>(std::bind(&CameraController::OnInputHeld, this, std::placeholders::_1));
     disp.Dispatch<MouseMovedEvent>(std::bind(&CameraController::OnMouseMoved, this, std::placeholders::_1));
@@ -50,6 +55,8 @@ void CameraController::OnEvent(Event& e)
 
 bool CameraController::OnInputHeld(InputStateEvent& e)
 {
+    GR_TRACE_START(SYS_IO);
+
     m_MovementDirection = CameraMovement::NONE;
 
     if (e.IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
@@ -73,6 +80,8 @@ bool CameraController::OnInputHeld(InputStateEvent& e)
 
 bool CameraController::OnMouseMoved(MouseMovedEvent& e)
 {
+    GR_TRACE_START(SYS_IO);
+
     float xRel = e.GetXRelative();
     float yRel = e.GetYRelative();
 

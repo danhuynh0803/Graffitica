@@ -1,6 +1,7 @@
 #pragma once
 #include "util/math/vector.h"
 #include "util/math/matrix.h"
+#include "developer/profiler/profiler.h"
 #include <numbers>
 
 namespace gr
@@ -22,6 +23,8 @@ public:
 
     mat44 GetView()
     {
+        GR_TRACE_START(SYS_GAME);
+
         //F = unit_vector(m_LookFrom - m_LookAt);      // +z
         //R = unit_vector(cross(vec3f(0, 1, 0), F));   // +x
         //U = cross(F, R);
@@ -44,6 +47,8 @@ public:
 
     mat44 GetPerspectiveProjection(float vfov, float aspect, float near, float far)
     {
+        GR_TRACE_START(SYS_GAME);
+
         mat44 persp{};
         auto& m = persp.m_Data;
 

@@ -4,6 +4,7 @@
 #include "rhi/resource.h"
 #include "util/math/matrix.h"
 #include "util/timer.h"
+#include "developer/profiler/profiler.h"
 
 namespace gr::rhi
 {
@@ -85,6 +86,8 @@ struct TestShader final : ShaderModule
 
     inline virtual Varyings vert(const VertexAttributes& attribs) override
     {
+        GR_TRACE_START(SYS_RENDERING);
+
         Varyings v2f{};
         v2f.position = MVP * vec4f(attribs.aPos, 1.0f);
 
@@ -110,6 +113,8 @@ struct TestShader final : ShaderModule
     // TODO Rename struct for frag input since input is now interpolated
     inline virtual vec4f frag(const Varyings& input) override
     {
+        GR_TRACE_START(SYS_RENDERING);
+
         // Segment each test to separate functions in order to add to testing framework later
         // Need to dump fb output and compare against reference image
         return TestDepthInterpolation(input);

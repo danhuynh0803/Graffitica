@@ -3,6 +3,7 @@
 #include "util/math/vector.h"
 #include "rhi/resource.h"
 #include "rhi/command_buffer.h"
+#include "developer/profiler/profiler.h"
 
 // TODO separate to modules
 //export module RenderModule;
@@ -19,17 +20,21 @@ namespace gr::rhi::cmd
 template<typename FORMAT>
 void Clear(ImageView<FORMAT>& view, const vec4f& clearColor)
 {
+    GR_TRACE_START(SYS_RENDERING);
+
     static_assert(std::is_base_of<ColorFormat, FORMAT>::value, "FORMAT must inherit from a COLOR FORMAT");
     auto size = view.width * view.height;
     for (int i = 0; i < size; ++i)
     {
         view.colorData[i] = clearColor;
-	}
+	   }
 }
 
 template<typename FORMAT>
 void Clear(const ImageView<FORMAT>& view, float clearDepth)
 {
+    GR_TRACE_START(SYS_RENDERING);
+
     static_assert(std::is_base_of<DepthFormat, FORMAT>::value, "FORMAT must inherit from a DEPTH FORMAT");
     auto size = view.width * view.height;
     std::fill_n(view.data, size, FORMAT::to(clearDepth));

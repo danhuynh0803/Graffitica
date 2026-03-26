@@ -16,6 +16,7 @@
 #include "rhi/cpu/cpu_graphics_context.h"
 #include <numbers>
 #include <functional>
+#include "developer/profiler/profiler.h"
 
 namespace gr
 {
@@ -76,6 +77,8 @@ namespace
 EditorLayer::EditorLayer(const std::string& name)
     : m_Name(name), Layer("Editor", gr::LayerFlags::DEFAULT)
 {
+    GR_TRACE_START(SYS_GAME);
+
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<float> dis(0.0f, 1.0f);
@@ -108,6 +111,8 @@ EditorLayer::EditorLayer(const std::string& name)
 
 void EditorLayer::OnUpdate(double dt)
 {
+    GR_TRACE_START(SYS_GAME);
+
     cameraController.OnUpdate(dt);
 
     //SCOPED_TIMER
@@ -172,6 +177,8 @@ void EditorLayer::OnUpdate(double dt)
 
 void EditorLayer::OnEvent(Event& event)
 {
+    GR_TRACE_START(SYS_IO);
+
     cameraController.OnEvent(event);
 
     EventDispatcher disp(event);
