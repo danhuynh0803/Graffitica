@@ -13,11 +13,23 @@ struct FORMAT_R8G8B8A8_UNORM final : ColorFormat
 {
     inline static FORMAT_R8G8B8A8_UNORM to(const vec4f& c)
     {
+        const __m128 scale  = _mm_set1_ps(255.f);
+        const __m128 minVal = _mm_set1_ps(0.f);
+        const __m128 maxVal = _mm_set1_ps(255.f);
+
+        // Apply the 255 scaling factor to convert from [0,1] to [0,255]
+        __m128 v = _mm_mul_ps(c.e128, scale);
+        // Clamping to 0, 255 range
+        v = _mm_min_ps(_mm_max_ps(v, minVal), maxVal);
+
+        // convert to int32 to prep for SDL surface format
+        __m128i i = _mm_cvtps_epi32(v);
+
         FORMAT_R8G8B8A8_UNORM o;
-        o.r = std::max(0.f, std::min(255.f, c.x * 255.f));
-        o.g = std::max(0.f, std::min(255.f, c.y * 255.f));
-        o.b = std::max(0.f, std::min(255.f, c.z * 255.f));
-        o.a = std::max(0.f, std::min(255.f, c.w * 255.f));
+        o.r = static_cast<U8>( _mm_extract_epi32(i, 0) );
+        o.g = static_cast<U8>( _mm_extract_epi32(i, 1) );
+        o.b = static_cast<U8>( _mm_extract_epi32(i, 2) );
+        o.a = static_cast<U8>( _mm_extract_epi32(i, 3) );
         return o;
     }
     U8 r, g, b, a;

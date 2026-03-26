@@ -22,10 +22,6 @@ Window::Window(const WindowProperties& props)
                                 SDL_WINDOW_RESIZABLE);
 
     m_GraphicsContext = rhi::IGraphicsContext::Create<rhi::CPUGraphicsContext>(m_Window);
-
-    // Set SDL event callbacks
-    
-
 }
 
 Window::~Window()
@@ -36,6 +32,8 @@ Window::~Window()
 
 void Window::OnUpdate()
 {
+    GR_TRACE_START(SYS_GAME);
+
     WindowData& data = m_WindowData;
     // TODO create event callbacks SDL_AddEventWatch
     for (SDL_Event event; SDL_PollEvent(&event);) switch (event.type)

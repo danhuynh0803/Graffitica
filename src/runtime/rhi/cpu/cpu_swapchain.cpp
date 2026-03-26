@@ -71,7 +71,6 @@ void CPUSwapchain::UpdateBackBuffer(SDL_Surface* surfaceToUpdate)
         }
     }
 
-
     std::memcpy(surfaceToUpdate->pixels, currBackBufferImageView.data, m_Width * m_Height * sizeof(FORMAT_R8G8B8A8_UNORM));
 
     m_CurrentFrameIndex = (m_CurrentFrameIndex + 1) % m_ImageCount;

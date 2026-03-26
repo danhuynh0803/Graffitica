@@ -113,7 +113,8 @@ struct TestShader final : ShaderModule
     // TODO Rename struct for frag input since input is now interpolated
     inline virtual vec4f frag(const Varyings& input) override
     {
-        GR_TRACE_START(SYS_RENDERING);
+        // Disable indivial frag shader stage trace due to perf overhead
+        //GR_TRACE_START(SYS_RENDERING);
 
         // Segment each test to separate functions in order to add to testing framework later
         // Need to dump fb output and compare against reference image

@@ -9,7 +9,6 @@
 
 #include "util/math/vector.h"
 #include "util/math/matrix.h"
-#include "util/math/matrix.h"
 #include "util/timer.h"
 
 #include "rhi/rasterizer_state.h"
@@ -358,7 +357,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
         int maxY = std::clamp(std::max(a.y, std::max(b.y, c.y)), 0.0f, height-1);
 
         { ZoneScopedN("Rasterization");
-#pragma omp parallel for
+//#pragma omp parallel for
         for (int y = minY; y <= static_cast<int>(maxY); ++y)
         {
             //float v = w0Row;
@@ -371,29 +370,43 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
                 // TODO replace barycentric with Cramer's rule ver
                 vec4f P(x, y, 0, 1);
 
-				            // TODO Calculate barycentric coordinates using edge functions
-                float u = CalculateTriangleArea(P, b, c) * invTotalArea;
-                float v = CalculateTriangleArea(P, c, a) * invTotalArea;
-                float w = 1.0 - u - v; //CalculateTriangleArea(P, a, b) * invTotalArea;
+                float u,v,w;
+                {
+                    //ZoneScopedN("Barycentrics");
+				                // TODO Calculate barycentric coordinates using edge functions
+                    u = CalculateTriangleArea(P, b, c) * invTotalArea;
+                    v = CalculateTriangleArea(P, c, a) * invTotalArea;
+                    w = 1.0 - u - v; //CalculateTriangleArea(P, a, b) * invTotalArea;
+                }
 
-                // skip points outside of triangle
-                if (u < 0 || v < 0 || w < 0) {
-                    continue;
+                {
+                    //ZoneScopedN("EdgeFunctionCull");
+                    // skip points outside of triangle
+                    if (u < 0 || v < 0 || w < 0) {
+                        continue;
+                    }
                 }
 
                 // TODO incorporate depth state
-                float depth = u * a.z + v * b.z + w * c.z;
-                if (depth >= depthView->at(x, y).Get())
+                float depth;
                 {
-                    continue;
+                    //ZoneScopedN("DepthInterpolationAndTest");
+                    depth = u * a.z + v * b.z + w * c.z;
+                    if (depth >= depthView->at(x, y).Get())
+                    {
+                        continue;
+                    }
                 }
 
-                // update with new depth value
-                depthView->at(x, y).depth = depth;
+                {
+                    //ZoneScopedN("DepthWrite");
+                    // update with new depth value
+                    depthView->at(x, y).depth = depth;
+                }
 
                 // FS
                 // Apply barycentric weights for all varying attributes
-                ZoneScopedN("FragmentShader");
+                //ZoneScopedN("FragmentShader");
                 gr::rhi::Varyings fragInput{
                     .position = vec4f(
                                     u * a.x + v * b.x + w * c.x,
@@ -416,8 +429,9 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
 
                 // TODO blending
                 //colorView.at(x, y) = FORMAT_R8G8B8A8_UNORM::to(fragColor);
-                colorView->Store(x,y,fragColor);
-
+                { ZoneScopedN("ColorWrite");
+                    colorView->Store(x,y,fragColor);
+                }
                 //u += b.y - c.y;
                 //v += c.y - a.y;
                 //w += a.y - b.y;

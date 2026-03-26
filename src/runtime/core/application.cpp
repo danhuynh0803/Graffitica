@@ -28,10 +28,13 @@ Application::~Application()
 
 void Application::Run()
 {
+    GR_TRACE_START(SYS_GAME);
+
     SystemTime time;
 
     while (m_IsRunning)
     {
+        ZoneScopedN("Gameloop");
         time.Update();
 
         for (const auto& layer : m_LayerStack)
