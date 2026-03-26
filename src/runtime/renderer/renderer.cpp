@@ -193,9 +193,14 @@ void RasterizeScanline(const ImageView& view, const Buffer& vb, U32 vertexCount,
 }
 */
 
-float CalculateTriangleArea(const vec4f& a, const vec4f& b, const vec4f& c)
+inline float CalculateTriangleArea(const vec4f& a, const vec4f& b, const vec4f& c)
 {
-    return .5 * ( (b.y - a.y) * (b.x + a.x) + (c.y - b.y) * (c.x + b.x) + (a.y - c.y) * (a.x + c.x) );
+    const float abx = b.x - a.x;
+    const float aby = b.y - a.y;
+    const float acx = c.x - a.x;
+    const float acy = c.y - a.y;
+
+    return 0.5f * (abx * acy - aby * acx);
 }
 
 float Determinant2D(const vec4f& v1, const vec4f& v2)
@@ -267,7 +272,7 @@ auto NDCToViewport = [&](const vec4f& p, int width, int height)
             (0.5f*p.x + 0.5f) * width,
             (1.0f - (0.5f*p.y + 0.5)) * height, // map to y-up space
             p.z, // TODO remap from [-1,1] -> [0,1]
-            1.0
+            p.w
         );
         return coords;
     };
@@ -326,8 +331,9 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
             }
         }
 
+
         {   ZoneScopedN("BackfaceCulling");
-            // Backface culling}
+            // Backface culling
             if (IsCulled(primitive.position[0],
                          primitive.position[1],
                          primitive.position[2],
@@ -375,8 +381,11 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
                     //ZoneScopedN("Barycentrics");
 				                // TODO Calculate barycentric coordinates using edge functions
                     u = CalculateTriangleArea(P, b, c) * invTotalArea;
+                    //if (u < 0) continue;
                     v = CalculateTriangleArea(P, c, a) * invTotalArea;
+                    //if (v < 0) continue;
                     w = 1.0 - u - v; //CalculateTriangleArea(P, a, b) * invTotalArea;
+                    //if (w < 0) continue;
                 }
 
                 {
@@ -389,10 +398,11 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
 
                 // TODO incorporate depth state
                 float depth;
+                auto& currDepth = depthView->at(x, y);
                 {
                     //ZoneScopedN("DepthInterpolationAndTest");
                     depth = u * a.z + v * b.z + w * c.z;
-                    if (depth >= depthView->at(x, y).Get())
+                    if (depth >= currDepth.depth)
                     {
                         continue;
                     }
@@ -401,7 +411,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
                 {
                     //ZoneScopedN("DepthWrite");
                     // update with new depth value
-                    depthView->at(x, y).depth = depth;
+                    currDepth.depth = depth;
                 }
 
                 // FS
@@ -424,13 +434,10 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
                                 u * primitive.texcoord[0].x + v * primitive.texcoord[1].x + w * primitive.texcoord[2].x,
                                 u * primitive.texcoord[0].y + v * primitive.texcoord[1].y + w * primitive.texcoord[2].y)
                 };
-
-                vec4f fragColor = shaderModule->frag(fragInput);
-
                 // TODO blending
-                //colorView.at(x, y) = FORMAT_R8G8B8A8_UNORM::to(fragColor);
+
                 { ZoneScopedN("ColorWrite");
-                    colorView->Store(x,y,fragColor);
+                    colorData[x + y * colorView->width] = shaderModule->frag(fragInput);
                 }
                 //u += b.y - c.y;
                 //v += c.y - a.y;
