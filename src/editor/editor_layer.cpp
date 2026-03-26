@@ -16,7 +16,6 @@
 #include "rhi/cpu/cpu_graphics_context.h"
 #include <numbers>
 #include <functional>
-#include "renderer/camera_controller.h"
 
 namespace gr
 {
@@ -121,7 +120,7 @@ void EditorLayer::OnUpdate(double dt)
     // until pipeline refactoring and optimizations are complete
     auto modelMatrix = gr::Identity<float,4,4>();
     static float time = 0;
-    time += dt;
+    //time += dt;
 
     const float amp = 1.f;
     const float freq = 1.0f;
@@ -154,10 +153,6 @@ void EditorLayer::OnUpdate(double dt)
         viewMatrix *
         modelMatrix;
 
-    // Debug individual matrices
-    //shader.M = modelMatrix;
-    //shader.V = viewMatrix;
-    //shader.P = projMatrix;
     shader.near = kNear;
     shader.far = kFar;
 
@@ -195,30 +190,21 @@ bool EditorLayer::OnWindowResize(WindowResizeEvent& e)
 
 bool EditorLayer::OnMouseMoved(MouseMovedEvent& e)
 {
-    //std::cout << "Mouse moved: " << e.GetX() << ", " << e.GetY() << std::endl;
     return false;
 }
 
 bool EditorLayer::OnMouseButtonHeld(MouseButtonHeldEvent& e)
 {
-    if (e.IsButtonDown(MOUSE_BUTTON_RIGHT))
-    {
-        //std::cout << "Mouse button held: " << e.GetMouseButtons() << std::endl;
-    }
     return false;
 }
 
 bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e)
 {
-    if (e.GetMouseButtonPressed() == MOUSE_BUTTON_RIGHT)
-    {
-    }
     return false;
 }
 
 bool EditorLayer::OnMouseScrolled(MouseScrolledEvent& e)
 {
-    std::cout << "Mouse scrolled: " << e.GetXOffset() << ", " << e.GetYOffset() << std::endl;
     return false;
 }
 

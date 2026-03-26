@@ -1,6 +1,7 @@
 #include "camera_controller.h"
 #include <iostream>
 #include <algorithm>
+#include <tracy/Tracy.hpp>
 
 namespace gr
 {
@@ -11,24 +12,29 @@ namespace {
 
 #define RAD(x)  x * (std::numbers::pi / 180)
 
-
 void CameraController::OnUpdate(float dt)
 {
+    ZoneScoped;
     if (!m_ActiveCamera) return;
 
-     // TODO update position and orientation based on input events
-     // and update active camera's view matrix accordingly
     float velocity = m_MovementSpeed * dt;
-    if (m_MovementDirection == CameraMovement::FORWARD)
+    switch (m_MovementDirection)
+    {
+    default:
+        break;
+    case CameraMovement::FORWARD:
         m_Position += m_Front * velocity;
-    if (m_MovementDirection == CameraMovement::BACKWARD)
+        break;
+    case CameraMovement::BACKWARD:
         m_Position -= m_Front * velocity;
-    if (m_MovementDirection == CameraMovement::LEFT)
+        break;
+    case CameraMovement::LEFT:
         m_Position -= m_Right * velocity;
-    if (m_MovementDirection == CameraMovement::RIGHT)
+        break;
+    case CameraMovement::RIGHT:
         m_Position += m_Right * velocity;
-
-    //std::cout << m_Position << std::endl;
+        break;
+    }
     m_ActiveCamera->m_LookFrom = m_Position;
 }
 
