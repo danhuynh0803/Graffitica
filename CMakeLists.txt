@@ -58,6 +58,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/src/runtime"
     "${SDL3_Headers}"
     Vulkan::Headers
+    Tracy::TracyClient
 )
 
 # TODO split to different cmake?
@@ -74,6 +75,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     d3d12.lib
     dxgi.lib
     d3dcompiler.lib
+
+    Tracy::TracyClient
 )
 
 # OpenMP
