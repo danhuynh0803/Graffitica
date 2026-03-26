@@ -301,12 +301,12 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
 
     for (int tri = firstIndex; tri < indexCount; ++tri)
     {
-        ZoneScopedN("TriangleLoop");
+        GR_TRACE_SCOPED("TriangleLoop");
         const std::vector<int>& face = vb.m_MeshData->face(tri);
 
         // assemble attributes for processing
         VertexAttributes inputAttributes[3];
-        { ZoneScopedN("InputAssembly");
+        { GR_TRACE_SCOPED("InputAssembly");
             for (int i = 0; i < 3; ++i)
             {
                 auto& attrib = inputAttributes[i];
@@ -332,7 +332,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
         }
 
 
-        {   ZoneScopedN("BackfaceCulling");
+        {   GR_TRACE_SCOPED("BackfaceCulling");
             // Backface culling
             if (IsCulled(primitive.position[0],
                          primitive.position[1],
@@ -362,8 +362,10 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
         int minY = std::clamp(std::min(a.y, std::min(b.y, c.y)), 0.0f, height-1);
         int maxY = std::clamp(std::max(a.y, std::max(b.y, c.y)), 0.0f, height-1);
 
-        { ZoneScopedN("Rasterization");
-//#pragma omp parallel for
+        { GR_TRACE_SCOPED("Rasterization");
+#pragma omp parallel for
+        // TODO use AVX to calculate two pixels at a time?
+        // 256B wide registers can hold 8 pixels worth of data, but the area calc and edge function tests require shuffling data around which may reduce perf
         for (int y = minY; y <= static_cast<int>(maxY); ++y)
         {
             //float v = w0Row;
@@ -378,7 +380,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
 
                 float u,v,w;
                 {
-                    //ZoneScopedN("Barycentrics");
+                    //GR_TRACE_SCOPED("Barycentrics");
 				                // TODO Calculate barycentric coordinates using edge functions
                     u = CalculateTriangleArea(P, b, c) * invTotalArea;
                     //if (u < 0) continue;
@@ -389,7 +391,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
                 }
 
                 {
-                    //ZoneScopedN("EdgeFunctionCull");
+                    //GR_TRACE_SCOPED("EdgeFunctionCull");
                     // skip points outside of triangle
                     if (u < 0 || v < 0 || w < 0) {
                         continue;
@@ -400,7 +402,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
                 float depth;
                 auto& currDepth = depthView->at(x, y);
                 {
-                    //ZoneScopedN("DepthInterpolationAndTest");
+                    //GR_TRACE_SCOPED("DepthInterpolationAndTest");
                     depth = u * a.z + v * b.z + w * c.z;
                     if (depth >= currDepth.depth)
                     {
@@ -409,14 +411,14 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
                 }
 
                 {
-                    //ZoneScopedN("DepthWrite");
+                    //GR_TRACE_SCOPED("DepthWrite");
                     // update with new depth value
                     currDepth.depth = depth;
                 }
 
                 // FS
                 // Apply barycentric weights for all varying attributes
-                //ZoneScopedN("FragmentShader");
+                //GR_TRACE_SCOPED("FragmentShader");
                 gr::rhi::Varyings fragInput{
                     .position = vec4f(
                                     u * a.x + v * b.x + w * c.x,
@@ -436,7 +438,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
                 };
                 // TODO blending
 
-                { ZoneScopedN("ColorWrite");
+                { GR_TRACE_SCOPED("ColorWrite");
                     colorData[x + y * colorView->width] = shaderModule->frag(fragInput);
                 }
                 //u += b.y - c.y;

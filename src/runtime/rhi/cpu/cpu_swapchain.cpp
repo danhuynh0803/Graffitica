@@ -64,7 +64,7 @@ void CPUSwapchain::UpdateBackBuffer(SDL_Surface* surfaceToUpdate)
     // TODO: better than it's original location in renderer to quickly test,
     // but should consolidate with cpu blit command to match rhi
     {
-        ZoneScopedN("FORMAT_R8G8B8A8_UNORM::to")
+        GR_TRACE_SCOPED("FORMAT_R8G8B8A8_UNORM::to")
         for (int i = 0; i < currBackBufferImageView.colorData.size(); ++i)
         {
             currBackBufferImageView.data[i] = FORMAT_R8G8B8A8_UNORM::to(currBackBufferImageView.colorData[i]);

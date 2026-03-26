@@ -34,7 +34,7 @@ void Application::Run()
 
     while (m_IsRunning)
     {
-        ZoneScopedN("Gameloop");
+        GR_TRACE_SCOPED("Gameloop");
         time.Update();
 
         for (const auto& layer : m_LayerStack)
