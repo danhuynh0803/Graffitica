@@ -47,11 +47,11 @@ public:
 private:
     enum class CameraMovement
     {
+        NONE,
         FORWARD,
         BACKWARD,
         LEFT,
         RIGHT,
-        NONE,
     } m_MovementDirection;
 
     vec3f m_Position = vec3f(0, 0, 0);

@@ -34,8 +34,11 @@ void Application::Run()
 
     while (m_IsRunning)
     {
-        GR_TRACE_SCOPED("Gameloop");
+        // TODO profiler keep track of frame iterations
+        GR_TRACE_SCOPED("Frame");
+
         time.Update();
+        m_Window->PollEvents();
 
         for (const auto& layer : m_LayerStack)
         {
@@ -65,16 +68,14 @@ void Application::OnEvent(Event& e)
 
     disp.Dispatch<WindowResizeEvent>(std::bind(&Application::OnWindowResize, this, std::placeholders::_1));
     disp.Dispatch<WindowCloseEvent>(std::bind(&Application::OnWindowClose, this, std::placeholders::_1));
-    // Debug for event system, can remove later
-    //disp.Dispatch<MouseMovedEvent>(std::bind(&Application::OnMouseMoved, this, std::placeholders::_1));
 
     for (auto reverseIt = m_LayerStack.rbegin(); reverseIt != m_LayerStack.rend(); ++reverseIt)
     {
-		  // Don't propagate the event to other layers if it's already handled by one layer
+		      // Don't propagate the event to other layers if it's already handled by one layer
         if (e.isHandled)
             break;
         (*reverseIt)->OnEvent(e);
-	}
+	   }
 }
 
 bool Application::OnWindowResize(const WindowResizeEvent& e)
@@ -90,7 +91,6 @@ bool Application::OnWindowClose(const WindowCloseEvent& e)
 
 bool Application::OnMouseMoved(const MouseMovedEvent& e)
 {
-    std::cout << "Mouse moved to (" << e.GetX() << ", " << e.GetY() << ")\n";
     return true;
 }
 

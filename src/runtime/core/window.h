@@ -24,6 +24,8 @@ public:
     Window(const WindowProperties& props);
     ~Window();
 
+    void PollEvents();
+
     static std::unique_ptr<Window> Create(const WindowProperties& props);
     void OnUpdate();
 

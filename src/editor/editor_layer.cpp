@@ -30,9 +30,9 @@ namespace
     SimpleMesh simpleMesh
     {
         .m_Positions = {
-            //{ 0.0,  1.0, -1},
-            //{-1.0, -1.0, -1},
-            //{ 1.0, -1.0, -1},
+            { 0.0,  1.0, -1},
+            {-1.0, -1.0, -1},
+            { 1.0, -1.0, -1},
 
             { 0.5, -0.5, 0},
             { 0.5,  0.5, 0},
@@ -44,8 +44,8 @@ namespace
     Buffer model{
         //.m_MeshData = std::make_shared<Mesh>("../assets/models/octahedron.obj"),
         //.m_MeshData = std::make_shared<Mesh>("../assets/models/ico.obj"),
-        .m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
-        //.m_MeshData = std::make_shared<Mesh>(simpleMesh)
+        //.m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
+        .m_MeshData = std::make_shared<Mesh>(simpleMesh)
     };
 
     RasterizerState drawState;
@@ -171,8 +171,8 @@ void EditorLayer::OnUpdate(double dt)
     // TODO switch between tiled and immediate depending on vertex counts
     gr::rhi::cmd::Clear(*fb.colorView, { .4, .5, .7, 1.0 });
     gr::rhi::cmd::Clear(*fb.depthView, 1.0);
-    //gr::rhi::cmd::DrawIndexedTiled(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
-    gr::rhi::cmd::DrawIndexedImmediate(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
+    gr::rhi::cmd::DrawIndexedTiled(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
+    //gr::rhi::cmd::DrawIndexedImmediate(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
 }
 
 void EditorLayer::OnEvent(Event& event)

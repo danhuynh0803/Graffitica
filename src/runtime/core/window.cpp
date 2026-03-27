@@ -30,12 +30,11 @@ Window::~Window()
     SDL_Quit();
 }
 
-void Window::OnUpdate()
+void Window::PollEvents()
 {
-    GR_TRACE_START(SYS_GAME);
+    GR_TRACE_START(SYS_IO);
 
     WindowData& data = m_WindowData;
-    // TODO create event callbacks SDL_AddEventWatch
     for (SDL_Event event; SDL_PollEvent(&event);) switch (event.type)
     {
     case SDL_EVENT_QUIT: {
@@ -76,17 +75,14 @@ void Window::OnUpdate()
 
     // Keyboard and mouse held down state
     const bool* keyState = SDL_GetKeyboardState(NULL);
-    //KeyHeldEvent keyHeldEvent(keyState);
-    //data.eventCallback(keyHeldEvent);
-
     const auto mouseStateFlags = SDL_GetMouseState(NULL, NULL);
-    if (mouseStateFlags != 0) {
-        //MouseButtonHeldEvent mouseButtonEvent(mouseStateFlags);
-        //data.eventCallback(mouseButtonEvent);
-    }
-
     InputStateEvent inputStateEvent(keyState, mouseStateFlags);
     data.eventCallback(inputStateEvent);
+}
+
+void Window::OnUpdate()
+{
+    GR_TRACE_START(SYS_RENDERING);
 
     // Probably better to abstract to swapchain interface
     // Update OnResize for Swapchain
@@ -98,9 +94,12 @@ void Window::OnUpdate()
 
     m_GraphicsContext->UpdateBackBuffer(m_PresentSurface);
 
-    SDL_Rect rect{ .x = 0, .y = 0, .w = static_cast<int>(m_Width), .h = static_cast<int>(m_Height) };
-    SDL_BlitSurface(m_PresentSurface, &rect, SDL_GetWindowSurface(m_Window), &rect);
-    SDL_UpdateWindowSurface(m_Window);
+    {
+        GR_TRACE_SCOPED("SDLBlitSurface");
+        SDL_Rect rect{ .x = 0, .y = 0, .w = static_cast<int>(m_Width), .h = static_cast<int>(m_Height) };
+        SDL_BlitSurface(m_PresentSurface, &rect, SDL_GetWindowSurface(m_Window), &rect);
+        SDL_UpdateWindowSurface(m_Window);
+    }
 }
 
 gr::rhi::ImageFormat Window::GetSurfaceFormat() const

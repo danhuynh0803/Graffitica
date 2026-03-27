@@ -136,7 +136,7 @@ void RasterizeScanline(const ImageView& view, const Buffer& vb, U32 vertexCount,
         p2 = verts[2];
 
         {
-            // Split the triangle into 2 triangles 
+            // Split the primitive into 2 triangles 
             // one with a flat top and one with a flat bottom part
             // 
             // precondition: p0.y > p1.y > p2.y
@@ -149,7 +149,7 @@ void RasterizeScanline(const ImageView& view, const Buffer& vb, U32 vertexCount,
 
             // Current use requires that p0.y > p1.y == pa.y
             //                           p1.y == pa.y > p2.y
-            // due to the fill triangle method signature
+            // due to the fill primitive method signature
             //fill_flat_bottom_triangle(p0, p1, pa, col);
             {
                 int dy = p0.y - p1.y;
@@ -363,7 +363,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
         int maxY = std::clamp(std::max(a.y, std::max(b.y, c.y)), 0.0f, height-1);
 
         { GR_TRACE_SCOPED("Rasterization");
-#pragma omp parallel for
+//#pragma omp parallel for
         // TODO use AVX to calculate two pixels at a time?
         // 256B wide registers can hold 8 pixels worth of data, but the area calc and edge function tests require shuffling data around which may reduce perf
         for (int y = minY; y <= static_cast<int>(maxY); ++y)
@@ -392,7 +392,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
 
                 {
                     //GR_TRACE_SCOPED("EdgeFunctionCull");
-                    // skip points outside of triangle
+                    // skip points outside of primitive
                     if (u < 0 || v < 0 || w < 0) {
                         continue;
                     }
@@ -453,11 +453,11 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
     }
 }
 
-/*
 void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
 {
+    GR_TRACE_START(SYS_RENDERING);
+
     // Draw that includes binning step
-    SCOPED_TIMER;
 
     const auto& fb = cmd.framebuffer;
     auto& colorView = fb->colorView;
@@ -469,182 +469,187 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
     const auto& positions = vb.m_Positions;
     const auto& colors = vb.m_VertexColors;
     const auto& verts = vb.m_MeshData->GetVertices();
-    const U32 width = fb->colorView.width;
-    const U32 height = fb->colorView.height;
+    const U32 width = fb->colorView->width;
+    const U32 height = fb->colorView->height;
+
+    auto& colorData = fb->colorView->colorData;
 
     // Input assembling
     std::vector<Triangle> triangeList;
-    triangeList.resize(indexCount);
-    for (int triangleIndex = firstIndex; triangleIndex < indexCount; ++triangleIndex)
-    {
-        const std::vector<int>& face = vb.m_MeshData->face(triangleIndex);
+    { GR_TRACE_SCOPED("InputAssemblyList")
 
-        // assemble attributes for processing
-        VertexAttributes inputAttributes[3];
-        gr::rhi::Varyings perVertexOutputs[3];
-        gr::rhi::Triangle primitive;
-        for (int i = 0; i < 3; ++i)
+        triangeList.reserve(indexCount);
+        for (int triangleIndex = firstIndex; triangleIndex < indexCount; ++triangleIndex)
         {
-            auto& attrib = inputAttributes[i];
-            attrib.aPos = verts[face[i]];
-            // TODO added this for debugging, but the IA code shouldnt mod back the colors
-            attrib.aColor = colors[(triangleIndex * 3 + i) % colors.size()];
-            attrib.aTexCoord = vec2f(0.0f, 0.0f);
+            const std::vector<int>& face = vb.m_MeshData->face(triangleIndex);
 
-            // VS runs
-            perVertexOutputs[i] = shaderModule->vert(inputAttributes[i]);
+            // assemble attributes for processing
+            VertexAttributes inputAttributes[3];
+            gr::rhi::Varyings perVertexOutputs[3];
+            gr::rhi::Triangle primitive;
+            for (int i = 0; i < 3; ++i)
+            {
+                auto& attrib = inputAttributes[i];
+                attrib.aPos = verts[face[i]];
+                // TODO added this for debugging, but the IA code shouldnt mod back the colors
+                attrib.aColor = colors[(triangleIndex * 3 + i) % colors.size()];
+                attrib.aTexCoord = vec2f(0.0f, 0.0f);
 
-            primitive.position[i] = NDCToViewport(perVertexOutputs[i].position, width, height);
-            primitive.color[i] = perVertexOutputs[i].color;
-            primitive.texcoord[i] = perVertexOutputs[i].texcoord;
+                // VS runs
+                perVertexOutputs[i] = shaderModule->vert(inputAttributes[i]);
+
+                primitive.position[i] = NDCToViewport(perVertexOutputs[i].position / perVertexOutputs[i].position.w, width, height);
+                primitive.color[i] = perVertexOutputs[i].color;
+                primitive.texcoord[i] = perVertexOutputs[i].texcoord;
+            }
+
+            const vec4f& a = perVertexOutputs[0].position;
+            const vec4f& b = perVertexOutputs[1].position;
+            const vec4f& c = perVertexOutputs[2].position;
+
+            if (!IsCulled(a, b, c, state))
+                triangeList.emplace_back(primitive);
         }
-
-        const vec4f& a = perVertexOutputs[0].position;
-        const vec4f& b = perVertexOutputs[1].position;
-        const vec4f& c = perVertexOutputs[2].position;
-
-        if (!IsCulled(a, b, c, state))
-            triangeList.emplace_back(primitive);
     }
 
+    GR_TRACE_SCOPED("TilelistConstruction");
     constexpr int kTileSizeX = 16;
     constexpr int kTileSizeY = 16;
     const int kNumTilesX = (width + kTileSizeX - 1) / kTileSizeX;
     const int kNumTilesY = (height + kTileSizeY - 1) / kTileSizeY;
     std::vector< Tile<kTileSizeX, kTileSizeY> > tileList(kNumTilesX * kNumTilesY);
-
-    for (int i = 0; i < triangeList.size(); ++i)
-    {
-        const auto& primitive = triangeList[i];
-        // viewport transform
-        const auto& a = primitive.position[0].xyz();
-        const auto& b = primitive.position[1].xyz();
-        const auto& c = primitive.position[2].xyz();
-
-        // clipping
-        int minX = std::min(a.x, std::min(b.x, c.x));
-        int maxX = std::max(a.x, std::max(b.x, c.x));
-        int minY = std::min(a.y, std::min(b.y, c.y));
-        int maxY = std::max(a.y, std::max(b.y, c.y));
-
-        // binning
-        int minTileX = std::max(minX / kTileSizeX, 0);
-        int maxTileX = std::min(maxX / kTileSizeX, kNumTilesX);
-
-        int minTileY = std::max(minY / kTileSizeY, 0);
-        int maxTileY = std::min(maxY / kTileSizeY, kNumTilesY);
-
-        for (int ty = minTileY; ty < maxTileY; ++ty)
+    
+    { GR_TRACE_SCOPED("Binning");
+        for (int i = 0; i < triangeList.size(); ++i)
         {
-            for (int tx = minTileX; tx < maxTileX; ++tx)
+            const auto& primitive = triangeList[i];
+            // viewport transform
+            const auto& a = primitive.position[0];
+            const auto& b = primitive.position[1];
+            const auto& c = primitive.position[2];
+
+            // clipping
+            int minX = std::min(a.x, std::min(b.x, c.x));
+            int maxX = std::max(a.x, std::max(b.x, c.x));
+            int minY = std::min(a.y, std::min(b.y, c.y));
+            int maxY = std::max(a.y, std::max(b.y, c.y));
+
+            // binning
+            int minTileX = std::max(minX / kTileSizeX, 0);
+            int maxTileX = std::min(maxX / kTileSizeX, kNumTilesX);
+
+            int minTileY = std::max(minY / kTileSizeY, 0);
+            int maxTileY = std::min(maxY / kTileSizeY, kNumTilesY);
+
+            for (int ty = minTileY; ty < maxTileY; ++ty)
             {
-                tileList[ty * kNumTilesX + tx].triangleList.emplace_back(i);
+                for (int tx = minTileX; tx < maxTileX; ++tx)
+                {
+                    tileList[ty * kNumTilesX + tx].triangleList.emplace_back(i);
+                }
             }
         }
     }
 
-
+    { GR_TRACE_SCOPED("RasterizeTiles")
 #pragma omp parallel for
-    // Iterate through all tiles
-    for (int ty = 0; ty < kNumTilesY; ++ty)
-    {
-        for (int tx = 0; tx < kNumTilesX; ++tx)
+        // Iterate through all tiles
+        for (int ty = 0; ty < kNumTilesY; ++ty)
         {
-            const auto& tile = tileList[ty * kNumTilesX + tx];
+            for (int tx = 0; tx < kNumTilesX; ++tx)
+            {
+                const auto& tile = tileList[ty * kNumTilesX + tx];
 
-            // get fb bounds corresponding to tile
-            const U32 startX = tx * kTileSizeX;
-            const U32 startY = ty * kTileSizeY;
+                // get fb bounds corresponding to tile
+                const U32 startX = tx * kTileSizeX;
+                const U32 startY = ty * kTileSizeY;
 
-            const U32 endX = std::min(startX + kTileSizeX, width - 1);
-            const U32 endY = std::min(startY + kTileSizeY, height - 1);
+                const U32 endX = std::min(startX + kTileSizeX, width - 1);
+                const U32 endY = std::min(startY + kTileSizeY, height - 1);
 
-            for (int triangleIndex : tile.triangleList) {
+                for (int triangleIndex : tile.triangleList) {
 
-                const auto& triangle = triangeList[triangleIndex];
+                    const auto& primitive = triangeList[triangleIndex];
 
-                const vec4f& a = triangle.position[0];
-                const vec4f& b = triangle.position[1];
-                const vec4f& c = triangle.position[2];
+                    const vec4f& a = primitive.position[0];
+                    const vec4f& b = primitive.position[1];
+                    const vec4f& c = primitive.position[2];
 
-                const vec4f e0 = b - a;
-                const vec4f e1 = c - a;
-                float d00 = dot(e0, e0);
-                float d01 = dot(e0, e1);
-                float d11 = dot(e1, e1);
-                float invDenom = 1.0f / (d00 * d11 - d01 * d01);
+                    const float totalArea = CalculateTriangleArea(a, b, c);
+                    const float invTotalArea = 1.0f / totalArea;
 
-
-                for (U32 y = startY; y < endY; ++y)
-                    for (U32 x = startX; x < endX; ++x)
-                    {
-                        vec4f P(x, y, 0, 1);
-
-                        vec4f e2 = P - a;
-                        float d20 = dot(e2, e0);
-                        float d21 = dot(e2, e1);
-
-                        // Calculate barycentric weights for attribute interpolation
-                        float w2 = (d11 * d20 - d01 * d21) * invDenom;
-                        float w1 = (d00 * d21 - d01 * d20) * invDenom;
-                        float w0 = 1.0f - w1 - w2;
-
-                        // skip points outside of triangle
-                        if (w0 < 0 || w1 < 0 || w2 < 0) {
-                            continue;
-                        }
-
-                        // TODO add depth state
-                        // early depth test
-                        float depth = (w0 * a.z) + (w1 * b.z) + (w2 * c.z);
-                        //const auto& depthBuffer = fb->depthView;
-                        // TODO need to perform depth remapping
-                        if (depth >= depthView.at(x, y).Get())
+                    for (U32 y = startY; y < endY; ++y)
+                        for (U32 x = startX; x < endX; ++x)
                         {
-                            //std::cout << "DH EarlyZ Test\n";
-                            continue;
+                            vec4f P(x, y, 0, 1);
+
+                            float u, v, w;
+                            {
+                                //GR_TRACE_SCOPED("Barycentrics");
+                                // TODO Calculate barycentric coordinates using edge functions
+                                u = CalculateTriangleArea(P, b, c) * invTotalArea;
+                                //if (u < 0) continue;
+                                v = CalculateTriangleArea(P, c, a) * invTotalArea;
+                                //if (v < 0) continue;
+                                w = 1.0 - u - v; //CalculateTriangleArea(P, a, b) * invTotalArea;
+                                //if (w < 0) continue;
+                            }
+
+                            {
+                                //GR_TRACE_SCOPED("EdgeFunctionCull");
+                                // skip points outside of primitive
+                                if (u < 0 || v < 0 || w < 0) {
+                                    continue;
+                                }
+                            }
+
+                            // TODO incorporate depth state
+                            float depth;
+                            auto& currDepth = depthView->at(x, y);
+                            {
+                                //GR_TRACE_SCOPED("DepthInterpolationAndTest");
+                                depth = u * a.z + v * b.z + w * c.z;
+                                if (depth >= currDepth.depth)
+                                {
+                                    continue;
+                                }
+                            }
+
+                            {
+                                //GR_TRACE_SCOPED("DepthWrite");
+                                // update with new depth value
+                                currDepth.depth = depth;
+                            }
+
+                            // FS
+                            // Apply barycentric weights for all varying attributes
+                            //GR_TRACE_SCOPED("FragmentShader");
+                            gr::rhi::Varyings fragInput{
+                                .position = vec4f(
+                                                u * a.x + v * b.x + w * c.x,
+                                                u * a.y + v * b.y + w * c.y,
+                                                depth,
+                                                1.0f),
+
+                                .color = vec4f(
+                                            u * primitive.color[0].x + v * primitive.color[1].x + w * primitive.color[2].x,
+                                            u * primitive.color[0].y + v * primitive.color[1].y + w * primitive.color[2].y,
+                                            u * primitive.color[0].z + v * primitive.color[1].z + w * primitive.color[2].z,
+                                            1.0f),
+
+                                .texcoord = vec2f(
+                                            u * primitive.texcoord[0].x + v * primitive.texcoord[1].x + w * primitive.texcoord[2].x,
+                                            u * primitive.texcoord[0].y + v * primitive.texcoord[1].y + w * primitive.texcoord[2].y)
+                            };
+                            // update with new depth value
+                            depthView->at(x, y).depth = depth;
+
+                            colorView->Store(x, y, shaderModule->frag(fragInput));
                         }
-
-                        // FS
-                        // Apply barycentric weights for all attributes
-                        // TODO rename Varyings var for fragInput
-                        //std::cout << "Barycentric part\n";
-                        gr::rhi::Varyings fragInput{
-                            //.position = u * primitive.position[0]
-                            //          + v * primitive.position[1]
-                            //          + w * primitive.position[2],
-                            .color = vec4f(
-                                    w0 * triangle.color[0].x + w1 * triangle.color[1].x + w2 * triangle.color[2].x,
-                                    w0 * triangle.color[0].y + w1 * triangle.color[1].y + w2 * triangle.color[2].y,
-                                    w0 * triangle.color[0].z + w1 * triangle.color[1].z + w2 * triangle.color[2].z,
-                                    w0 * triangle.color[0].w + w1 * triangle.color[1].w + w2 * triangle.color[2].w
-                                )
-                                //.texcoord = u * primitive.texcoord[0]
-                                //          + v * primitive.texcoord[1]
-                                //          + w * primitive.texcoord[2],
-                        };
-
-                        vec4f fragColor = shaderModule->frag(fragInput);
-                        //vec4f fragColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-                        // update with new depth value
-                        depthView.at(x, y).depth = depth;
-
-                        // TODO blending
-                        colorView.Store(x, y, fragColor);
-                    }
+                }
             }
         }
-    }
-
-    // Format converting to match present surface
-    const int viewSize = colorView.colorData.size();
-#pragma omp parallel for
-    for (int i = 0; i < viewSize; ++i)
-    {
-        colorView.data[i] = FORMAT_R8G8B8A8_UNORM::to(colorView.colorData[i]);
     }
 }
-*/
 
 }
