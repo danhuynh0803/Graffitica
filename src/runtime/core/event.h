@@ -89,6 +89,21 @@ public:
 private:
 };
 
+class KeyPressedEvent final : public Event
+{
+public:
+    inline ScanCode GetKeyPressed() const { return m_KeyPressed; }
+
+    KeyPressedEvent(ScanCode key)
+        : m_KeyPressed(key)
+    {}
+
+    EVENT_CLASS_TYPE(KEY_PRESSED)
+
+private:
+    ScanCode m_KeyPressed;
+};
+
 class MouseMovedEvent final : public Event
 {
 public:
@@ -113,7 +128,6 @@ private:
     float m_XRelative, m_YRelative;
 
 };
-
 
 class MouseButtonHeldEvent final : public Event
 {

@@ -65,9 +65,8 @@ void Application::PopLayer(Layer* layer)
 void Application::OnEvent(Event& e)
 {
     EventDispatcher disp(e);
-
-    disp.Dispatch<WindowResizeEvent>(std::bind(&Application::OnWindowResize, this, std::placeholders::_1));
     disp.Dispatch<WindowCloseEvent>(std::bind(&Application::OnWindowClose, this, std::placeholders::_1));
+    disp.Dispatch<KeyPressedEvent>(std::bind(&Application::OnKeyPressed, this, std::placeholders::_1));
 
     for (auto reverseIt = m_LayerStack.rbegin(); reverseIt != m_LayerStack.rend(); ++reverseIt)
     {
@@ -78,20 +77,19 @@ void Application::OnEvent(Event& e)
 	   }
 }
 
-bool Application::OnWindowResize(const WindowResizeEvent& e)
-{
-    return false;
-}
-
 bool Application::OnWindowClose(const WindowCloseEvent& e)
 {
     m_IsRunning = false;
     return true;
 }
 
-bool Application::OnMouseMoved(const MouseMovedEvent& e)
+bool Application::OnKeyPressed(const KeyPressedEvent& e)
 {
+    if (e.GetKeyPressed() == ScanCode::ESCAPE)
+    {
+        m_IsRunning = false;
+    }
     return true;
 }
 
-}
+} // namespace gr

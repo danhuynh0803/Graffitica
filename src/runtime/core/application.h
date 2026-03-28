@@ -31,11 +31,8 @@ public:
 
 private:
     void OnEvent(Event& e);
-    bool OnWindowResize(const WindowResizeEvent& e);
     bool OnWindowClose(const WindowCloseEvent& e);
-
-    // TODO remove later, just for testing events
-    bool OnMouseMoved(const MouseMovedEvent& e);
+    bool OnKeyPressed(const KeyPressedEvent& e);
 
 protected:
     static Application* m_Instance;

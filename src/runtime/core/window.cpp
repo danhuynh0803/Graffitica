@@ -42,6 +42,15 @@ void Window::PollEvents()
         data.eventCallback(closeEvent);
         break;
     }
+    case SDL_EVENT_KEY_DOWN: {
+        ScanCode keyCode = static_cast<ScanCode>(event.key.scancode);
+        KeyPressedEvent keyPressedEvent(keyCode);
+        data.eventCallback(keyPressedEvent);
+        break;
+    }
+    case SDL_EVENT_KEY_UP: {
+        // TODO add later, not needed at the moment
+    }
     case SDL_EVENT_MOUSE_MOTION: {
         MouseMovedEvent mouseMovedEvent(event.motion.state, event.motion.x, event.motion.y, event.motion.xrel, event.motion.yrel);
         data.eventCallback(mouseMovedEvent);
