@@ -1,6 +1,9 @@
 #include <iostream>
 #include <memory>
 #include <random>
+#include <numbers>
+#include <functional>
+
 #include "rhi/resource.h"
 #include "rhi/rasterizer_state.h"
 #include "rhi/formats.h"
@@ -8,14 +11,13 @@
 #include "rhi/interface/graphics_rhi.h"
 #include "rhi/shader.h"
 #include "rhi/command_buffer.h"
+#include "rhi/cpu/cpu_graphics_context.h"
+
 #include "renderer/camera.h"
 #include "renderer/camera_controller.h"
 #include "renderer/renderer.h"
 #include "renderer/mesh.h"
 #include "editor_layer.h"
-#include "rhi/cpu/cpu_graphics_context.h"
-#include <numbers>
-#include <functional>
 #include "developer/profiler/profiler.h"
 
 namespace gr
@@ -150,8 +152,23 @@ void EditorLayer::OnUpdate(double dt)
     // TODO switch between tiled and immediate depending on vertex counts
     gr::rhi::cmd::Clear(*fb.colorView, { .4, .5, .7, 1.0 });
     gr::rhi::cmd::Clear(*fb.depthView, 1.0);
+
     //gr::rhi::cmd::DrawIndexedTiled(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
-    gr::rhi::cmd::DrawIndexedImmediate(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
+    //gr::rhi::cmd::DrawIndexedImmediate(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
+
+    // multiple draw test for perf profiling
+    for (int i = 0; i < 10; ++i)
+    {
+        modelMatrix = gr::Identity<float,4,4>();
+        const float x = (i % 10);
+        const float y = (i / 10);
+        gr::translate(modelMatrix, vec3f(x, y, -1.0));
+        shader.MVP = projMatrix * viewMatrix * modelMatrix;
+
+        gr::rhi::cmd::DrawIndexedTiled(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
+        //gr::rhi::cmd::DrawIndexedImmediate(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
+    }
+
 }
 
 void EditorLayer::OnEvent(Event& event)

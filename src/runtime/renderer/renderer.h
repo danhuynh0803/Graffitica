@@ -24,10 +24,7 @@ void Clear(ImageView<FORMAT>& view, const vec4f& clearColor)
 
     static_assert(std::is_base_of<ColorFormat, FORMAT>::value, "FORMAT must inherit from a COLOR FORMAT");
     auto size = view.width * view.height;
-    for (int i = 0; i < size; ++i)
-    {
-        view.colorData[i] = clearColor;
-	   }
+    std::fill_n(view.data, size, FORMAT::to(clearColor));
 }
 
 template<typename FORMAT>

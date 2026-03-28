@@ -60,22 +60,7 @@ void CPUSwapchain::UpdateBackBuffer(SDL_Surface* surfaceToUpdate)
 
     const auto& currBackBufferImageView = m_PresentImageViews.at(m_CurrentFrameIndex);
 
-    // Format converting to match present surface
-    // TODO: better than it's original location in renderer to quickly test,
-    // but should consolidate with cpu blit command to match rhi
-
-    //auto ptr = reinterpret_cast<FORMAT_R8G8B8A8_UNORM*>(surfaceToUpdate->pixels);
-    {
-        GR_TRACE_SCOPED("FORMAT_R8G8B8A8_UNORM::to")
-        FORMAT_R8G8B8A8_UNORM* dst = reinterpret_cast<FORMAT_R8G8B8A8_UNORM*>(surfaceToUpdate->pixels);
-        for (int i = 0; i < currBackBufferImageView.colorData.size(); ++i)
-        {
-            currBackBufferImageView.data[i] = FORMAT_R8G8B8A8_UNORM::to(currBackBufferImageView.colorData[i]);
-            //dst[i] = FORMAT_R8G8B8A8_UNORM::to(currBackBufferImageView.colorData[i]);
-        }
-    }
-
-    GR_TRACE_SCOPED("SDLMemcpy");
+    GR_TRACE_SCOPED("SDLMemcpy", SYS_RENDERING);
     std::memcpy(surfaceToUpdate->pixels, currBackBufferImageView.data, m_Width * m_Height * sizeof(FORMAT_R8G8B8A8_UNORM));
 
     m_CurrentFrameIndex = (m_CurrentFrameIndex + 1) % m_ImageCount;

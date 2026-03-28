@@ -105,7 +105,7 @@ void Window::OnUpdate()
     m_GraphicsContext->UpdateBackBuffer(m_PresentSurface);
 
     {
-        GR_TRACE_SCOPED("SDLBlitSurface");
+        GR_TRACE_SCOPED("SDLBlitSurface", SYS_RENDERING);
         SDL_Rect rect{ .x = 0, .y = 0, .w = static_cast<int>(m_Width), .h = static_cast<int>(m_Height) };
         SDL_BlitSurface(m_PresentSurface, &rect, SDL_GetWindowSurface(m_Window), &rect);
         SDL_UpdateWindowSurface(m_Window);

@@ -439,7 +439,8 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
                 // TODO blending
 
                 { //GR_TRACE_SCOPED("ColorWrite");
-                    colorData[x + y * colorView->width] = shaderModule->frag(fragInput);
+                    //colorData[x + y * colorView->width] = shaderModule->frag(fragInput);
+                    colorView->data[x + y * colorView->width] = FORMAT_R8G8B8A8_UNORM::to(shaderModule->frag(fragInput));
                 }
                 //u += b.y - c.y;
                 //v += c.y - a.y;
@@ -475,7 +476,7 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
 
     // Input assembling
     std::vector<Triangle> triangeList;
-    { GR_TRACE_SCOPED("InputAssemblyList");
+    { GR_TRACE_SCOPED("InputAssemblyList", SYS_RENDERING);
 
         triangeList.reserve(indexCount);
         for (int triangleIndex = firstIndex; triangleIndex < indexCount; ++triangleIndex)
@@ -521,9 +522,10 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
     constexpr int kTileSizeY = 16;
     const int kNumTilesX = (width + kTileSizeX - 1) / kTileSizeX;
     const int kNumTilesY = (height + kTileSizeY - 1) / kTileSizeY;
+    // Allocate arena for tiles
     std::vector< Tile<kTileSizeX, kTileSizeY> > tileList(kNumTilesX * kNumTilesY);
     
-    { GR_TRACE_SCOPED("Binning");
+    { GR_TRACE_SCOPED("Binning", SYS_RENDERING);
         for (int i = 0; i < triangeList.size(); ++i)
         {
             const auto& primitive = triangeList[i];
@@ -555,7 +557,7 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
         }
     }
 
-    { GR_TRACE_SCOPED("RasterizeTiles")
+    { GR_TRACE_SCOPED("RasterizeTiles", SYS_RENDERING)
 #pragma omp parallel for
     // Iterate through all tiles
     for (int ty = 0; ty < kNumTilesY; ++ty)
@@ -642,7 +644,9 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
                                         u * primitive.texcoord[0].y + v * primitive.texcoord[1].y + w * primitive.texcoord[2].y)
                         };
 
-                        colorView->Store(x, y, shaderModule->frag(fragInput));
+                        //colorView->Store(x, y, shaderModule->frag(fragInput));
+                        // Convert f32 to u8 and write to color buffer
+                        colorView->data[x + y * colorView->width] = FORMAT_R8G8B8A8_UNORM::to(shaderModule->frag(fragInput));
                     }
                 }
             }
