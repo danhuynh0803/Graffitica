@@ -301,12 +301,12 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
 
     for (int tri = firstIndex; tri < indexCount; ++tri)
     {
-        GR_TRACE_SCOPED("TriangleLoop");
+        //GR_TRACE_SCOPED("TriangleLoop");
         const std::vector<int>& face = vb.m_MeshData->face(tri);
 
         // assemble attributes for processing
         VertexAttributes inputAttributes[3];
-        { GR_TRACE_SCOPED("InputAssembly");
+        { //GR_TRACE_SCOPED("InputAssembly");
             for (int i = 0; i < 3; ++i)
             {
                 auto& attrib = inputAttributes[i];
@@ -319,7 +319,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
         // VS runs
         gr::rhi::Varyings perVertexOutputs[3];
         gr::rhi::Triangle primitive;
-        {   ZoneScoped("VertexShader");
+        {   //ZoneScoped("VertexShader");
             for (int i = 0; i < 3; ++i)
             {
                 perVertexOutputs[i] = shaderModule->vert(inputAttributes[i]);
@@ -332,7 +332,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
         }
 
 
-        {   GR_TRACE_SCOPED("BackfaceCulling");
+        {   //GR_TRACE_SCOPED("BackfaceCulling");
             // Backface culling
             if (IsCulled(primitive.position[0],
                          primitive.position[1],
@@ -362,8 +362,8 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
         int minY = std::clamp(std::min(a.y, std::min(b.y, c.y)), 0.0f, height-1);
         int maxY = std::clamp(std::max(a.y, std::max(b.y, c.y)), 0.0f, height-1);
 
-        { GR_TRACE_SCOPED("Rasterization");
-//#pragma omp parallel for
+        { //GR_TRACE_SCOPED("Rasterization");
+#pragma omp parallel for
         // TODO use AVX to calculate two pixels at a time?
         // 256B wide registers can hold 8 pixels worth of data, but the area calc and edge function tests require shuffling data around which may reduce perf
         for (int y = minY; y <= static_cast<int>(maxY); ++y)
@@ -438,7 +438,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
                 };
                 // TODO blending
 
-                { GR_TRACE_SCOPED("ColorWrite");
+                { //GR_TRACE_SCOPED("ColorWrite");
                     colorData[x + y * colorView->width] = shaderModule->frag(fragInput);
                 }
                 //u += b.y - c.y;
@@ -475,11 +475,12 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
 
     // Input assembling
     std::vector<Triangle> triangeList;
-    { GR_TRACE_SCOPED("InputAssemblyList")
+    { GR_TRACE_SCOPED("InputAssemblyList");
 
         triangeList.reserve(indexCount);
         for (int triangleIndex = firstIndex; triangleIndex < indexCount; ++triangleIndex)
         {
+            GR_TRACE_SCOPED("TriangleAssembly", SYS_PER_VERTEX);
             const std::vector<int>& face = vb.m_MeshData->face(triangleIndex);
 
             // assemble attributes for processing

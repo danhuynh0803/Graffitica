@@ -41,7 +41,8 @@ enum ProfilerSubSystems : uint16_t
 
 #define ENABLE_PROFILER 1
 #if _DEBUG || ENABLE_PROFILER
-    #define GR_TRACE_SCOPED(Name) ZoneScopedN(Name);
+    #define GR_TRACE_SCOPED(Name) ZoneScopedN(Name)
+    //#define GR_TRACE_SCOPED(Name, Category) ZoneScopedNC(Name, PROFILER_SUBSYSTEMS & Category)
     #define GR_TRACE_START(Category) ZoneNamed(_var, PROFILER_SUBSYSTEMS & Category);
 #else
     #define GR_TRACE_SCOPED(Name)

@@ -8,10 +8,7 @@ namespace gr
 template<int Rows, int Cols>
 struct Tile
 {
-    vec4f& At(int x, int y) {
-        return data[y*Cols + x];
-    }
-    vec4f data[Rows][Cols];
+    // TODO replace with triangle arena + offset using total triangle counts
     std::vector<U32> triangleList;
 };
 

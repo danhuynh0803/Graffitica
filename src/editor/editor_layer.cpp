@@ -150,8 +150,8 @@ void EditorLayer::OnUpdate(double dt)
     // TODO switch between tiled and immediate depending on vertex counts
     gr::rhi::cmd::Clear(*fb.colorView, { .4, .5, .7, 1.0 });
     gr::rhi::cmd::Clear(*fb.depthView, 1.0);
-    gr::rhi::cmd::DrawIndexedTiled(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
-    //gr::rhi::cmd::DrawIndexedImmediate(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
+    //gr::rhi::cmd::DrawIndexedTiled(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
+    gr::rhi::cmd::DrawIndexedImmediate(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
 }
 
 void EditorLayer::OnEvent(Event& event)
