@@ -363,7 +363,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
         int maxY = std::clamp(std::max(a.y, std::max(b.y, c.y)), 0.0f, height-1);
 
         { GR_TRACE_SCOPED("Rasterization");
-#pragma omp parallel for
+//#pragma omp parallel for
         // TODO use AVX to calculate two pixels at a time?
         // 256B wide registers can hold 8 pixels worth of data, but the area calc and edge function tests require shuffling data around which may reduce perf
         for (int y = minY; y <= static_cast<int>(maxY); ++y)
@@ -453,11 +453,10 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
     }
 }
 
+// Draw that includes binning step
 void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
 {
     GR_TRACE_START(SYS_RENDERING);
-
-    // Draw that includes binning step
 
     const auto& fb = cmd.framebuffer;
     auto& colorView = fb->colorView;
@@ -498,7 +497,11 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
                 // VS runs
                 perVertexOutputs[i] = shaderModule->vert(inputAttributes[i]);
 
-                primitive.position[i] = NDCToViewport(perVertexOutputs[i].position / perVertexOutputs[i].position.w, width, height);
+                primitive.position[i] = NDCToViewport(
+                                            perVertexOutputs[i].position / perVertexOutputs[i].position.w,
+                                            width,
+                                            height
+                                        );
                 primitive.color[i] = perVertexOutputs[i].color;
                 primitive.texcoord[i] = perVertexOutputs[i].texcoord;
             }
@@ -512,7 +515,7 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
         }
     }
 
-    GR_TRACE_SCOPED("TilelistConstruction");
+    //GR_TRACE_SCOPED("TilelistConstruction");
     constexpr int kTileSizeX = 16;
     constexpr int kTileSizeY = 16;
     const int kNumTilesX = (width + kTileSizeX - 1) / kTileSizeX;
@@ -536,14 +539,14 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
 
             // binning
             int minTileX = std::max(minX / kTileSizeX, 0);
-            int maxTileX = std::min(maxX / kTileSizeX, kNumTilesX);
+            int maxTileX = std::min(maxX / kTileSizeX, kNumTilesX-1);
 
             int minTileY = std::max(minY / kTileSizeY, 0);
-            int maxTileY = std::min(maxY / kTileSizeY, kNumTilesY);
+            int maxTileY = std::min(maxY / kTileSizeY, kNumTilesY-1);
 
-            for (int ty = minTileY; ty < maxTileY; ++ty)
+            for (int ty = minTileY; ty <= maxTileY; ++ty)
             {
-                for (int tx = minTileX; tx < maxTileX; ++tx)
+                for (int tx = minTileX; tx <= maxTileX; ++tx)
                 {
                     tileList[ty * kNumTilesX + tx].triangleList.emplace_back(i);
                 }
@@ -553,101 +556,96 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
 
     { GR_TRACE_SCOPED("RasterizeTiles")
 #pragma omp parallel for
-        // Iterate through all tiles
-        for (int ty = 0; ty < kNumTilesY; ++ty)
+    // Iterate through all tiles
+    for (int ty = 0; ty < kNumTilesY; ++ty)
+    {
+        for (int tx = 0; tx < kNumTilesX; ++tx)
         {
-            for (int tx = 0; tx < kNumTilesX; ++tx)
-            {
-                const auto& tile = tileList[ty * kNumTilesX + tx];
+            const auto& tile = tileList[ty * kNumTilesX + tx];
 
-                // get fb bounds corresponding to tile
-                const U32 startX = tx * kTileSizeX;
-                const U32 startY = ty * kTileSizeY;
+            // get fb bounds corresponding to tile
+            const U32 startX = tx * kTileSizeX;
+            const U32 startY = ty * kTileSizeY;
 
-                const U32 endX = std::min(startX + kTileSizeX, width - 1);
-                const U32 endY = std::min(startY + kTileSizeY, height - 1);
+            const U32 endX = std::min(startX + kTileSizeX, width - 1);
+            const U32 endY = std::min(startY + kTileSizeY, height - 1);
 
-                for (int triangleIndex : tile.triangleList) {
+            for (int triangleIndex : tile.triangleList) {
 
-                    const auto& primitive = triangeList[triangleIndex];
+                const auto& primitive = triangeList[triangleIndex];
 
-                    const vec4f& a = primitive.position[0];
-                    const vec4f& b = primitive.position[1];
-                    const vec4f& c = primitive.position[2];
+                const vec4f& a = primitive.position[0];
+                const vec4f& b = primitive.position[1];
+                const vec4f& c = primitive.position[2];
 
-                    const float totalArea = CalculateTriangleArea(a, b, c);
-                    const float invTotalArea = 1.0f / totalArea;
+                const float totalArea = CalculateTriangleArea(a, b, c);
+                const float invTotalArea = 1.0f / totalArea;
 
-                    for (U32 y = startY; y < endY; ++y)
-                        for (U32 x = startX; x < endX; ++x)
+                for (U32 y = startY; y < endY; ++y)
+                {
+                    for (U32 x = startX; x < endX; ++x)
+                    {
+                        vec4f P(x, y, 0, 1);
+
+                        float u, v, w;
                         {
-                            vec4f P(x, y, 0, 1);
+                            u = CalculateTriangleArea(P, b, c) * invTotalArea;
+                            v = CalculateTriangleArea(P, c, a) * invTotalArea;
+                            w = 1.0 - u - v; //CalculateTriangleArea(P, a, b) * invTotalArea;
+                        }
 
-                            float u, v, w;
-                            {
-                                //GR_TRACE_SCOPED("Barycentrics");
-                                // TODO Calculate barycentric coordinates using edge functions
-                                u = CalculateTriangleArea(P, b, c) * invTotalArea;
-                                //if (u < 0) continue;
-                                v = CalculateTriangleArea(P, c, a) * invTotalArea;
-                                //if (v < 0) continue;
-                                w = 1.0 - u - v; //CalculateTriangleArea(P, a, b) * invTotalArea;
-                                //if (w < 0) continue;
+                        {
+                            //GR_TRACE_SCOPED("EdgeFunctionCull");
+                            // skip points outside of primitive
+                            if (u < 0 || v < 0 || w < 0) {
+                                continue;
                             }
+                        }
 
+                        // TODO incorporate depth state
+                        float depth;
+                        auto& currDepth = depthView->at(x, y);
+                        {
+                            //GR_TRACE_SCOPED("DepthInterpolationAndTest");
+                            depth = u * a.z + v * b.z + w * c.z;
+                            if (depth >= currDepth.depth)
                             {
-                                //GR_TRACE_SCOPED("EdgeFunctionCull");
-                                // skip points outside of primitive
-                                if (u < 0 || v < 0 || w < 0) {
-                                    continue;
-                                }
+                                continue;
                             }
+                        }
 
-                            // TODO incorporate depth state
-                            float depth;
-                            auto& currDepth = depthView->at(x, y);
-                            {
-                                //GR_TRACE_SCOPED("DepthInterpolationAndTest");
-                                depth = u * a.z + v * b.z + w * c.z;
-                                if (depth >= currDepth.depth)
-                                {
-                                    continue;
-                                }
-                            }
+                        {
+                            //GR_TRACE_SCOPED("DepthWrite");
+                            // update with new depth value
+                            currDepth.depth = depth;
+                        }
 
-                            {
-                                //GR_TRACE_SCOPED("DepthWrite");
-                                // update with new depth value
-                                currDepth.depth = depth;
-                            }
-
-                            // FS
-                            // Apply barycentric weights for all varying attributes
-                            //GR_TRACE_SCOPED("FragmentShader");
-                            gr::rhi::Varyings fragInput{
-                                .position = vec4f(
-                                                u * a.x + v * b.x + w * c.x,
-                                                u * a.y + v * b.y + w * c.y,
-                                                depth,
-                                                1.0f),
-
-                                .color = vec4f(
-                                            u * primitive.color[0].x + v * primitive.color[1].x + w * primitive.color[2].x,
-                                            u * primitive.color[0].y + v * primitive.color[1].y + w * primitive.color[2].y,
-                                            u * primitive.color[0].z + v * primitive.color[1].z + w * primitive.color[2].z,
+                        // FS
+                        // Apply barycentric weights for all varying attributes
+                        //GR_TRACE_SCOPED("FragmentShader");
+                        gr::rhi::Varyings fragInput{
+                            .position = vec4f(
+                                            u * a.x + v * b.x + w * c.x,
+                                            u * a.y + v * b.y + w * c.y,
+                                            depth,
                                             1.0f),
 
-                                .texcoord = vec2f(
-                                            u * primitive.texcoord[0].x + v * primitive.texcoord[1].x + w * primitive.texcoord[2].x,
-                                            u * primitive.texcoord[0].y + v * primitive.texcoord[1].y + w * primitive.texcoord[2].y)
-                            };
-                            // update with new depth value
-                            depthView->at(x, y).depth = depth;
+                            .color = vec4f(
+                                        u * primitive.color[0].x + v * primitive.color[1].x + w * primitive.color[2].x,
+                                        u * primitive.color[0].y + v * primitive.color[1].y + w * primitive.color[2].y,
+                                        u * primitive.color[0].z + v * primitive.color[1].z + w * primitive.color[2].z,
+                                        1.0f),
 
-                            colorView->Store(x, y, shaderModule->frag(fragInput));
-                        }
+                            .texcoord = vec2f(
+                                        u * primitive.texcoord[0].x + v * primitive.texcoord[1].x + w * primitive.texcoord[2].x,
+                                        u * primitive.texcoord[0].y + v * primitive.texcoord[1].y + w * primitive.texcoord[2].y)
+                        };
+
+                        colorView->Store(x, y, shaderModule->frag(fragInput));
+                    }
                 }
             }
+        }
         }
     }
 }

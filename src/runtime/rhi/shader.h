@@ -69,8 +69,8 @@ struct ShaderModule
 
 struct TestShader final : ShaderModule
 {
-    // for quick testing
     gr::mat44 MVP;
+    // Separate for testing
     gr::mat44 M;
     gr::mat44 V;
     gr::mat44 P;
@@ -90,13 +90,6 @@ struct TestShader final : ShaderModule
 
         Varyings v2f{};
         v2f.position = MVP * vec4f(attribs.aPos, 1.0f);
-
-        // Split for debugging purposes
-        //auto world = M * vec4f(attribs.aPos, 1.0f);
-        //auto view = V * world;
-        //auto clip = P * view;
-        //v2f.position = clip;
-
         v2f.color = attribs.aColor;
         v2f.texcoord = attribs.aTexCoord;
         return v2f;
@@ -110,15 +103,12 @@ struct TestShader final : ShaderModule
         return col;
     }
 
-    // TODO Rename struct for frag input since input is now interpolated
     inline virtual vec4f frag(const Varyings& input) override
     {
-        // Disable indivial frag shader stage trace due to perf overhead
-        //GR_TRACE_START(SYS_RENDERING);
-
         // Segment each test to separate functions in order to add to testing framework later
         // Need to dump fb output and compare against reference image
-        return TestDepthInterpolation(input);
+        //return TestDepthInterpolation(input);
+        return input.color;
     }
 };
 

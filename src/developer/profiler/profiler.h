@@ -29,7 +29,7 @@ enum ProfilerSubSystems : uint8_t
 // Modify to enable/disable profiling for specific subsystems
 // However, this doesn't affect the SCOPED instrumentation calls.
 // TODO - check if scoped calls can be filtered by subsystem as well
-#define PROFILER_SUBSYSTEMS ProfilerSubSystems::SYS_ALL
+#define PROFILER_SUBSYSTEMS SYS_ALL
 
 #define GR_TRACE_START(VarName, Category) ZoneNamed(Name, PROFILER_SUBSYSTEMS & Category);
 

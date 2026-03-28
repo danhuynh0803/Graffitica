@@ -91,7 +91,6 @@ EditorLayer::EditorLayer(const std::string& name)
     drawState = {
         .fillMode = FILL_MODE::FILL_MODE_SOLID,
         .cullMode = CULL_MODE::CULL_MODE_BACK,
-        //.cullMode = CULL_MODE::CULL_MODE_NONE,
         .frontCounterClockwise = true,
     };
 
@@ -136,15 +135,8 @@ void EditorLayer::OnUpdate(double dt)
     modelMatrix.m_Data[2][2] = amp * cos(rot);
 
     constexpr float kNear = 0.1f;
-    constexpr float kFar = 5.0f;
-    constexpr float midPoint = kFar * 0.5f;
-    gr::translate(modelMatrix, 
-        vec3f(
-            0.0,//0.5*sin(time),
-            0.0,//*cos(time),
-            -.5//-midPoint + midPoint*sin(0.75*time)
-        )
-    );
+    constexpr float kFar = 100.0f;
+    gr::translate(modelMatrix, vec3f(0.0, 0.0, -.5));
 
     // TODO update event system to work with camera controller
     // Fix tiling renderer
@@ -171,8 +163,8 @@ void EditorLayer::OnUpdate(double dt)
     // TODO switch between tiled and immediate depending on vertex counts
     gr::rhi::cmd::Clear(*fb.colorView, { .4, .5, .7, 1.0 });
     gr::rhi::cmd::Clear(*fb.depthView, 1.0);
-    //gr::rhi::cmd::DrawIndexedTiled(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
-    gr::rhi::cmd::DrawIndexedImmediate(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
+    gr::rhi::cmd::DrawIndexedTiled(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
+    //gr::rhi::cmd::DrawIndexedImmediate(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
 }
 
 void EditorLayer::OnEvent(Event& event)
