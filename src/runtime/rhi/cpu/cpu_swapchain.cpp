@@ -59,11 +59,13 @@ void CPUSwapchain::UpdateBackBuffer(SDL_Surface* surfaceToUpdate)
     GR_TRACE_START(SYS_RENDERING);
 
     const auto& currBackBufferImageView = m_PresentImageViews.at(m_CurrentFrameIndex);
-
-    GR_TRACE_SCOPED("SDLMemcpy", SYS_RENDERING);
-    std::memcpy(surfaceToUpdate->pixels, currBackBufferImageView.data, m_Width * m_Height * sizeof(FORMAT_R8G8B8A8_UNORM));
-
     m_CurrentFrameIndex = (m_CurrentFrameIndex + 1) % m_ImageCount;
+
+    // Memcpy here was for handling conversions between different formats and layouts of the imageview and SDL surface
+    // However, if swapchain format matches provided view then we should avoid the copy
+    //GR_TRACE_SCOPED("SDLMemcpy", SYS_RENDERING);
+    //std::memcpy(surfaceToUpdate->pixels, currBackBufferImageView.data, m_Width * m_Height * sizeof(FORMAT_R8G8B8A8_UNORM));
+    surfaceToUpdate->pixels = currBackBufferImageView.data;
 }
 
 }
