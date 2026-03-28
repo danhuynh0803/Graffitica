@@ -49,16 +49,15 @@ void CameraController::OnEvent(Event& e)
     disp.Dispatch<InputStateEvent>(std::bind(&CameraController::OnInputHeld, this, std::placeholders::_1));
     disp.Dispatch<MouseMovedEvent>(std::bind(&CameraController::OnMouseMoved, this, std::placeholders::_1));
     disp.Dispatch<MouseButtonPressedEvent>(std::bind(&CameraController::OnMouseButtonPressed, this, std::placeholders::_1));
-    disp.Dispatch<MouseButtonHeldEvent>(std::bind(&CameraController::OnMouseButtonHeld, this, std::placeholders::_1));
-    disp.Dispatch<MouseScrolledEvent>(std::bind(&CameraController::OnMouseScrolled, this, std::placeholders::_1));
+    disp.Dispatch<MouseButtonReleasedEvent>(std::bind(&CameraController::OnMouseButtonReleased, this, std::placeholders::_1));
+    //disp.Dispatch<MouseButtonHeldEvent>(std::bind(&CameraController::OnMouseButtonHeld, this, std::placeholders::_1));
+    //disp.Dispatch<MouseScrolledEvent>(std::bind(&CameraController::OnMouseScrolled, this, std::placeholders::_1));
 }
 
 bool CameraController::OnInputHeld(InputStateEvent& e)
 {
     GR_TRACE_START(SYS_IO);
-
     m_MovementDirection = CameraMovement::NONE;
-
     if (e.IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
     {
         if (e.IsKeyPressed(KEY_W)) {
@@ -82,10 +81,10 @@ bool CameraController::OnMouseMoved(MouseMovedEvent& e)
 {
     GR_TRACE_START(SYS_IO);
 
-    float xRel = e.GetXRelative();
-    float yRel = e.GetYRelative();
-
     if (e.IsButtonPressed(MOUSE_BUTTON_RIGHT)) {
+
+        float xRel = e.GetXRelative();
+        float yRel = e.GetYRelative();
 
         xRel *= m_MouseSensitivity;
         yRel *= m_MouseSensitivity;
@@ -107,15 +106,22 @@ bool CameraController::OnMouseMoved(MouseMovedEvent& e)
         m_ActiveCamera->F = -m_Front;
         m_ActiveCamera->R = m_Right;
         m_ActiveCamera->U = m_Up;
-
     }
-    //std::cout << "Front: " << m_ActiveCamera->F << " Right: " << m_ActiveCamera->R << " Up: " << m_ActiveCamera->U << std::endl;
 
     return false;
 }
 
 bool CameraController::OnMouseButtonPressed(MouseButtonPressedEvent& e)
 {
+    return false;
+}
+
+bool CameraController::OnMouseButtonReleased(MouseButtonReleasedEvent& e)
+{
+    if (e.GetMouseButtonReleased() == MOUSE_BUTTON_RIGHT)
+    {
+        m_MovementDirection = CameraMovement::NONE;
+    }
     return false;
 }
 

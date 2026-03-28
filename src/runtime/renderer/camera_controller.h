@@ -41,6 +41,7 @@ public:
     bool OnInputHeld(InputStateEvent& e);
     bool OnMouseMoved(MouseMovedEvent& e);
     bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
+    bool OnMouseButtonReleased(MouseButtonReleasedEvent& e);
     bool OnMouseButtonHeld(MouseButtonHeldEvent& e);
     bool OnMouseScrolled(MouseScrolledEvent& e);
 

@@ -161,6 +161,18 @@ private:
     MouseCode m_ButtonDown;
 };
 
+class MouseButtonReleasedEvent final : public Event
+{
+public:
+    inline MouseCode GetMouseButtonReleased() const { return m_ButtonUp; }
+    MouseButtonReleasedEvent(MouseCode button)
+        : m_ButtonUp(button)
+    {}
+    EVENT_CLASS_TYPE(MOUSE_BUTTON_RELEASED)
+private:
+    MouseCode m_ButtonUp;
+};
+
 class MouseScrolledEvent final : public Event
 {
 public:

@@ -50,6 +50,7 @@ void Window::PollEvents()
     }
     case SDL_EVENT_KEY_UP: {
         // TODO add later, not needed at the moment
+        break;
     }
     case SDL_EVENT_MOUSE_MOTION: {
         MouseMovedEvent mouseMovedEvent(event.motion.state, event.motion.x, event.motion.y, event.motion.xrel, event.motion.yrel);
@@ -57,15 +58,15 @@ void Window::PollEvents()
         break;
     }
     case SDL_EVENT_MOUSE_BUTTON_DOWN: {
-        MouseCode buttonCode = static_cast<MouseCode>(event.button.button);
+        MouseCode buttonCode = static_cast<MouseCode>(SDL_BUTTON_MASK(event.button.button));
         MouseButtonPressedEvent mouseButtonDownEvent(buttonCode);
         data.eventCallback(mouseButtonDownEvent);
         break;
     }
     case SDL_EVENT_MOUSE_BUTTON_UP: {
-        MouseCode buttonCode = static_cast<MouseCode>(event.button.button);
-        //MouseButtonPressedEvent mouseButtonDownEvent(buttonCode);
-        //data.eventCallback(mouseButtonDownEvent);
+        MouseCode buttonCode = static_cast<MouseCode>(SDL_BUTTON_MASK(event.button.button));
+        MouseButtonReleasedEvent mouseButtonUpEvent(buttonCode);
+        data.eventCallback(mouseButtonUpEvent);
         break;
     }
     case SDL_EVENT_MOUSE_WHEEL: {
