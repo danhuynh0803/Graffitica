@@ -118,10 +118,6 @@ bool CameraController::OnMouseButtonPressed(MouseButtonPressedEvent& e)
 
 bool CameraController::OnMouseButtonReleased(MouseButtonReleasedEvent& e)
 {
-    if (e.GetMouseButtonReleased() == MOUSE_BUTTON_RIGHT)
-    {
-        m_MovementDirection = CameraMovement::NONE;
-    }
     return false;
 }
 

@@ -75,18 +75,9 @@ struct TestShader final : ShaderModule
     gr::mat44 V;
     gr::mat44 P;
 
-    float near = 0.1f;
-    float far  = 100.0f;
-
-    float LinearizeDepth(float d, float zNear, float zFar)
-    {
-        float ndcDepth = d * 2.0f - 1.0f;
-        return (2.0f * zNear * zFar) / (zFar + zNear - ndcDepth*(zFar-zNear));
-    }
-
     inline virtual Varyings vert(const VertexAttributes& attribs) override
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_PER_VERTEX);
 
         Varyings v2f{};
         v2f.position = MVP * vec4f(attribs.aPos, 1.0f);
@@ -95,19 +86,11 @@ struct TestShader final : ShaderModule
         return v2f;
     }
 
-    vec4f TestDepthInterpolation(const Varyings& input)
-    {
-        float z = LinearizeDepth(input.position.z, near, far);
-        z /= far;
-        vec4f col = vec4f(z, z, z, 1.0);
-        return col;
-    }
-
     inline virtual vec4f frag(const Varyings& input) override
     {
+        GR_TRACE_START(SYS_PER_PIXEL);
         // Segment each test to separate functions in order to add to testing framework later
         // Need to dump fb output and compare against reference image
-        //return TestDepthInterpolation(input);
         return input.color;
     }
 };

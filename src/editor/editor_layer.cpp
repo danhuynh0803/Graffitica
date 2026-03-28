@@ -79,6 +79,7 @@ EditorLayer::EditorLayer(const std::string& name)
 {
     GR_TRACE_START(SYS_GAME);
 
+    // TODO - wrap into a random utility system later
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<float> dis(0.0f, 1.0f);
@@ -87,7 +88,6 @@ EditorLayer::EditorLayer(const std::string& name)
     for (int i = 0; i < 1000; ++i)
         model.m_VertexColors.emplace_back(dis(gen), dis(gen), dis(gen), 1.);
 
-    //vbo.m_VertexCount = vbo.m_Positions.size();
     drawState = {
         .fillMode = FILL_MODE::FILL_MODE_SOLID,
         .cullMode = CULL_MODE::CULL_MODE_BACK,
@@ -96,7 +96,6 @@ EditorLayer::EditorLayer(const std::string& name)
 
     gfxContext = rhi::CPUGraphicsContext::GetInstance();
     swapchain = gfxContext->GetSwapchain();
-
     for (int i = 0; i < swapchain->GetImageCount(); ++i)
     {
         presentFrameBuffers.emplace_back(
@@ -114,7 +113,6 @@ void EditorLayer::OnUpdate(double dt)
 
     cameraController.OnUpdate(dt);
 
-    //SCOPED_TIMER
     // Render to current frame in-flight
     auto currFrameIndex = swapchain->GetCurrentBackBufferIndex();
     auto& fb = presentFrameBuffers[currFrameIndex];
@@ -124,7 +122,7 @@ void EditorLayer::OnUpdate(double dt)
     // until pipeline refactoring and optimizations are complete
     auto modelMatrix = gr::Identity<float,4,4>();
     static float time = 0;
-    //time += dt;
+    time += dt;
 
     const float amp = 1.f;
     const float freq = 1.0f;
@@ -138,20 +136,9 @@ void EditorLayer::OnUpdate(double dt)
     constexpr float kFar = 100.0f;
     gr::translate(modelMatrix, vec3f(0.0, 0.0, -.5));
 
-    // TODO update event system to work with camera controller
-    // Fix tiling renderer
-    // edge rules
-    // SIMD tiles
-
     auto viewMatrix = camera.GetView();
     auto projMatrix = camera.GetPerspectiveProjection(70.0f, static_cast<float>(width) / static_cast<float>(height), kNear, kFar);
-    shader.MVP = 
-        projMatrix *
-        viewMatrix *
-        modelMatrix;
-
-    shader.near = kNear;
-    shader.far = kFar;
+    shader.MVP = projMatrix * viewMatrix * modelMatrix;
 
     // encapsulate commands into commandbuffer interface?
     gr::rhi::CommandBuffer cmd {
