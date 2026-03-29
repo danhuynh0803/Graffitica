@@ -2,10 +2,15 @@
 
 #include <Tracy/Tracy.hpp>
 
-#define BIT(x) (1 << x)
+// Developer options
+// TODO later force disable when in release build?
+#define ENABLE_INSTRUMENTATION 1
+#define ENABLE_MEMORY_TRACKER 1
 
 namespace gr
 {
+
+#define BIT(x) (1 << x)
 
 enum ProfilerSubSystems : uint16_t
 {
@@ -19,28 +24,28 @@ enum ProfilerSubSystems : uint16_t
     
     // TODO subsystems - Add more later as needed
     SYS_UTIL      = BIT(5), // Utility systems (e.g. allocator, resource pools, etc)
-    //SYS_MEMORY    = BIT(6),
+    SYS_MEMORY    = BIT(6),
     //SYS_SCRIPTING = BIT(7),
 
     SYS_ALL       = 0xFFFF
 };
 
-#define SYS_GAME        ProfilerSubSystems::SYS_GAME
-#define SYS_RENDERING   ProfilerSubSystems::SYS_RENDERING
-#define SYS_IO          ProfilerSubSystems::SYS_IO
-#define SYS_UTIL        ProfilerSubSystems::SYS_UTIL
-#define SYS_PER_VERTEX  ProfilerSubSystems::SYS_PER_VERTEX
-#define SYS_PER_PIXEL   ProfilerSubSystems::SYS_PER_PIXEL
+#define SYS_GAME        gr::ProfilerSubSystems::SYS_GAME
+#define SYS_RENDERING   gr::ProfilerSubSystems::SYS_RENDERING
+#define SYS_IO          gr::ProfilerSubSystems::SYS_IO
+#define SYS_UTIL        gr::ProfilerSubSystems::SYS_UTIL
+#define SYS_PER_VERTEX  gr::ProfilerSubSystems::SYS_PER_VERTEX
+#define SYS_PER_PIXEL   gr::ProfilerSubSystems::SYS_PER_PIXEL
+#define SYS_MEMORY      gr::ProfilerSubSystems::SYS_MEMORY
 
 // Modify to enable/disable profiling for specific subsystems
 // However, this doesn't affect the SCOPED instrumentation calls.
 // TODO - check if scoped calls can be filtered by subsystem as well
-#define PROFILER_SUBSYSTEMS (SYS_GAME | SYS_RENDERING | SYS_IO) //| (SYS_PER_VERTEX | SYS_PER_PIXEL)
+#define PROFILER_SUBSYSTEMS (SYS_GAME | SYS_RENDERING | SYS_IO | SYS_MEMORY) //| (SYS_PER_VERTEX | SYS_PER_PIXEL)
 
 #define GR_TRACE_START(VarName, Category) ZoneNamed(Name, PROFILER_SUBSYSTEMS & Category);
 
-#define ENABLE_PROFILER 1
-#if _DEBUG || ENABLE_PROFILER
+#if _DEBUG || ENABLE_INSTRUMENTATION
     // Set each subsystem to use a different color for visual clarity in Tracy profiler
     #define GR_TRACE_SCOPED(Name) ZoneScopedN(Name)
     #define COLOR(x) (0x00f00fff << x)

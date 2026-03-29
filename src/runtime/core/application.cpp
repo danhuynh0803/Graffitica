@@ -4,6 +4,7 @@
 #include "rhi/interface/graphics_context.h"
 #include "rhi/interface/swapchain.h"
 #include "developer/profiler/profiler.h"
+#include "developer/profiler/memory_tracker.h"
 
 namespace gr
 {
@@ -47,6 +48,10 @@ void Application::Run()
 
         // Window update logic handles blitting to backbuffer
         m_Window->OnUpdate();
+
+        // TODO
+        // OnEndFrame();
+        // For resetting various per-frame stats like memory tracker, draw call counts, etc
 
         FrameMark;
     }
