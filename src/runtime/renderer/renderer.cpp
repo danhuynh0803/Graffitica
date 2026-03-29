@@ -481,13 +481,14 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
         triangeList.reserve(indexCount);
         for (int triangleIndex = firstIndex; triangleIndex < indexCount; ++triangleIndex)
         {
-            GR_TRACE_SCOPED("TriangleAssembly", SYS_PER_VERTEX);
+            //GR_TRACE_SCOPED("TriangleAssembly", SYS_PER_VERTEX);
             const std::vector<int>& face = vb.m_MeshData->face(triangleIndex);
 
             // assemble attributes for processing
             VertexAttributes inputAttributes[3];
             gr::rhi::Varyings perVertexOutputs[3];
             gr::rhi::Triangle primitive;
+            bool skipTriangle = false;
             for (int i = 0; i < 3; ++i)
             {
                 auto& attrib = inputAttributes[i];
@@ -499,6 +500,14 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
                 // VS runs
                 perVertexOutputs[i] = shaderModule->vert(inputAttributes[i]);
 
+                const auto& pos = perVertexOutputs[i].position;
+                // clip in homogeneous space before perspective divide
+                if (pos.z < -pos.w || pos.z > pos.w)
+                {
+                    skipTriangle = true;
+                    break;
+                }
+
                 primitive.position[i] = NDCToViewport(
                                             perVertexOutputs[i].position / perVertexOutputs[i].position.w,
                                             width,
@@ -507,6 +516,8 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
                 primitive.color[i] = perVertexOutputs[i].color;
                 primitive.texcoord[i] = perVertexOutputs[i].texcoord;
             }
+
+            if (skipTriangle) { continue; }
 
             const vec4f& a = perVertexOutputs[0].position;
             const vec4f& b = perVertexOutputs[1].position;
