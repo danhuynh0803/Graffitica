@@ -10,3 +10,6 @@
 [submodule "external/tracy"]
 	path = external/tracy
 	url = https://github.com/wolfpld/tracy.git
+[submodule "assets/Sponza"]
+	path = assets/Sponza
+	url = https://github.com/jimmiebergmann/Sponza.git
