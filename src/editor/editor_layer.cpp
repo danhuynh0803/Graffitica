@@ -153,7 +153,7 @@ void EditorLayer::OnUpdate(double dt)
     gr::rhi::cmd::Clear(*fb.colorView, { .4, .5, .7, 1.0 });
     gr::rhi::cmd::Clear(*fb.depthView, 1.0);
 
-    //gr::rhi::cmd::DrawIndexedTiled(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
+    gr::rhi::cmd::DrawIndexedTiled(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
     //gr::rhi::cmd::DrawIndexedImmediate(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
 
     // multiple draw test for perf profiling
@@ -165,7 +165,7 @@ void EditorLayer::OnUpdate(double dt)
         gr::translate(modelMatrix, vec3f(x, y, -1.0));
         shader.MVP = projMatrix * viewMatrix * modelMatrix;
 
-        gr::rhi::cmd::DrawIndexedTiled(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
+        //gr::rhi::cmd::DrawIndexedTiled(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
         //gr::rhi::cmd::DrawIndexedImmediate(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
     }
 

@@ -529,14 +529,63 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
     }
 
     //GR_TRACE_SCOPED("TilelistConstruction");
-    constexpr int kTileSizeX = 16;
-    constexpr int kTileSizeY = 16;
-    const int kNumTilesX = (width + kTileSizeX - 1) / kTileSizeX;
+    constexpr int kTileSizeX = 8;
+    constexpr int kTileSizeY = 8;
+    const int kNumTilesX = (width  + kTileSizeX - 1) / kTileSizeX;
     const int kNumTilesY = (height + kTileSizeY - 1) / kTileSizeY;
     // Allocate arena for tiles
-    std::vector< Tile<kTileSizeX, kTileSizeY> > tileList(kNumTilesX * kNumTilesY);
-    
-    { GR_TRACE_SCOPED("Binning", SYS_RENDERING);
+    std::vector<Tile> tileList(kNumTilesX * kNumTilesY);
+    U32 totalTileTriCount = 0;
+    { GR_TRACE_SCOPED("FirstBinningPass - Determine Counts", SYS_RENDERING)
+        for (int i = 0; i < triangeList.size(); ++i)
+        {
+            const auto& primitive = triangeList[i];
+            // viewport transform
+            const auto& a = primitive.position[0];
+            const auto& b = primitive.position[1];
+            const auto& c = primitive.position[2];
+
+            // clipping
+            int minX = std::min(a.x, std::min(b.x, c.x));
+            int maxX = std::max(a.x, std::max(b.x, c.x));
+            int minY = std::min(a.y, std::min(b.y, c.y));
+            int maxY = std::max(a.y, std::max(b.y, c.y));
+
+            // binning
+            int minTileX = std::max(minX / kTileSizeX, 0);
+            int maxTileX = std::min(maxX / kTileSizeX, kNumTilesX - 1);
+
+            int minTileY = std::max(minY / kTileSizeY, 0);
+            int maxTileY = std::min(maxY / kTileSizeY, kNumTilesY - 1);
+
+            for (int ty = minTileY; ty <= maxTileY; ++ty)
+            {
+                for (int tx = minTileX; tx <= maxTileX; ++tx)
+                {
+                    tileList[ty * kNumTilesX + tx].triangleCount++;
+                    totalTileTriCount++;
+                }
+            }
+        }
+    }
+
+    // global list of triangle indices for all tiles, each tile will have offset and count into this list
+    // Init w/ -1 to cause crash if we mess up the offsets/counts, TODO remove this after testing
+    std::vector<int> triangleIndices(totalTileTriCount, -1);
+    { GR_TRACE_SCOPED("TileStartAddresses", SYS_RENDERING)
+        int globalOffset = 0;
+        for (auto& tile : tileList)
+        {
+            if (tile.triangleCount > 0) {
+                // Get starting addresses to be used later for writing data into global index list for each tile
+                // Done in SecondBinningPass
+                tile.start = tile.writePtr = triangleIndices.data() + globalOffset;
+                globalOffset += tile.triangleCount;
+            }
+        }
+    }
+
+    { GR_TRACE_SCOPED("SecondBinningPass - Generate Tile Triangle List", SYS_RENDERING);
         for (int i = 0; i < triangeList.size(); ++i)
         {
             const auto& primitive = triangeList[i];
@@ -562,7 +611,8 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
             {
                 for (int tx = minTileX; tx <= maxTileX; ++tx)
                 {
-                    tileList[ty * kNumTilesX + tx].triangleList.emplace_back(i);
+                    auto& tile = tileList[ty * kNumTilesX + tx];
+                    *tile.writePtr++ = i; // append triangle index to tile's list and increment write ptr
                 }
             }
         }
@@ -576,6 +626,10 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
         for (int tx = 0; tx < kNumTilesX; ++tx)
         {
             const auto& tile = tileList[ty * kNumTilesX + tx];
+            
+            if (tile.triangleCount <= 0) {
+                continue; // skip tiles with no triangles
+            }
 
             // get fb bounds corresponding to tile
             const U32 startX = tx * kTileSizeX;
@@ -584,9 +638,11 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
             const U32 endX = std::min(startX + kTileSizeX, width - 1);
             const U32 endY = std::min(startY + kTileSizeY, height - 1);
 
-            for (int triangleIndex : tile.triangleList) {
-
-                const auto& primitive = triangeList[triangleIndex];
+            //for (int triangleIndex : tile.triangleList) {
+            for (int i = 0; i < tile.triangleCount; ++i)
+            {
+                int idx = *(tile.start + i);
+                const auto& primitive = triangeList[idx];
 
                 const vec4f& a = primitive.position[0];
                 const vec4f& b = primitive.position[1];

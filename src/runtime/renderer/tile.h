@@ -1,15 +1,16 @@
 #pragma once
 
 #include "util/math/vector.h"
+#include <list>
 
 namespace gr
 {
 
-template<int Rows, int Cols>
 struct Tile
 {
-    // TODO replace with triangle arena + offset using total triangle counts
-    std::vector<U32> triangleList;
+    int triangleCount {0};
+    int* start {nullptr}; // start position in triangle list for this tile
+    int* writePtr{ nullptr }; // current offset in triangle list for this tile, used only during binning to write triangle indices
 };
 
 }
