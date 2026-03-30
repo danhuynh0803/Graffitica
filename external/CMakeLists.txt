@@ -29,3 +29,5 @@ add_subdirectory(SDL)
 add_subdirectory(Catch2)
 
 add_subdirectory(tracy)
+
+add_subdirectory(DirectX-Headers)

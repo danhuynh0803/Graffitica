@@ -13,3 +13,6 @@
 [submodule "assets/Sponza"]
 	path = assets/Sponza
 	url = https://github.com/jimmiebergmann/Sponza.git
+[submodule "external/DirectX-Headers"]
+	path = external/DirectX-Headers
+	url = https://github.com/microsoft/DirectX-Headers.git

@@ -38,7 +38,7 @@ file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.h")
         source_group("${VS_FOLDER}" FILES "${SOURCE_FILE}")
     endforeach()
 
-add_executable(${PROJECT_NAME}
+add_executable(${PROJECT_NAME} WIN32
     ${SOURCES}
 )
 
@@ -72,6 +72,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Vulkan::Vulkan
     Vulkan::shaderc_combined
 
+    Microsoft::DirectX-Headers
     d3d12.lib
     dxgi.lib
     d3dcompiler.lib
