@@ -38,7 +38,7 @@ file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.h")
         source_group("${VS_FOLDER}" FILES "${SOURCE_FILE}")
     endforeach()
 
-add_executable(${PROJECT_NAME} WIN32
+add_executable(${PROJECT_NAME}
     ${SOURCES}
 )
 
