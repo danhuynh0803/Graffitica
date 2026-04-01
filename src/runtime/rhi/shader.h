@@ -34,38 +34,9 @@ struct ShaderModule
     // for quick testing
     gr::mat44 MVP;
 
-    //Varyings vert(const VertexAttributes& attribs);
-
-    // TODO Rename struct for frag input since input is now interpolated
-    //vec4f frag(const Varyings& input);
-
     virtual Varyings vert(const VertexAttributes& attribs) = 0;
     virtual vec4f frag(const Varyings& input) = 0;
 };
-
-//struct TestShader {};
-//
-//template <>
-//struct ShaderModule<TestShader>
-//{
-//    gr::mat44 MVP;
-//
-//    Varyings vert(const VertexAttributes& attribs)
-//    {
-//        Varyings v2f{};
-//        v2f.position = MVP * vec4f(attribs.aPos, 1.0f);
-//        v2f.color = attribs.aColor;
-//        v2f.texcoord = attribs.aTexCoord;
-//        return v2f;
-//    }
-//
-//    vec4f frag(const Varyings& input)
-//    {
-//        //vec4f col = input.color;
-//        //col *= std::clamp(std::ceil(input.position.x), 0.0f, 1.0f);
-//        return input.color;
-//    }
-//};
 
 struct TestShader final : ShaderModule
 {

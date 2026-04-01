@@ -6,6 +6,7 @@
 #include <vector>
 #include <cfloat>
 #include <omp.h>
+#include <unordered_map>
 
 #include "util/math/vector.h"
 #include "util/math/matrix.h"
@@ -465,66 +466,74 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
     const auto& state = cmd.rasterizerState;
     const auto& mvp = cmd.mvp;
     const auto& shaderModule = cmd.shaderModule;
-
     const auto& positions = vb.m_Positions;
     const auto& colors = vb.m_VertexColors;
     const auto& verts = vb.m_MeshData->GetVertices();
     const U32 width = fb->colorView->width;
     const U32 height = fb->colorView->height;
 
-    auto& colorData = fb->colorView->colorData;
-
     // Input assembling
     std::vector<Triangle> triangeList;
     { GR_TRACE_SCOPED("InputAssemblyList", SYS_RENDERING);
-
+        std::vector<std::pair<bool, gr::rhi::Varyings>> vertexCache(verts.size()); // simple cache to avoid redundant vertex shader executions for shared vertices across triangles, maps vertex index to post-VS output
         triangeList.reserve(indexCount);
-        for (int triangleIndex = firstIndex; triangleIndex < indexCount; ++triangleIndex)
+        VertexAttributes inputAttributes[3];
+        gr::rhi::Varyings perVertexOutputs[3];
+        for (int faceIndex = firstIndex; faceIndex < indexCount; ++faceIndex)
         {
             //GR_TRACE_SCOPED("TriangleAssembly", SYS_PER_VERTEX);
-            const std::vector<int>& face = vb.m_MeshData->face(triangleIndex);
+            const std::vector<int>& face = vb.m_MeshData->face(faceIndex);
 
             // assemble attributes for processing
-            VertexAttributes inputAttributes[3];
-            gr::rhi::Varyings perVertexOutputs[3];
             gr::rhi::Triangle primitive;
             bool skipTriangle = false;
             for (int i = 0; i < 3; ++i)
             {
-                auto& attrib = inputAttributes[i];
-                attrib.aPos = verts[face[i]];
-                // TODO added this for debugging, but the IA code shouldnt mod back the colors
-                attrib.aColor = colors[(triangleIndex * 3 + i) % colors.size()];
-                attrib.aTexCoord = vec2f(0.0f, 0.0f);
+                int vertexIndex = face[i];
+                const auto& [isInContainer, cachedOutput] = vertexCache[vertexIndex];
+                if (isInContainer) {
+                    perVertexOutputs[i] = cachedOutput;
+                }
+                else {
+                    auto& attrib = inputAttributes[i];
+                    attrib.aPos = verts[vertexIndex];
+                    // TODO added this for debugging, but the IA code shouldnt mod back the colors
+                    attrib.aColor = colors[(faceIndex * 3 + i) % colors.size()];
+                    attrib.aTexCoord = vec2f(0.0f, 0.0f);
 
-                // VS runs
-                perVertexOutputs[i] = shaderModule->vert(inputAttributes[i]);
+                    // VS runs
+                    perVertexOutputs[i] = shaderModule->vert(inputAttributes[i]);
+                    // Update cache with new vertex output
+                    vertexCache[vertexIndex] = { true, perVertexOutputs[i] };
+                }
 
-                const auto& pos = perVertexOutputs[i].position;
                 // clip in homogeneous space before perspective divide
+                const auto& pos = perVertexOutputs[i].position;
                 if (pos.z < -pos.w || pos.z > pos.w)
                 {
                     skipTriangle = true;
                     break;
                 }
+            }
 
+            if (skipTriangle)
+                continue;
+
+            if (IsCulled(perVertexOutputs[0].position, perVertexOutputs[1].position, perVertexOutputs[2].position, state))
+                continue;
+
+            for (int i = 0; i < 3; ++i)
+            {
                 primitive.position[i] = NDCToViewport(
-                                            perVertexOutputs[i].position / perVertexOutputs[i].position.w,
-                                            width,
-                                            height
-                                        );
+                    perVertexOutputs[i].position / perVertexOutputs[i].position.w,
+                    width,
+                    height
+                );
                 primitive.color[i] = perVertexOutputs[i].color;
                 primitive.texcoord[i] = perVertexOutputs[i].texcoord;
             }
 
-            if (skipTriangle) { continue; }
-
-            const vec4f& a = perVertexOutputs[0].position;
-            const vec4f& b = perVertexOutputs[1].position;
-            const vec4f& c = perVertexOutputs[2].position;
-
-            if (!IsCulled(a, b, c, state))
-                triangeList.emplace_back(primitive);
+            triangeList.emplace_back(primitive);
         }
     }
 
@@ -626,7 +635,7 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
         for (int tx = 0; tx < kNumTilesX; ++tx)
         {
             const auto& tile = tileList[ty * kNumTilesX + tx];
-            
+
             if (tile.triangleCount <= 0) {
                 continue; // skip tiles with no triangles
             }
@@ -638,7 +647,7 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
             const U32 endX = std::min(startX + kTileSizeX, width - 1);
             const U32 endY = std::min(startY + kTileSizeY, height - 1);
 
-            //for (int triangleIndex : tile.triangleList) {
+            //for (int faceIndex : tile.triangleList) {
             for (int i = 0; i < tile.triangleCount; ++i)
             {
                 int idx = *(tile.start + i);
@@ -657,61 +666,34 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
                     {
                         vec4f P(x, y, 0, 1);
 
-                        float u, v, w;
-                        {
-                            u = CalculateTriangleArea(P, b, c) * invTotalArea;
-                            v = CalculateTriangleArea(P, c, a) * invTotalArea;
-                            w = 1.0 - u - v; //CalculateTriangleArea(P, a, b) * invTotalArea;
-                        }
+                        float u = CalculateTriangleArea(P, b, c) * invTotalArea;
+                        float v = CalculateTriangleArea(P, c, a) * invTotalArea;
+                        float w = 1.0 - u - v; //CalculateTriangleArea(P, a, b) * invTotalArea;
 
-                        {
-                            //GR_TRACE_SCOPED("EdgeFunctionCull");
-                            // skip points outside of primitive
-                            if (u < 0 || v < 0 || w < 0) {
-                                continue;
-                            }
+                        if (u < 0 || v < 0 || w < 0) {
+                            continue;
                         }
 
                         // TODO incorporate depth state
-                        float depth;
+                        float depth = u * a.z + v * b.z + w * c.z;
                         auto& currDepth = depthView->at(x, y);
+                        if (depth >= currDepth.depth)
                         {
-                            //GR_TRACE_SCOPED("DepthInterpolationAndTest");
-                            depth = u * a.z + v * b.z + w * c.z;
-                            if (depth >= currDepth.depth)
-                            {
-                                continue;
-                            }
+                            continue;
                         }
 
-                        {
-                            //GR_TRACE_SCOPED("DepthWrite");
-                            // update with new depth value
-                            currDepth.depth = depth;
-                        }
+                        // update with new depth value
+                        currDepth.depth = depth;
 
-                        // FS
                         // Apply barycentric weights for all varying attributes
-                        //GR_TRACE_SCOPED("FragmentShader");
-                        gr::rhi::Varyings fragInput{
-                            .position = vec4f(
-                                            u * a.x + v * b.x + w * c.x,
-                                            u * a.y + v * b.y + w * c.y,
-                                            depth,
-                                            1.0f),
 
-                            .color = vec4f(
-                                        u * primitive.color[0].x + v * primitive.color[1].x + w * primitive.color[2].x,
-                                        u * primitive.color[0].y + v * primitive.color[1].y + w * primitive.color[2].y,
-                                        u * primitive.color[0].z + v * primitive.color[1].z + w * primitive.color[2].z,
-                                        1.0f),
-
-                            .texcoord = vec2f(
-                                        u * primitive.texcoord[0].x + v * primitive.texcoord[1].x + w * primitive.texcoord[2].x,
-                                        u * primitive.texcoord[0].y + v * primitive.texcoord[1].y + w * primitive.texcoord[2].y)
+                        gr::rhi::Varyings fragInput {
+                            //GR_TRACE_SCOPED("FragmentInputInterpolation", SYS_RENDERING);
+                            .position   = u * primitive.position[0] + v * primitive.position[1] + w * primitive.position[2],
+                            .color      = u * primitive.color[0] + v * primitive.color[1] + w * primitive.color[2],
+                            .texcoord   = u * primitive.texcoord[0] + v * primitive.texcoord[1] + w * primitive.texcoord[2],
                         };
-
-                        //colorView->Store(x, y, shaderModule->frag(fragInput));
+                        // fragment shading
                         // Convert f32 to u8 and write to color buffer
                         colorView->data[x + y * colorView->width] = FORMAT_R8G8B8A8_UNORM::to(shaderModule->frag(fragInput));
                     }
