@@ -15,6 +15,11 @@ class alignas(16) vec4_128<float>
 public:
     vec4_128() = default;
 
+    vec4_128(const vec2<float>& v2, float z, float w)
+    {
+        e128 = _mm_set_ps(w, z, v2.y, v2.x);
+    }
+
     vec4_128(const vec3<float>& v3, float w)
     {
         e128 = _mm_set_ps(w, v3.z, v3.y, v3.x);

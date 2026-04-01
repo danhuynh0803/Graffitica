@@ -469,6 +469,8 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
     const auto& positions = vb.m_Positions;
     const auto& colors = vb.m_VertexColors;
     const auto& verts = vb.m_MeshData->GetVertices();
+    const auto& texCoords = vb.m_MeshData->GetTexCoords();
+    const auto& normals = vb.m_MeshData->GetNormals();
     const U32 width = fb->colorView->width;
     const U32 height = fb->colorView->height;
 
@@ -485,7 +487,6 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
             const std::vector<int>& face = vb.m_MeshData->face(faceIndex);
 
             // assemble attributes for processing
-            gr::rhi::Triangle primitive;
             bool skipTriangle = false;
             for (int i = 0; i < 3; ++i)
             {
@@ -498,8 +499,9 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
                     auto& attrib = inputAttributes[i];
                     attrib.aPos = verts[vertexIndex];
                     // TODO added this for debugging, but the IA code shouldnt mod back the colors
-                    attrib.aColor = colors[(faceIndex * 3 + i) % colors.size()];
-                    attrib.aTexCoord = vec2f(0.0f, 0.0f);
+                    attrib.aColor = vec4f(0.5,0.5,0.5,1.0);//colors[(faceIndex * 3 + i) % colors.size()];
+                    attrib.aNormal = normals[vertexIndex];
+                    attrib.aTexCoord = texCoords[vertexIndex];
 
                     // VS runs
                     perVertexOutputs[i] = shaderModule->vert(inputAttributes[i]);
@@ -521,19 +523,23 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
 
             if (IsCulled(perVertexOutputs[0].position, perVertexOutputs[1].position, perVertexOutputs[2].position, state))
                 continue;
+            
+            gr::rhi::Triangle primitive;
+            { GR_TRACE_SCOPED("ViewportTransform", SYS_PER_VERTEX);
+                for (int i = 0; i < 3; ++i)
+                {
+                    primitive.position[i] = NDCToViewport(
+                        perVertexOutputs[i].position / perVertexOutputs[i].position.w,
+                        width,
+                        height
+                    );
+                    primitive.color[i] = perVertexOutputs[i].color;
+                    primitive.texcoord[i] = perVertexOutputs[i].texcoord;
+                    primitive.normal[i] = perVertexOutputs[i].normal;
+                }
 
-            for (int i = 0; i < 3; ++i)
-            {
-                primitive.position[i] = NDCToViewport(
-                    perVertexOutputs[i].position / perVertexOutputs[i].position.w,
-                    width,
-                    height
-                );
-                primitive.color[i] = perVertexOutputs[i].color;
-                primitive.texcoord[i] = perVertexOutputs[i].texcoord;
+                triangeList.emplace_back(primitive);
             }
-
-            triangeList.emplace_back(primitive);
         }
     }
 
@@ -691,8 +697,10 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
                             //GR_TRACE_SCOPED("FragmentInputInterpolation", SYS_RENDERING);
                             .position   = u * primitive.position[0] + v * primitive.position[1] + w * primitive.position[2],
                             .color      = u * primitive.color[0] + v * primitive.color[1] + w * primitive.color[2],
+                            .normal     = u * primitive.normal[0] + v * primitive.normal[1] + w * primitive.normal[2],
                             .texcoord   = u * primitive.texcoord[0] + v * primitive.texcoord[1] + w * primitive.texcoord[2],
                         };
+
                         // fragment shading
                         // Convert f32 to u8 and write to color buffer
                         colorView->data[x + y * colorView->width] = FORMAT_R8G8B8A8_UNORM::to(shaderModule->frag(fragInput));

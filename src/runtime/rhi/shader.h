@@ -13,6 +13,7 @@ struct Varyings
 {
     vec4f position;
     vec4f color;
+    vec4f normal;
     vec2f texcoord;
     // disable for now, will hardly use
     //float pointSize;
@@ -26,6 +27,7 @@ struct Triangle final : Primitive
     vec4f position[3];
     vec4f color[3];
     vec2f texcoord[3];
+    vec4f normal[3];
 };
 
 //template <typename T>
@@ -54,15 +56,18 @@ struct TestShader final : ShaderModule
         v2f.position = MVP * vec4f(attribs.aPos, 1.0f);
         v2f.color = attribs.aColor;
         v2f.texcoord = attribs.aTexCoord;
+        v2f.normal = vec4f(attribs.aNormal, 0.0f);
+        // TODO normals;
         return v2f;
     }
 
     inline virtual vec4f frag(const Varyings& input) override
     {
         GR_TRACE_START(SYS_PER_PIXEL);
-        // Segment each test to separate functions in order to add to testing framework later
-        // Need to dump fb output and compare against reference image
-        return input.color;
+        vec3f lightDir = vec3f(0, 5, -1);
+
+        //return vec4f(input.texcoord, 0.0f, 1.0f);
+        return input.normal;
     }
 };
 

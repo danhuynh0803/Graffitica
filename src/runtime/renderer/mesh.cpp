@@ -9,7 +9,11 @@
 
 
 // TODO mesh loader lib
-Mesh::Mesh(const char* file_name) : m_Verts(), m_Faces()
+Mesh::Mesh(const char* file_name)
+    : m_Verts(),
+      m_Faces(),
+      m_Normals(),
+      m_TexCoords()
 {
     std::ifstream in;
     in.open (file_name, std::ifstream::in);
@@ -55,10 +59,24 @@ Mesh::Mesh(const char* file_name) : m_Verts(), m_Faces()
         // Current line is a texture line
         else if (!line.compare(0, 2, "vt"))
         {
+            iss >> trash >> trash;
+            vec2f uv;
+            for (int i : {0, 1})
+            {
+                iss >> uv[i];
+            }
+            m_TexCoords.push_back(uv);
         }
         // Normal line
         else if (!line.compare(0, 2, "vn"))
         {
+            iss >> trash >> trash;
+            vec3f normal;
+            for (int i = 0; i < 3; ++i)
+            {
+                iss >> normal[i];
+            }
+            m_Normals.push_back(normal);
         }
         // Current line is a face
         else if (!line.compare(0, 2, "f "))

@@ -46,10 +46,10 @@ namespace
     Buffer model{
         //.m_MeshData = std::make_shared<Mesh>("../assets/models/octahedron.obj"),
         //.m_MeshData = std::make_shared<Mesh>("../assets/models/ico.obj"),
-        //.m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
+        .m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
         //.m_MeshData = std::make_shared<Mesh>("../assets/models/bunny.obj"),
         //.m_MeshData = std::make_shared<Mesh>("../assets/Sponza/sponza.obj"),
-        .m_MeshData = std::make_shared<Mesh>("../assets/models/xyzrgb_dragon.obj"),
+        //.m_MeshData = std::make_shared<Mesh>("../assets/models/xyzrgb_dragon.obj"),
         //.m_MeshData = std::make_shared<Mesh>(simpleMesh)
     };
 
@@ -131,7 +131,7 @@ void EditorLayer::OnUpdate(double dt)
 
     const float amp = 1.f;
     const float freq = 1.0f;
-    const float rot = 180.0 * std::numbers::pi_v<float> / 180.0f;
+    const float rot = 0; //180.0 * std::numbers::pi_v<float> / 180.0f;
     modelMatrix.m_Data[0][0] = amp * cos(rot);
     modelMatrix.m_Data[0][2] = amp * sin(rot);
     modelMatrix.m_Data[2][0] = amp * -sin(rot);
@@ -140,7 +140,7 @@ void EditorLayer::OnUpdate(double dt)
     constexpr float kNear = 0.1f;
     constexpr float kFar = 100000.0f;
     //gr::translate(modelMatrix, vec3f(0.0, -500.0, -2500.0)); //sponza
-    gr::scale(modelMatrix, vec3f(0.01, 0.01, 0.01));
+    //gr::scale(modelMatrix, vec3f(0.01, 0.01, 0.01));
     gr::translate(modelMatrix, vec3f(0.0, 0.0, -0.3)); //xyzrgb_dragon
     auto viewMatrix = camera.GetView();
     auto projMatrix = camera.GetPerspectiveProjection(70.0f, static_cast<float>(width) / static_cast<float>(height), kNear, kFar);

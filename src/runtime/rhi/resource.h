@@ -12,6 +12,7 @@ struct VertexAttributes
     // for now, use just the required attributes
     vec3f aPos;
     vec4f aColor;
+    vec3f aNormal;
     vec2f aTexCoord;
 };
 
