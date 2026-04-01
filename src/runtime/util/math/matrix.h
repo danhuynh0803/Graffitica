@@ -125,6 +125,69 @@ inline void scale(Matrix<T, 4,4>& m_transform, const vec3f& v_scale)
     m_transform = m_scale * m_transform;
 }
 
+template<typename T>
+inline Matrix<T,4,4> transpose(const Matrix<T, 4, 4>& m)
+{
+    mat44 r;
+    r[0][0] = m[0][0];     r[0][1] = m[1][0];    r[0][2] = m[2][0];     r[0][3] = m[3][0];
+    r[1][0] = m[0][1];     r[1][1] = m[1][1];    r[1][2] = m[2][1];     r[1][3] = m[3][1];
+    r[2][0] = m[0][2];     r[2][1] = m[1][2];    r[2][2] = m[2][2];     r[2][3] = m[3][2];
+    r[3][0] = m[0][3];     r[3][1] = m[1][3];    r[3][2] = m[2][3];     r[3][3] = m[3][3];
+    return r;
+}
+
+template<typename T>
+inline Matrix<T,4,4> inverse(const Matrix<T, 4, 4>& m)
+{
+    const float
+    a00 = m[0][0], a01 = m[0][1], a02 = m[0][2], a03 = m[0][3],
+    a10 = m[1][0], a11 = m[1][1], a12 = m[1][2], a13 = m[1][3],
+    a20 = m[2][0], a21 = m[2][1], a22 = m[2][2], a23 = m[2][3],
+    a30 = m[3][0], a31 = m[3][1], a32 = m[3][2], a33 = m[3][3];
+
+    float b00 = a00 * a11 - a01 * a10;
+    float b01 = a00 * a12 - a02 * a10;
+    float b02 = a00 * a13 - a03 * a10;
+    float b03 = a01 * a12 - a02 * a11;
+    float b04 = a01 * a13 - a03 * a11;
+    float b05 = a02 * a13 - a03 * a12;
+    float b06 = a20 * a31 - a21 * a30;
+    float b07 = a20 * a32 - a22 * a30;
+    float b08 = a20 * a33 - a23 * a30;
+    float b09 = a21 * a32 - a22 * a31;
+    float b10 = a21 * a33 - a23 * a31;
+    float b11 = a22 * a33 - a23 * a32;
+
+    float det =
+        b00 * b11 - b01 * b10 + b02 * b09 +
+        b03 * b08 - b04 * b07 + b05 * b06;
+
+    float invDet = 1.0f / det;
+
+    mat44 r;
+    r[0][0] = (+a11 * b11 - a12 * b10 + a13 * b09) * invDet;
+    r[0][1] = (-a01 * b11 + a02 * b10 - a03 * b09) * invDet;
+    r[0][2] = (+a31 * b05 - a32 * b04 + a33 * b03) * invDet;
+    r[0][3] = (-a21 * b05 + a22 * b04 - a23 * b03) * invDet;
+
+    r[1][0] = (-a10 * b11 + a12 * b08 - a13 * b07) * invDet;
+    r[1][1] = (+a00 * b11 - a02 * b08 + a03 * b07) * invDet;
+    r[1][2] = (-a30 * b05 + a32 * b02 - a33 * b01) * invDet;
+    r[1][3] = (+a20 * b05 - a22 * b02 + a23 * b01) * invDet;
+
+    r[2][0] = (+a10 * b10 - a11 * b08 + a13 * b06) * invDet;
+    r[2][1] = (-a00 * b10 + a01 * b08 - a03 * b06) * invDet;
+    r[2][2] = (+a30 * b04 - a31 * b02 + a33 * b00) * invDet;
+    r[2][3] = (-a20 * b04 + a21 * b02 - a23 * b00) * invDet;
+
+    r[3][0] = (-a10 * b09 + a11 * b07 - a12 * b06) * invDet;
+    r[3][1] = (+a00 * b09 - a01 * b07 + a02 * b06) * invDet;
+    r[3][2] = (-a30 * b03 + a31 * b01 - a32 * b00) * invDet;
+    r[3][3] = (+a20 * b03 - a21 * b01 + a22 * b00) * invDet;
+
+    return r;
+}
+
 //inline void rotate_arbitrary_axes(mat4& m_transform, float angle, const vec3f& axis)
 //{
 //    mat4 m_rotate;

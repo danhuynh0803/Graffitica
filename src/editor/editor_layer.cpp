@@ -127,11 +127,11 @@ void EditorLayer::OnUpdate(double dt)
     // until pipeline refactoring and optimizations are complete
     auto modelMatrix = gr::Identity<float,4,4>();
     static float time = 0;
-    //time += dt;
+    time += dt;
 
     const float amp = 1.f;
     const float freq = 1.0f;
-    const float rot = 0; //180.0 * std::numbers::pi_v<float> / 180.0f;
+    const float rot = time;//180.0 * std::numbers::pi_v<float> / 180.0f;
     modelMatrix.m_Data[0][0] = amp * cos(rot);
     modelMatrix.m_Data[0][2] = amp * sin(rot);
     modelMatrix.m_Data[2][0] = amp * -sin(rot);
@@ -145,6 +145,9 @@ void EditorLayer::OnUpdate(double dt)
     auto viewMatrix = camera.GetView();
     auto projMatrix = camera.GetPerspectiveProjection(70.0f, static_cast<float>(width) / static_cast<float>(height), kNear, kFar);
     shader.MVP = projMatrix * viewMatrix * modelMatrix;
+    shader.M = modelMatrix;
+    shader.V = viewMatrix;
+    shader.P = projMatrix;
 
     // encapsulate commands into commandbuffer interface?
     gr::rhi::CommandBuffer cmd {

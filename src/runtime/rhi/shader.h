@@ -56,7 +56,7 @@ struct TestShader final : ShaderModule
         v2f.position = MVP * vec4f(attribs.aPos, 1.0f);
         v2f.color = attribs.aColor;
         v2f.texcoord = attribs.aTexCoord;
-        v2f.normal = vec4f(attribs.aNormal, 0.0f);
+        v2f.normal = transpose(inverse(M)) * vec4f(attribs.aNormal, 0.0f);
         // TODO normals;
         return v2f;
     }
@@ -64,10 +64,11 @@ struct TestShader final : ShaderModule
     inline virtual vec4f frag(const Varyings& input) override
     {
         GR_TRACE_START(SYS_PER_PIXEL);
-        vec3f lightDir = vec3f(0, 5, -1);
-
+        vec3f lightDir = vec3f(0, 3, 5);
+        float intensity = std::max(0.0f, dot(vec3f(input.normal.xyz()), lightDir));
+        //return input.normal;
         //return vec4f(input.texcoord, 0.0f, 1.0f);
-        return input.normal;
+        return input.color * 0.1f * intensity;
     }
 };
 

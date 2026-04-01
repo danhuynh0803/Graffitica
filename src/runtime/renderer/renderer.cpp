@@ -500,9 +500,12 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
                     attrib.aPos = verts[vertexIndex];
                     // TODO added this for debugging, but the IA code shouldnt mod back the colors
                     attrib.aColor = vec4f(0.5,0.5,0.5,1.0);//colors[(faceIndex * 3 + i) % colors.size()];
-                    attrib.aNormal = normals[vertexIndex];
-                    attrib.aTexCoord = texCoords[vertexIndex];
-
+                    if (!normals.empty()) {
+                        attrib.aNormal = normals[vertexIndex];
+                    }
+                    if (!texCoords.empty()) {
+                        attrib.aTexCoord = texCoords[vertexIndex];
+                    }
                     // VS runs
                     perVertexOutputs[i] = shaderModule->vert(inputAttributes[i]);
                     // Update cache with new vertex output
