@@ -1,7 +1,25 @@
 #include "d3d12_swapchain.h"
+#include <dxgi1_2.h>
+#include "d3d12_util.h"
 
-namespace gr::rhi
+namespace gr::rhi::d3d12
 {
+
+namespace
+{
+    DXGI_FORMAT ImageFormatToDXGI(ImageFormat format)
+    {
+        switch (format)
+        {
+        case ImageFormat::R8G8B8A8_UNORM:
+            return DXGI_FORMAT_R8G8B8A8_UNORM;
+        default:
+            throw std::runtime_error("ERROR: No conversion from ImageFormat to DXGIFormat for Swapchain");
+        }
+    }
+}
+
+using Microsoft::WRL::ComPtr;
 
 D3D12Swapchain::D3D12Swapchain(const SwapchainProperties& props)
     : m_Width(props.width), m_Height(props.height),
@@ -9,20 +27,27 @@ D3D12Swapchain::D3D12Swapchain(const SwapchainProperties& props)
       m_CurrentFrameIndex(0),
       m_SwapchainFormat(props.format)
 {
-    const U32 width = props.width;
-    const U32 height = props.height;
-    const U32 imageCount = props.imageCount;
+    ComPtr<IDXGIFactory4> factory;
+    HRESULT res = CreateDXGIFactory1(IID_PPV_ARGS(&factory));
 
-    //m_PresentSurface = SDL_CreateSurface(width, height, ImageFormatToSDL(props.format));
 
-    for (int i = 0; i < imageCount; ++i)
-    {
-        //m_PresentImages.emplace_back(width, height);
-        // Imageview interface requiring image param needs to be cleaned U
-        // maybe have Image generate ImageViews per some helper?
-        //const auto& justInsertedImage = m_PresentImages.at(i);
-        //m_PresentImageViews.emplace_back(justInsertedImage);
-    }
+    DXGI_SWAP_CHAIN_DESC1 desc {};
+    desc.BufferCount = m_ImageCount;
+    desc.Width = m_Width;
+    desc.Height = m_Height;
+    desc.Format = ImageFormatToDXGI(props.format);
+    desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    desc.SampleDesc.Count = 1;
+
+    ThrowIfFailed(factory->CreateSwapChainForHwnd(
+        nullptr, // Command queue will be set later in D3D12GraphicsContext
+        GetActiveWindow(),
+        &desc,
+        nullptr,
+        nullptr,
+        &m_RawSwapchain
+    ));
 }
 
 }

@@ -6,7 +6,7 @@
 
 using Microsoft::WRL::ComPtr;
 
-namespace gr::rhi
+namespace gr::rhi::d3d12
 {
 
 class D3D12GraphicsContext final : public IGraphicsContext
@@ -26,6 +26,7 @@ private:
     std::unique_ptr<D3D12Swapchain> m_Swapchain;
 
     ComPtr<ID3D12Device> m_Device;
+    ComPtr<ID3D12CommandQueue> m_CommandQueue;
 };
 
 }

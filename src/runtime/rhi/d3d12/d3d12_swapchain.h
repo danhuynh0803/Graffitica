@@ -2,8 +2,10 @@
 
 #include <SDL3/SDL.h>
 #include "runtime/rhi/interface/swapchain.h"
+#include <directx/d3dx12.h>
+#include <dxgi1_6.h>
 
-namespace gr::rhi
+namespace gr::rhi::d3d12
 {
 
 class D3D12Swapchain final : public ISwapchain
@@ -41,6 +43,7 @@ private:
     //std::vector<Image<FORMAT_R8G8B8A8_UNORM>> m_PresentImages;
     //std::vector<ImageView<FORMAT_R8G8B8A8_UNORM>> m_PresentImageViews;
     SDL_Surface* m_PresentSurface;
+    Microsoft::WRL::ComPtr<IDXGISwapChain1> m_RawSwapchain;
 };
 
 
