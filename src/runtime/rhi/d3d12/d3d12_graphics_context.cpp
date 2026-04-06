@@ -113,14 +113,18 @@ D3D12GraphicsContext::D3D12GraphicsContext(SDL_Window* window)
 
     // Create the swap chain
     SDL_Surface* surface = SDL_GetWindowSurface(window);
-    SwapchainProperties props{
+    SDL_PropertiesID props = SDL_GetWindowProperties(window);
+    HWND hwnd = (HWND)SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
+
+    SwapchainProperties swapchainProps{
         .width = static_cast<U32>(surface->w),
         .height = static_cast<U32>(surface->h),
         .imageCount = 3,
-        .format = gr::rhi::ImageFormat::R8G8B8A8_UNORM
+        .format = gr::rhi::ImageFormat::R8G8B8A8_UNORM,
+        .pWindow = hwnd
     };
 
-    m_Swapchain = std::make_unique<D3D12Swapchain>(props);
+    m_Swapchain = std::make_unique<D3D12Swapchain>(swapchainProps);
 
     //m_Swapchain->CreateSwapchain(factory.Get(), m_CommandQueue.Get(), window);
 

@@ -43,7 +43,7 @@ private:
     //std::vector<Image<FORMAT_R8G8B8A8_UNORM>> m_PresentImages;
     //std::vector<ImageView<FORMAT_R8G8B8A8_UNORM>> m_PresentImageViews;
     SDL_Surface* m_PresentSurface;
-    Microsoft::WRL::ComPtr<IDXGISwapChain1> m_RawSwapchain;
+    Microsoft::WRL::ComPtr<IDXGISwapChain3> m_RawSwapchain;
 };
 
 

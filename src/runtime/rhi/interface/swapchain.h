@@ -11,6 +11,7 @@ struct SwapchainProperties
     uint32_t width, height;
     uint32_t imageCount;
     ImageFormat format;
+    void* pWindow;
 };
 
 class ISwapchain

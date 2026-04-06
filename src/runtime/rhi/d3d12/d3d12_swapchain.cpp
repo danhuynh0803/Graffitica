@@ -40,14 +40,18 @@ D3D12Swapchain::D3D12Swapchain(const SwapchainProperties& props)
     desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
     desc.SampleDesc.Count = 1;
 
+    ComPtr<IDXGISwapChain1> swapchain1;
     ThrowIfFailed(factory->CreateSwapChainForHwnd(
         nullptr, // Command queue will be set later in D3D12GraphicsContext
-        GetActiveWindow(),
+        reinterpret_cast<HWND>(props.pWindow),
         &desc,
         nullptr,
         nullptr,
-        &m_RawSwapchain
+        &swapchain1
     ));
+
+    //ThrowIfFailed(swapchain1.As(&m_RawSwapchain));
+    //m_CurrentFrameIndex = m_RawSwapchain->GetCurrentBackBufferIndex();
 }
 
 }
