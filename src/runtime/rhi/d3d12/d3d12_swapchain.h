@@ -43,6 +43,9 @@ private:
     //std::vector<Image<FORMAT_R8G8B8A8_UNORM>> m_PresentImages;
     //std::vector<ImageView<FORMAT_R8G8B8A8_UNORM>> m_PresentImageViews;
     SDL_Surface* m_PresentSurface;
+
+    static constexpr int MaxBackBuffers = 3;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_BackBuffers[MaxBackBuffers];
     Microsoft::WRL::ComPtr<IDXGISwapChain3> m_RawSwapchain;
 };
 

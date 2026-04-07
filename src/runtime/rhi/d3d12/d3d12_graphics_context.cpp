@@ -111,6 +111,13 @@ D3D12GraphicsContext::D3D12GraphicsContext(SDL_Window* window)
 
     ThrowIfFailed(m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_CommandQueue)));
 
+    // Descriptor heaps
+    D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc{};
+    rtvHeapDesc.NumDescriptors = 3; // TODO start with hardcoding 3 for the backbuffer targets to test
+    rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+    rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+    ThrowIfFailed(m_Device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_RTVDescriptorHeap)));
+
     // Create the swap chain
     SDL_Surface* surface = SDL_GetWindowSurface(window);
     SDL_PropertiesID props = SDL_GetWindowProperties(window);
@@ -127,7 +134,7 @@ D3D12GraphicsContext::D3D12GraphicsContext(SDL_Window* window)
     m_Swapchain = std::make_unique<D3D12Swapchain>(swapchainProps);
 
     //m_Swapchain->CreateSwapchain(factory.Get(), m_CommandQueue.Get(), window);
-
+    ThrowIfFailed(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_CommandAllocator)));
 }
 
 void D3D12GraphicsContext::UpdateBackBuffer(SDL_Surface* surfaceToUpdate)
