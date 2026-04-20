@@ -22,17 +22,16 @@ namespace
     }
 }
 
-using Microsoft::WRL::ComPtr;
-
-D3D12Swapchain::D3D12Swapchain(const SwapchainProperties& props)
+D3D12Swapchain::D3D12Swapchain(
+    ComPtr<ID3D12Device> device,
+    ComPtr<ID3D12CommandQueue> commandQueue,
+    ComPtr<ID3D12DescriptorHeap> rtvDescriptorHeap,
+    const SwapchainProperties& props)
     : m_Width(props.width), m_Height(props.height),
       m_ImageCount(props.imageCount),
       m_CurrentFrameIndex(0),
       m_SwapchainFormat(props.format)
 {
-    auto device = D3D12GraphicsContext::GetInstance()->GetDevice();
-    auto cmdQueue = D3D12GraphicsContext::GetInstance()->GetCommandQueue();
-
     ComPtr<IDXGIFactory4> factory;
     HRESULT res = CreateDXGIFactory1(IID_PPV_ARGS(&factory));
 
@@ -47,7 +46,7 @@ D3D12Swapchain::D3D12Swapchain(const SwapchainProperties& props)
 
     ComPtr<IDXGISwapChain1> swapchain1;
     ThrowIfFailed(factory->CreateSwapChainForHwnd(
-        cmdQueue.Get(), // Swap chain needs the queue so that it can force a flush on it.
+        commandQueue.Get(), // Swap chain needs the queue so that it can force a flush on it.
         reinterpret_cast<HWND>(props.pWindow),
         &desc,
         nullptr,
@@ -55,11 +54,9 @@ D3D12Swapchain::D3D12Swapchain(const SwapchainProperties& props)
         &swapchain1
     ));
 
-    //ThrowIfFailed(swapchain1.As(&m_RawSwapchain));
+    ThrowIfFailed(swapchain1.As(&m_RawSwapchain));
     m_CurrentFrameIndex = m_RawSwapchain->GetCurrentBackBufferIndex();
 
-
-    auto rtvDescriptorHeap = D3D12GraphicsContext::GetInstance()->GetRTVDescriptorHeap();
     UINT rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
     // Create frame resources

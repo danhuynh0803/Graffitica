@@ -22,6 +22,8 @@ public:
         return TGraphicsContext::GetInstance();
     }
 
+    //static ISwapchain* GetSwapchain() { return GetInstance()->GetSwapchain(); }
+
 protected:
 
 };

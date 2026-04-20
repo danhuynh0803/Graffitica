@@ -26,24 +26,20 @@ namespace gr
 
 namespace
 {
+    // DH TODO rhi abstraction - for testing purposes, we can switch between cpu and gpu contexts here
     //rhi::CPUGraphicsContext* gfxContext = nullptr;
     //rhi::CPUSwapchain* swapchain = nullptr;
-    rhi::IGraphicsContext* gfxContext = nullptr;
-    rhi::ISwapchain* swapchain = nullptr;
+    rhi::d3d12::D3D12GraphicsContext* gfxContext = nullptr;
+    rhi::d3d12::D3D12Swapchain* swapchain = nullptr;
 
     Buffer model{
         .m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
-        //.m_MeshData = std::make_shared<Mesh>("../assets/models/bunny.obj"),
-        //.m_MeshData = std::make_shared<Mesh>("../assets/Sponza/sponza.obj"),
         //.m_MeshData = std::make_shared<Mesh>("../assets/models/xyzrgb_dragon.obj"),
     };
 
     RasterizerState drawState;
 
     gr::Camera camera({ 0,0,1 }, { 0,0,0 });
-
-    //rhi::Image<FORMAT_D32_SFLOAT> depthImage(width, height);
-    //rhi::ImageView<FORMAT_D32_SFLOAT> depthView(depthImage);
     std::vector<rhi::Framebuffer> presentFrameBuffers;
 
     CameraController cameraController(&camera);
@@ -69,7 +65,8 @@ EditorLayer::EditorLayer(const std::string& name)
         .frontCounterClockwise = true,
     };
 
-    //gfxContext = rhi::d3d12::D3D12GraphicsContext::GetInstance();
+    gfxContext = rhi::d3d12::D3D12GraphicsContext::GetInstance();
+    swapchain = gfxContext->GetSwapchain();
 }
 
 void EditorLayer::OnUpdate(double dt)

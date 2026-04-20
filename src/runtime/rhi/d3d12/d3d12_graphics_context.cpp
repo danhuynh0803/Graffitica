@@ -129,7 +129,7 @@ D3D12GraphicsContext::D3D12GraphicsContext(SDL_Window* window)
         .pWindow = hwnd
     };
 
-    m_Swapchain = std::make_unique<D3D12Swapchain>(swapchainProps);
+    m_Swapchain = std::make_unique<D3D12Swapchain>(m_Device, m_CommandQueue, m_RTVDescriptorHeap, swapchainProps);
 
     //m_Swapchain->CreateSwapchain(factory.Get(), m_CommandQueue.Get(), window);
     ThrowIfFailed(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_CommandAllocator)));

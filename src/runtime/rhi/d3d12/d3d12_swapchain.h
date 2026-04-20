@@ -10,10 +10,15 @@
 namespace gr::rhi::d3d12
 {
 
+using Microsoft::WRL::ComPtr;
+
 class D3D12Swapchain final : public ISwapchain
 {
 public:
-    D3D12Swapchain(const SwapchainProperties& props);
+    D3D12Swapchain(ComPtr<ID3D12Device> device,
+                   ComPtr<ID3D12CommandQueue> commandQueue,
+                   ComPtr<ID3D12DescriptorHeap> rtvDescriptorHeap,
+                   const SwapchainProperties& props);
     ~D3D12Swapchain() = default;
     ImageFormat GetSurfaceFormat() const;
 
