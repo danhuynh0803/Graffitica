@@ -102,6 +102,8 @@ void EditorLayer::OnUpdate(double dt)
     auto viewMatrix = camera.GetView();
     //auto projMatrix = camera.GetPerspectiveProjection(70.0f, static_cast<float>(width) / static_cast<float>(height), kNear, kFar);
 
+
+
 }
 
 void EditorLayer::OnEvent(Event& event)

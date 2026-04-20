@@ -8,6 +8,10 @@
 #include "d3d12_util.h"
 #include <directx/d3dx12.h>
 
+// TODO
+//extern "C" { __declspec(dllexport) extern const UINT D3D12SDKVersion = 619; }
+//extern "C" { __declspec(dllexport) extern const char* D3D12SDKPath = u8".\\D3D12\\"; }
+
 namespace gr::rhi::d3d12
 {
 
