@@ -1,8 +1,9 @@
 #include "d3d12_swapchain.h"
 #include "d3d12_util.h"
 #include "d3d12_graphics_context.h"
+#include <dxgi1_6.h>
+#include <directx/d3dx12.h>
 
-#include <dxgi1_2.h>
 
 namespace gr::rhi::d3d12
 {

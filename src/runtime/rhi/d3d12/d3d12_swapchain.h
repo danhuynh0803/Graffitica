@@ -2,8 +2,10 @@
 
 #include <SDL3/SDL.h>
 #include "runtime/rhi/interface/swapchain.h"
-#include <directx/d3dx12.h>
+//#include "d3d12_rhi.h"
+#include <wrl/client.h>
 #include <dxgi1_6.h>
+#include <d3d12.h>
 
 namespace gr::rhi::d3d12
 {

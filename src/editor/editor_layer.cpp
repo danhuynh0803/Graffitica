@@ -12,6 +12,7 @@
 #include "rhi/shader.h"
 #include "rhi/command_buffer.h"
 #include "rhi/cpu/cpu_graphics_context.h"
+#include "rhi/d3d12/d3d12_graphics_context.h"
 
 #include "renderer/camera.h"
 #include "renderer/camera_controller.h"
@@ -25,55 +26,24 @@ namespace gr
 
 namespace
 {
-    rhi::CPUGraphicsContext* gfxContext = nullptr;
-    rhi::CPUSwapchain* swapchain = nullptr;
-
-    // TODO set up interleaved buffer support with vertex attributes
-    SimpleMesh simpleMesh
-    {
-        .m_Positions = {
-            { 0.0,  1.0, -1},
-            {-1.0, -1.0, -1},
-            { 1.0, -1.0, -1},
-
-            { 0.5, -0.5, 0},
-            { 0.5,  0.5, 0},
-            {-0.5,  0.5, 0},
-        },
-    };
-
+    //rhi::CPUGraphicsContext* gfxContext = nullptr;
+    //rhi::CPUSwapchain* swapchain = nullptr;
+    rhi::IGraphicsContext* gfxContext = nullptr;
+    rhi::ISwapchain* swapchain = nullptr;
 
     Buffer model{
-        //.m_MeshData = std::make_shared<Mesh>("../assets/models/octahedron.obj"),
-        //.m_MeshData = std::make_shared<Mesh>("../assets/models/ico.obj"),
         .m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
         //.m_MeshData = std::make_shared<Mesh>("../assets/models/bunny.obj"),
         //.m_MeshData = std::make_shared<Mesh>("../assets/Sponza/sponza.obj"),
         //.m_MeshData = std::make_shared<Mesh>("../assets/models/xyzrgb_dragon.obj"),
-        //.m_MeshData = std::make_shared<Mesh>(simpleMesh)
     };
 
     RasterizerState drawState;
 
     gr::Camera camera({ 0,0,1 }, { 0,0,0 });
-    
-    constexpr uint32_t width = 1600;
-    constexpr uint32_t height = 900;
 
-    //rhi::Image<FORMAT_R8G8B8A8_UNORM> colorImage(width, height);
-    //rhi::ImageView<FORMAT_R8G8B8A8_UNORM> colorView(colorImage);
-
-    gr::rhi::TestShader shader{};
-
-    // TODO refactor as template api is kinda annoying:
-    // ideas: have image generate a view object?
-    // can generate based on desired subresource range
-    // 
-    // pros for current system?
-    // setting both formats allows possible resource alising
-    // and conversion for formats in the backend?
-    rhi::Image<FORMAT_D32_SFLOAT> depthImage(width, height);
-    rhi::ImageView<FORMAT_D32_SFLOAT> depthView(depthImage);
+    //rhi::Image<FORMAT_D32_SFLOAT> depthImage(width, height);
+    //rhi::ImageView<FORMAT_D32_SFLOAT> depthView(depthImage);
     std::vector<rhi::Framebuffer> presentFrameBuffers;
 
     CameraController cameraController(&camera);
@@ -99,17 +69,7 @@ EditorLayer::EditorLayer(const std::string& name)
         .frontCounterClockwise = true,
     };
 
-    gfxContext = rhi::CPUGraphicsContext::GetInstance();
-    swapchain = gfxContext->GetSwapchain();
-    for (int i = 0; i < swapchain->GetImageCount(); ++i)
-    {
-        presentFrameBuffers.emplace_back(
-            rhi::Framebuffer{
-                .colorView = swapchain->GetFrameImageView<FORMAT_R8G8B8A8_UNORM>(i),
-                .depthView = &depthView,
-            }
-        );
-    }
+    //gfxContext = rhi::d3d12::D3D12GraphicsContext::GetInstance();
 }
 
 void EditorLayer::OnUpdate(double dt)
@@ -119,8 +79,8 @@ void EditorLayer::OnUpdate(double dt)
     cameraController.OnUpdate(dt);
 
     // Render to current frame in-flight
-    auto currFrameIndex = swapchain->GetCurrentBackBufferIndex();
-    auto& fb = presentFrameBuffers[currFrameIndex];
+    //auto currFrameIndex = swapchain->GetCurrentBackBufferIndex();
+    //auto& fb = presentFrameBuffers[currFrameIndex];
 
     // TODO view projection calculation might be incorrect
     // not working for certain cases, use identity for now
@@ -143,81 +103,14 @@ void EditorLayer::OnUpdate(double dt)
     //gr::scale(modelMatrix, vec3f(0.01, 0.01, 0.01));
     gr::translate(modelMatrix, vec3f(0.0, 0.0, -0.3)); //xyzrgb_dragon
     auto viewMatrix = camera.GetView();
-    auto projMatrix = camera.GetPerspectiveProjection(70.0f, static_cast<float>(width) / static_cast<float>(height), kNear, kFar);
-    shader.MVP = projMatrix * viewMatrix * modelMatrix;
-    shader.M = modelMatrix;
-    shader.V = viewMatrix;
-    shader.P = projMatrix;
-
-    // encapsulate commands into commandbuffer interface?
-    gr::rhi::CommandBuffer cmd {
-        .framebuffer = &fb,
-        .rasterizerState = &drawState,
-        .shaderModule = &shader,
-    };
-
-    // TODO switch between tiled and immediate depending on vertex counts
-    gr::rhi::cmd::Clear(*fb.colorView, { .4, .5, .7, 1.0 });
-    gr::rhi::cmd::Clear(*fb.depthView, 1.0);
-    gr::rhi::cmd::DrawIndexedTiled(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
-
-    //gr::rhi::cmd::Clear(*fb.colorView, { .4, .5, .7, 1.0 });
-    //gr::rhi::cmd::Clear(*fb.depthView, 1.0);
-    //gr::rhi::cmd::DrawIndexedImmediate(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
-
-    // multiple draw test for perf profiling
-    for (int i = 0; i < 10; ++i)
-    {
-        modelMatrix = gr::Identity<float,4,4>();
-        const float x = (i % 10);
-        const float y = (i / 10);
-        gr::translate(modelMatrix, vec3f(x, y, -1.0));
-        shader.MVP = projMatrix * viewMatrix * modelMatrix;
-
-        //gr::rhi::cmd::DrawIndexedTiled(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
-        //gr::rhi::cmd::DrawIndexedImmediate(cmd, model, model.m_MeshData->NumFaces(), 0, 0);
-    }
+    //auto projMatrix = camera.GetPerspectiveProjection(70.0f, static_cast<float>(width) / static_cast<float>(height), kNear, kFar);
 
 }
 
 void EditorLayer::OnEvent(Event& event)
 {
     GR_TRACE_START(SYS_IO);
-
     cameraController.OnEvent(event);
-
-    EventDispatcher disp(event);
-    // TODO add more events as needed
-    disp.Dispatch<WindowResizeEvent>(std::bind(&EditorLayer::OnWindowResize, this, std::placeholders::_1));
-    disp.Dispatch<MouseMovedEvent>(std::bind(&EditorLayer::OnMouseMoved, this, std::placeholders::_1));
-    disp.Dispatch<MouseButtonPressedEvent>(std::bind(&EditorLayer::OnMouseButtonPressed, this, std::placeholders::_1));
-    disp.Dispatch<MouseButtonHeldEvent>(std::bind(&EditorLayer::OnMouseButtonHeld, this, std::placeholders::_1));
-    disp.Dispatch<MouseScrolledEvent>(std::bind(&EditorLayer::OnMouseScrolled, this, std::placeholders::_1));
-}
-
-bool EditorLayer::OnWindowResize(WindowResizeEvent& e)
-{
-    return false;
-}
-
-bool EditorLayer::OnMouseMoved(MouseMovedEvent& e)
-{
-    return false;
-}
-
-bool EditorLayer::OnMouseButtonHeld(MouseButtonHeldEvent& e)
-{
-    return false;
-}
-
-bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e)
-{
-    return false;
-}
-
-bool EditorLayer::OnMouseScrolled(MouseScrolledEvent& e)
-{
-    return false;
 }
 
 };

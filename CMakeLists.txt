@@ -80,6 +80,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Tracy::TracyClient
 )
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    NOMINMAX
+)
+
 # OpenMP
 find_package(OpenMP REQUIRED)
 if (OPENMP_FOUND)

@@ -45,6 +45,11 @@ public:
         return view;
     }
 
+    // TODO - fix properly later
+    // but to avoid conflicts with the near and far macros defined in Windows headers, we can undefine them here since we don't need them
+    #undef near
+    #undef far
+
     mat44 GetPerspectiveProjection(float vfov, float aspect, float near, float far)
     {
         GR_TRACE_START(SYS_GAME);

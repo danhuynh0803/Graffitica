@@ -1,14 +1,12 @@
-#include <directx/d3dx12.h>
-#include <directx/d3d12.h>
-#include <combaseapi.h>
+//#include "d3d12_rhi.h"
 #include <dxgi1_6.h>
-#include <wrl.h>
-#include <Windows.h>
 #include <exception>
+#include <wrl.h>
+#include <combaseapi.h>
 
 #include "d3d12_graphics_context.h"
 #include "d3d12_util.h"
-
+#include <directx/d3dx12.h>
 
 namespace gr::rhi::d3d12
 {

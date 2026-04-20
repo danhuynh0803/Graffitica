@@ -1,8 +1,11 @@
 #pragma once
 
+#include <wrl/client.h>
+#include <d3d12.h>
+
 #include "rhi/interface/graphics_context.h"
 #include "d3d12_swapchain.h"
-#include <directx/d3dx12.h>
+
 
 using Microsoft::WRL::ComPtr;
 
