@@ -98,3 +98,5 @@ endif()
 
 add_subdirectory(external)
 add_subdirectory(test)
+add_subdirectory(shaders)
+add_dependencies(${PROJECT_NAME} CompileShaders)
