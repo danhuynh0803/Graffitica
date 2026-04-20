@@ -11,7 +11,7 @@ namespace gr::rhi::d3d12
 template<typename FORMAT>
 inline void D3D12CommandList::ClearColorImpl(ImageView<FORMAT>& view, const vec4f& clearColor)
 {
-    // TODO implement
+    //m_RawCommandList->ClearRenderTargetView(
 }
 
 template<typename FORMAT>

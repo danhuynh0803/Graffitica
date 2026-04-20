@@ -25,11 +25,10 @@ namespace
 D3D12Swapchain::D3D12Swapchain(
     ComPtr<ID3D12Device> device,
     ComPtr<ID3D12CommandQueue> commandQueue,
-    ComPtr<ID3D12DescriptorHeap> rtvDescriptorHeap,
     const SwapchainProperties& props)
     : m_Width(props.width), m_Height(props.height),
       m_ImageCount(props.imageCount),
-      m_CurrentFrameIndex(0),
+      //m_CurrentFrameIndex(0),
       m_SwapchainFormat(props.format)
 {
     ComPtr<IDXGIFactory4> factory;
@@ -55,23 +54,30 @@ D3D12Swapchain::D3D12Swapchain(
     ));
 
     ThrowIfFailed(swapchain1.As(&m_RawSwapchain));
-    m_CurrentFrameIndex = m_RawSwapchain->GetCurrentBackBufferIndex();
+    //m_CurrentFrameIndex = m_RawSwapchain->GetCurrentBackBufferIndex();
 
-    UINT rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    // Descriptor heaps
+    D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc{};
+    rtvHeapDesc.NumDescriptors = 3; // TODO start with hardcoding 3 for the backbuffer targets to test
+    rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+    rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+    ThrowIfFailed(device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_RTVDescriptorHeap)));
+
+    m_RTVDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
     // Create frame resources
-    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_RTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
     for (UINT i = 0; i < props.imageCount; ++i)
     {
         ThrowIfFailed(m_RawSwapchain->GetBuffer(i, IID_PPV_ARGS(&m_BackBuffers[i])));
         device->CreateRenderTargetView(m_BackBuffers[i].Get(), nullptr, rtvHandle);
-        rtvHandle.Offset(1, rtvDescriptorSize);
+        rtvHandle.Offset(1, m_RTVDescriptorSize);
     }
 }
 
 void D3D12Swapchain::UpdateBackBuffer(SDL_Surface* surfaceToUpdate)
 {
-    m_CurrentFrameIndex = m_RawSwapchain->GetCurrentBackBufferIndex();
+    //m_CurrentFrameIndex = m_RawSwapchain->GetCurrentBackBufferIndex();
 }
 
 }

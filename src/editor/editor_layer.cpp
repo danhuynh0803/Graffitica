@@ -13,6 +13,8 @@
 #include "rhi/command_buffer.h"
 #include "rhi/cpu/cpu_graphics_context.h"
 #include "rhi/d3d12/d3d12_graphics_context.h"
+#include "rhi/d3d12/d3d12_util.h"
+#include <directx/d3dx12.h>
 
 #include "renderer/camera.h"
 #include "renderer/camera_controller.h"
@@ -43,6 +45,17 @@ namespace
     std::vector<rhi::Framebuffer> presentFrameBuffers;
 
     CameraController cameraController(&camera);
+
+    ComPtr<ID3D12CommandAllocator> commandAllocator;
+    ComPtr<ID3D12CommandQueue> commandQueue;
+    ComPtr<ID3D12Fence> fence;
+    ComPtr<ID3D12PipelineState> pipelineState;
+    ComPtr<ID3D12GraphicsCommandList> commandList;
+    ComPtr<ID3D12DescriptorHeap> rtvHeap;
+    HANDLE fenceEvent;
+    U64 fenceValue;
+
+    ComPtr<ID3D12Resource> presentBuffers[3];
 }
 
 EditorLayer::EditorLayer(const std::string& name)
@@ -66,7 +79,20 @@ EditorLayer::EditorLayer(const std::string& name)
     };
 
     gfxContext = rhi::d3d12::D3D12GraphicsContext::GetInstance();
+    auto device = gfxContext->GetDevice();
     swapchain = gfxContext->GetSwapchain();
+    commandAllocator = gfxContext->GetCommandAllocator();
+    commandQueue = gfxContext->GetCommandQueue();
+    rhi::d3d12::ThrowIfFailed(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)));
+    rhi::d3d12::ThrowIfFailed(commandList->Close());
+    gr::rhi::d3d12::ThrowIfFailed(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)));
+    fenceValue = 1;
+    fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+    if (fenceEvent == nullptr)
+    {
+        rhi::d3d12::ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
+    }
+    rtvHeap = gfxContext->GetRTVDescriptorHeap();
 }
 
 void EditorLayer::OnUpdate(double dt)
@@ -75,35 +101,52 @@ void EditorLayer::OnUpdate(double dt)
 
     cameraController.OnUpdate(dt);
 
-    // Render to current frame in-flight
-    //auto currFrameIndex = swapchain->GetCurrentBackBufferIndex();
-    //auto& fb = presentFrameBuffers[currFrameIndex];
+    // Recording commands
+    commandAllocator->Reset();
 
-    // TODO view projection calculation might be incorrect
-    // not working for certain cases, use identity for now
-    // until pipeline refactoring and optimizations are complete
-    auto modelMatrix = gr::Identity<float,4,4>();
-    static float time = 0;
-    time += dt;
+    // Reset command list to prepare for recording commands
+    commandList->Reset(commandAllocator.Get(), pipelineState.Get());
 
-    const float amp = 1.f;
-    const float freq = 1.0f;
-    const float rot = time;//180.0 * std::numbers::pi_v<float> / 180.0f;
-    modelMatrix.m_Data[0][0] = amp * cos(rot);
-    modelMatrix.m_Data[0][2] = amp * sin(rot);
-    modelMatrix.m_Data[2][0] = amp * -sin(rot);
-    modelMatrix.m_Data[2][2] = amp * cos(rot);
+    // Transition the back buffer to be used as a render target
+    {
+        auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+            swapchain->GetCurrentBackBuffer().Get(),
+            D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+        commandList->ResourceBarrier(1, &barrier);
+    }
+    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(swapchain->GetCPUDescriptorHandle());
+    commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
-    constexpr float kNear = 0.1f;
-    constexpr float kFar = 100000.0f;
-    //gr::translate(modelMatrix, vec3f(0.0, -500.0, -2500.0)); //sponza
-    //gr::scale(modelMatrix, vec3f(0.01, 0.01, 0.01));
-    gr::translate(modelMatrix, vec3f(0.0, 0.0, -0.3)); //xyzrgb_dragon
-    auto viewMatrix = camera.GetView();
-    //auto projMatrix = camera.GetPerspectiveProjection(70.0f, static_cast<float>(width) / static_cast<float>(height), kNear, kFar);
+    const float clearColor[] = { .4, .5, .7, 1.0 };
+    commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 
+    // Transition the back buffer to be presented
+    {
+        auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+            swapchain->GetCurrentBackBuffer().Get(),
+            D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+        commandList->ResourceBarrier(1, &barrier);
+    }
+    commandList->Close();
 
+    // Execute the command list
+    ID3D12CommandList* ppCommandLists[] = { commandList.Get() };
+    commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
+    // Present the frame
+    swapchain->Present();
+
+    // Wait for the GPU to finish rendering the frame
+    const UINT64 currentFenceValue = fenceValue;
+    rhi::d3d12::ThrowIfFailed(commandQueue->Signal(fence.Get(), currentFenceValue));
+    fenceValue++;
+
+    // Wait until the previous frame is finished
+    if (fence->GetCompletedValue() < currentFenceValue)
+    {
+        fence->SetEventOnCompletion(currentFenceValue, fenceEvent);
+        WaitForSingleObject(fenceEvent, INFINITE);
+    }
 }
 
 void EditorLayer::OnEvent(Event& event)

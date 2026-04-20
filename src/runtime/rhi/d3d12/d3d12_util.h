@@ -1,3 +1,5 @@
+#pragma once
+
 #include <exception>
 
 namespace gr::rhi::d3d12
