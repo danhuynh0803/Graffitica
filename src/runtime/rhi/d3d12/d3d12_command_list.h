@@ -1,7 +1,6 @@
 #pragma once
-
-#include "rhi/interface/command_list.h"
 #include <directx/d3dx12.h>
+#include "rhi/interface/command_list.h"
 #include <wrl/client.h>
 
 namespace gr::rhi::d3d12

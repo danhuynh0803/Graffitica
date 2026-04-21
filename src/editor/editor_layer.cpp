@@ -3,6 +3,8 @@
 #include <random>
 #include <numbers>
 #include <functional>
+// Always keep agility sdk include first to avoid windows.h conflicts with d3d12
+#include <directx/d3dx12.h>
 
 #include "rhi/resource.h"
 #include "rhi/rasterizer_state.h"
@@ -14,7 +16,6 @@
 #include "rhi/cpu/cpu_graphics_context.h"
 #include "rhi/d3d12/d3d12_graphics_context.h"
 #include "rhi/d3d12/d3d12_util.h"
-#include <directx/d3dx12.h>
 
 #include "renderer/camera.h"
 #include "renderer/camera_controller.h"
@@ -22,6 +23,9 @@
 #include "renderer/mesh.h"
 #include "editor_layer.h"
 #include "developer/profiler/profiler.h"
+
+#include "rhi/interface/command_list.h"
+#include "rhi/d3d12/d3d12_command_list.h"
 
 namespace gr
 {
@@ -51,6 +55,7 @@ namespace
     ComPtr<ID3D12Fence> fence;
     ComPtr<ID3D12PipelineState> pipelineState;
     ComPtr<ID3D12GraphicsCommandList> commandList;
+    rhi::d3d12::D3D12CommandList* commandList2;
     ComPtr<ID3D12DescriptorHeap> rtvHeap;
     HANDLE fenceEvent;
     U64 fenceValue;
@@ -114,11 +119,12 @@ void EditorLayer::OnUpdate(double dt)
             D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
         commandList->ResourceBarrier(1, &barrier);
     }
-    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(swapchain->GetCPUDescriptorHandle());
+    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(swapchain->GetCPUDescriptorHandleForCurrentFrame());
     commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
     const float clearColor[] = { .4, .5, .7, 1.0 };
     commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+    //commandList2->ClearColor(clearColor);
 
     // Transition the back buffer to be presented
     {

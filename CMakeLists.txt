@@ -2,6 +2,11 @@ cmake_policy(SET CMP0048 NEW)
 
 set(PROJECT_NAME graffitica)
 
+# TODO Win Platform
+# Set for using vcpkg
+set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/external/vcpkg/scripts/buildsystems/vcpkg.cmake"
+    CACHE STRING "Vcpkg toolchain file")
+
 project(${PROJECT_NAME}
     #VERSION 0.1
     #DESCRIPTION "Software Rasterizer"
@@ -61,24 +66,34 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     Tracy::TracyClient
 )
 
-# TODO split to different cmake?
-find_package(Vulkan COMPONENTS glslc
-                               shaderc_combined
-                               dxc
-)
+
+find_package(directx-headers CONFIG REQUIRED)
+find_package(directx12-agility CONFIG REQUIRED)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     SDL3::SDL3
     Vulkan::Vulkan
     Vulkan::shaderc_combined
 
+    d3d12
+    dxgi
+    d3dcompiler
     Microsoft::DirectX-Headers
-    d3d12.lib
-    dxgi.lib
-    d3dcompiler.lib
+    Microsoft::DirectX12-Agility
 
     Tracy::TracyClient
 )
+
+if(TARGET Microsoft::DirectX12-Agility)
+    file(MAKE_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/D3D12")
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_PROPERTY:Microsoft::DirectX12-Core,IMPORTED_LOCATION_RELEASE> $<TARGET_FILE_DIR:${PROJECT_NAME}>/D3D12
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_PROPERTY:Microsoft::DirectX12-Layers,IMPORTED_LOCATION_DEBUG> $<TARGET_FILE_DIR:${PROJECT_NAME}>/D3D12
+       COMMAND_EXPAND_LISTS
+    )
+endif()
+
+
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     NOMINMAX
@@ -95,6 +110,7 @@ if (OPENMP_FOUND)
     )
 endif()
 
+#find_package(directx12-agility CONFIG REQUIRED)
 
 add_subdirectory(external)
 add_subdirectory(test)

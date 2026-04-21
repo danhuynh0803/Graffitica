@@ -81,17 +81,3 @@ endforeach()
 add_custom_target(CompileShaders ALL
     DEPENDS ${COMPILED_SHADERS}
 )
-#foreach(FILE ${HLSL_SHADER_FILES})
-#  get_filename_component(FILE_WE ${FILE} NAME_WE)
-#  list(APPEND CSO_SHADER_FILES ${CMAKE_BINARY_DIR}/${FILE_WE}.cso)
-#  get_source_file_property(shadertype ${FILE} ShaderType)
-#  add_custom_command(TARGET ${PROJECT_NAME} PRE_LINK
-#                     COMMAND dxc.exe /nologo /Emain /T${shadertype}_6_0 $<IF:$<CONFIG:DEBUG>,/Od,/O3> /Zi /Fo ${CMAKE_BINARY_DIR}/${FILE_WE}.cso /Fd ${CMAKE_BINARY_DIR}/${FILE_WE}.pdb ${FILE}
-#                     COMMENT "HLSL ${FILE}"
-#                     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-#                     VERBATIM)
-#endforeach(FILE)
-#
-#add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-#                  COMMAND ${CMAKE_COMMAND} -E copy ${CSO_SHADER_FILES} $<TARGET_FILE_DIR:${PROJECT_NAME}>
-#                  COMMAND_EXPAND_LISTS)

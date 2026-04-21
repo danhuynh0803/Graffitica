@@ -50,7 +50,7 @@ public:
 
     ComPtr<ID3D12Resource> GetCurrentBackBuffer() const { return m_BackBuffers[m_RawSwapchain->GetCurrentBackBufferIndex()]; }
     ComPtr<ID3D12Resource> GetBackBuffer(int i) const { return m_BackBuffers[i]; }
-    D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle() const
+    D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandleForCurrentFrame() const
     {
         D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_RTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
         rtvHandle.ptr += m_RawSwapchain->GetCurrentBackBufferIndex() * m_RTVDescriptorSize;
