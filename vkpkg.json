@@ -1,0 +1,6 @@
+{
+  "dependencies": [
+    "directx12-agility",
+    "directx-headers"
+  ]
+}
