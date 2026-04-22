@@ -47,6 +47,30 @@ add_executable(${PROJECT_NAME}
     ${SOURCES}
 )
 
+#file(GLOB_RECURSE SOURCES "src/*.hlsl")
+#
+#    foreach(SOURCE_FILE ${SOURCES})
+#        # Extract the relative path from the source directory
+#        string(REPLACE "${CMAKE_SOURCE_DIR}/src/" "" RELATIVE_PATH "${SOURCE_FILE}")
+#
+#        # Extract the directory part of the relative path
+#        get_filename_component(DIR_NAME "${RELATIVE_PATH}" DIRECTORY)
+#
+#        # Replace slashes with backslashes for Visual Studio folder structure
+#        string(REPLACE "/" "\\" VS_FOLDER "${DIR_NAME}")
+#
+#        # Group the file into the corresponding Visual Studio folder
+#        source_group("${VS_FOLDER}" FILES "${SOURCE_FILE}")
+#
+#        # Disable Visual Studio's automatic HLSL compilation
+#        set_source_files_properties(${SHADER} PROPERTIES
+#            VS_TOOL_OVERRIDE "None"
+#            HEADER_FILE_ONLY TRUE
+#        )
+#    endforeach()
+#)
+
+
 # Allow for VS cpu instrumentation
 if (MSVC)
     set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/PROFILE")
@@ -85,7 +109,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 )
 
 if(TARGET Microsoft::DirectX12-Agility)
-    #set(bin_path ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/D3D12/)
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${PROJECT_NAME}>/D3D12"
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_PROPERTY:Microsoft::DirectX12-Core,IMPORTED_LOCATION_RELEASE> $<TARGET_FILE_DIR:${PROJECT_NAME}>/D3D12
@@ -113,5 +136,5 @@ endif()
 
 add_subdirectory(external)
 add_subdirectory(test)
-add_subdirectory(shaders)
+add_subdirectory(src/shaders)
 add_dependencies(${PROJECT_NAME} CompileShaders)
