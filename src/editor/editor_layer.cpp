@@ -27,6 +27,8 @@
 #include "rhi/interface/command_list.h"
 #include "rhi/d3d12/d3d12_command_list.h"
 
+#include <DirectXMath.h>
+
 namespace gr
 {
 
@@ -60,7 +62,19 @@ namespace
     HANDLE fenceEvent;
     U64 fenceValue;
 
+    ComPtr<ID3D12RootSignature> rootSignature;
+
     ComPtr<ID3D12Resource> presentBuffers[3];
+    ComPtr<ID3D12Resource> vertexBuffer;
+    D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
+
+    struct Vertex
+    {
+        //DirectX::XMFLOAT3 position;
+        vec3f position;
+        //DirectX::XMFLOAT4 color;
+        vec4f color;
+    };
 }
 
 EditorLayer::EditorLayer(const std::string& name)
@@ -90,14 +104,101 @@ EditorLayer::EditorLayer(const std::string& name)
     commandQueue = gfxContext->GetCommandQueue();
     rhi::d3d12::ThrowIfFailed(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)));
     rhi::d3d12::ThrowIfFailed(commandList->Close());
-    gr::rhi::d3d12::ThrowIfFailed(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)));
-    fenceValue = 1;
-    fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-    if (fenceEvent == nullptr)
-    {
-        rhi::d3d12::ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
-    }
+   
     rtvHeap = gfxContext->GetRTVDescriptorHeap();
+
+    // empty root signature since we are not binding any resources for this test
+    {
+        D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
+        rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+        ComPtr<ID3DBlob> signature;
+        ComPtr<ID3DBlob> error;
+        rhi::d3d12::ThrowIfFailed(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
+        rhi::d3d12::ThrowIfFailed(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)));
+    }
+
+    // generate the pipeline state
+    {
+        UINT8* pVertexShaderBytecode = nullptr;
+        UINT8* pPixelShaderBytecode = nullptr;
+        UINT vertexShaderSize = 0;
+        UINT pixelShaderSize = 0;
+
+        std::wstring shaderDir = L"shaders/";
+        rhi::d3d12::ThrowIfFailed(rhi::d3d12::ReadDataFromFile((shaderDir + L"triangle_vs.cso").c_str(), &pVertexShaderBytecode, &vertexShaderSize));
+        rhi::d3d12::ThrowIfFailed(rhi::d3d12::ReadDataFromFile((shaderDir + L"triangle_ps.cso").c_str(), &pPixelShaderBytecode, &pixelShaderSize));
+
+        // vertex input layout
+        D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
+        {
+            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex, position), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+            { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, offsetof(Vertex, color), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+            //{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 28, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+            //{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 40, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        };
+
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+        psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
+        psoDesc.pRootSignature = rootSignature.Get();
+        psoDesc.VS = { pVertexShaderBytecode, vertexShaderSize };
+        psoDesc.PS = { pPixelShaderBytecode, pixelShaderSize };
+        psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+        psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+        psoDesc.DepthStencilState.DepthEnable = FALSE;
+        psoDesc.DepthStencilState.StencilEnable = FALSE;
+        psoDesc.SampleMask = UINT_MAX;
+        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        psoDesc.NumRenderTargets = 1;
+        psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;//swapchain->GetBackBufferFormat();
+        psoDesc.SampleDesc.Count = 1;
+        rhi::d3d12::ThrowIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
+    }
+
+    // Create Vertex buffer
+    {
+        // Define geometry for a triangle.
+        Vertex triangleVertices[] =
+        {
+            { { 0.0f, 0.25f, 0.0f}, { 1.0f, 0.0f, 0.0f, 1.0f } }, // { 0,0,1 }, { 0,0 } },
+            { { 0.25f, -0.25f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } }, // { 0,0,1 }, { 1,0 } },
+            { { -0.25f, -0.25f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }, // { 0,0,1 }, { 0,1 } },
+        };
+        
+        const UINT vertexBufferSize = sizeof(triangleVertices);
+
+        const auto heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+        const auto buffer = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
+        // Create the vertex buffer resource in the GPU's default heap and copy vertex data into it using the upload heap.
+        rhi::d3d12::ThrowIfFailed(device->CreateCommittedResource(
+            //&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+            &heap,
+            D3D12_HEAP_FLAG_NONE,
+            &buffer, //&CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize),
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            nullptr,
+            IID_PPV_ARGS(&vertexBuffer))
+        );
+
+        // Copy the triangle data to the vertex buffer.
+        U8* pVertexDataBegin;
+        CD3DX12_RANGE readRange(0, 0); // We do not intend to read from this resource on the CPU.
+        rhi::d3d12::ThrowIfFailed(vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
+        memcpy(pVertexDataBegin, triangleVertices, vertexBufferSize);
+        vertexBuffer->Unmap(0, nullptr);
+
+        // Initialize the vertex buffer view.
+        vertexBufferView.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
+        vertexBufferView.StrideInBytes = sizeof(Vertex);
+        vertexBufferView.SizeInBytes = vertexBufferSize;
+
+        gr::rhi::d3d12::ThrowIfFailed(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)));
+        fenceValue = 1;
+        fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+        if (fenceEvent == nullptr)
+        {
+            rhi::d3d12::ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
+        }
+    }
 }
 
 void EditorLayer::OnUpdate(double dt)
@@ -112,6 +213,11 @@ void EditorLayer::OnUpdate(double dt)
     // Reset command list to prepare for recording commands
     commandList->Reset(commandAllocator.Get(), pipelineState.Get());
 
+    D3D12_VIEWPORT viewport(.0f, 0.f, static_cast<float>(swapchain->GetWidth()), static_cast<float>(swapchain->GetHeight()), 0.f, 1.f);
+    commandList->SetGraphicsRootSignature(rootSignature.Get());
+    commandList->RSSetViewports(1, &viewport);
+    CD3DX12_RECT rect(0, 0, LONG_MAX, LONG_MAX);
+    commandList->RSSetScissorRects(1, &rect);
     // Transition the back buffer to be used as a render target
     {
         auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
@@ -125,7 +231,9 @@ void EditorLayer::OnUpdate(double dt)
     const float clearColor[] = { .4, .5, .7, 1.0 };
     commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
     //commandList2->ClearColor(clearColor);
-
+    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+    commandList->DrawInstanced(3, 1, 0, 0);
     // Transition the back buffer to be presented
     {
         auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(

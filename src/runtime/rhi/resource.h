@@ -24,6 +24,13 @@ struct VertexAttributes2
     vec2f aTexCoord[3];
 };
 
+struct VertexRHI
+{
+    // for now, use just the required attributes
+    vec3f aPos;
+    vec4f aColor;
+};
+
 struct Buffer
 {
     std::shared_ptr<Mesh> m_MeshData = nullptr;
