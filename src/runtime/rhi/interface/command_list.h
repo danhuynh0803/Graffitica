@@ -5,6 +5,12 @@
 namespace gr::rhi
 {
 
+// Function table version to replace static template class for switching backend at runtime
+struct CommandList
+{
+    void* impl;
+};
+
 template <typename RHI>
 struct ICommandList
 {

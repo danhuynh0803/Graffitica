@@ -70,9 +70,8 @@ namespace
 
     struct Vertex
     {
-        //DirectX::XMFLOAT3 position;
         vec3f position;
-        //DirectX::XMFLOAT4 color;
+        // TODO: vec4 simd 16byte alignment causing increase struct size
         vec4f color;
     };
 }
