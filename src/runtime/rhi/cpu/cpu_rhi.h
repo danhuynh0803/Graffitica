@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rhi/interface/graphics_rhi.h"
+#include "rhi/interface/rhi.h"
 
 namespace gr::renderer::rhi
 {
@@ -19,3 +20,12 @@ public:
 };
 
 }
+
+namespace gr::rhi::cpu
+{
+    BufferHandle CreateBuffer_CPU(const BufferDesc& desc);
+    void SetVertexBuffers_CPU(CommandList& cmdList, U32 numViews, BufferHandle views[]);
+
+    extern RHIFunctionTable CPUTable;
+
+} // namespace gr::rhi::cpu

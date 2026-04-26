@@ -44,4 +44,6 @@ inline void SetVertexBuffers(CommandList& cmdList, U32 numViews, BufferHandle vi
     g_RHI->SetVertexBuffers(cmdList, numViews, views);
 }
 
+void InitRHI(const char* backend);
+
 } // namespace gr::rhi

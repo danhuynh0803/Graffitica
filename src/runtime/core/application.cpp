@@ -5,6 +5,7 @@
 #include "rhi/interface/swapchain.h"
 #include "developer/profiler/profiler.h"
 #include "developer/profiler/memory_tracker.h"
+#include "rhi/interface/rhi.h"
 
 namespace gr
 {
@@ -17,6 +18,10 @@ Application::Application(const ApplicationProperties& props)
     m_Window = Window::Create({ props.name, props.width, props.height });
     m_Window->SetEventCallback(std::bind(&Application::OnEvent, this, std::placeholders::_1));
     m_Instance = this;
+
+    // TODO rhi backend should be initialized by renderer
+    // For testing function table dispatch
+    rhi::InitRHI("D3D12");
 }
 
 Application::~Application()

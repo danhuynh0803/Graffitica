@@ -46,3 +46,24 @@ class Framebuffer;
 */
 
 }
+
+namespace gr::rhi::cpu
+{
+
+    BufferHandle CreateBuffer_CPU(const BufferDesc& desc)
+    {
+        std::cout << "CPU CreateBuffer called with size: " << desc.size << " and usageFlags: " << desc.usageFlags << std::endl;
+        return BufferHandle();
+    }
+
+    void SetVertexBuffers_CPU(CommandList& cmdList, U32 numViews, BufferHandle views[])
+    {
+        std::cout << "CPU SetVertexBuffers called with numViews: " << numViews << std::endl;
+    }
+
+    RHIFunctionTable CPUTable = {
+        CreateBuffer_CPU,
+        SetVertexBuffers_CPU
+    };
+
+} // namespace gr::rhi::cpu
