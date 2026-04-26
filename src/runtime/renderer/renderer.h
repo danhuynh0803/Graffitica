@@ -5,16 +5,17 @@
 #include "rhi/command_buffer.h"
 #include "developer/profiler/profiler.h"
 
-
-namespace gr::rhi::cmd
+namespace gr::renderer
 {
 
-// TODO extent for src and dst regions
-//void Blit(const ImageView& dst, const ImageView& src, int xOffset = 0, int yOffset = 0, int zOffset = 0);
+class Renderer
+{
+public:
+    void Init();
+    void Draw(const rhi::CommandBuffer& cmd, const Buffer& vb, U32 vertexCount, U32 firstVertex);
 
-//void Draw(const ImageView& view, const Buffer& vb, U32 vertexCount, U32 firstVertex);
+private:
 
+};
 
-
-
-} // cmd
+} // namespace gr::renderer

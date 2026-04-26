@@ -25,6 +25,7 @@ namespace gr::rhi::cpu
 {
     BufferHandle CreateBuffer_CPU(const BufferDesc& desc);
     void SetVertexBuffers_CPU(CommandList& cmdList, U32 numViews, BufferHandle views[]);
+    void DrawIndexedInstanced_CPU(CommandList&, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation);
 
     extern RHIFunctionTable CPUTable;
 

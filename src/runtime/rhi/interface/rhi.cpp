@@ -8,21 +8,26 @@ namespace gr::rhi
 RHIFunctionTable* g_RHI = nullptr;
 
 extern RHIFunctionTable d3d12::D3D12Table;
-extern RHIFunctionTable VulkanTable;
+//extern RHIFunctionTable VulkanTable; // TODO on vk branch
 extern RHIFunctionTable cpu::CPUTable;
 
-void InitRHI(const char* backend)
+void InitRHI(RHI_BACKEND backend)
 {
-    // TODO impl backend switch
-    g_RHI = &d3d12::D3D12Table;
-
-    CommandList cmdList;
-    g_RHI->CreateBuffer({ 1024, 0 });
-    g_RHI->SetVertexBuffers(cmdList, 1, nullptr);
-
-    g_RHI = &cpu::CPUTable;
-    g_RHI->CreateBuffer({ 1024, 0 });
-    g_RHI->SetVertexBuffers(cmdList, 1, nullptr);
+    switch (backend)
+    {
+    case RHI_BACKEND::D3D12:
+        g_RHI = &d3d12::D3D12Table;
+        break;
+    case RHI_BACKEND::VULKAN:
+        //g_RHI = &VulkanTable;
+        break;
+    case RHI_BACKEND::CPU:
+        g_RHI = &cpu::CPUTable;
+        break;
+    default:
+        throw std::runtime_error("Unsupported RHI backend");
+        break;
+    }
 }
 
 

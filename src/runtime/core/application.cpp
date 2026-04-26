@@ -21,7 +21,7 @@ Application::Application(const ApplicationProperties& props)
 
     // TODO rhi backend should be initialized by renderer
     // For testing function table dispatch
-    rhi::InitRHI("D3D12");
+    rhi::InitRHI(RHI_BACKEND::D3D12);
 }
 
 Application::~Application()

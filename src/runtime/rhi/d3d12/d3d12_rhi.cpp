@@ -20,10 +20,21 @@ void SetVertexBuffers_D3D12(CommandList& cmdList, U32 numViews, BufferHandle vie
     }
 }
 
+void DrawIndexedInstanced_D3D12(CommandList&, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
+{
+    std::cout << "D3D12 DrawIndexedInstanced called with indexCount: " << indexCount
+        << ", instanceCount: " << instanceCount
+        << ", startIndexLocation: " << startIndexLocation
+        << ", baseVertexLocation: " << baseVertexLocation
+        << ", startInstanceLocation: " << startInstanceLocation
+        << std::endl;
+}
+
 RHIFunctionTable D3D12Table =
 {
     CreateBuffer_D3D12,
-    SetVertexBuffers_D3D12
+    SetVertexBuffers_D3D12,
+    DrawIndexedInstanced_D3D12
 };
 
 } // namespace gr::rhi::d3d12

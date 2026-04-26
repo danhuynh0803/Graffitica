@@ -4,9 +4,18 @@
 #include "core/types.h"
 #include "rhi/formats.h"
 #include "rhi/interface/command_list.h"
+#include "developer/profiler/profiler.h"
+
+enum class RHI_BACKEND
+{
+    D3D12,
+    VULKAN,
+    CPU
+};
 
 namespace gr::rhi
 {
+
 
 struct BufferHandle { U32 index; };
 
@@ -29,21 +38,37 @@ struct TextureDesc
 struct RHIFunctionTable
 {
     BufferHandle (*CreateBuffer)(const BufferDesc&);
+
+    // Binding cmds
     void (*SetVertexBuffers)(CommandList&, U32 numViews, BufferHandle[]);
+
+    // Draw cmds
+    // TODO refactor imageview for RHI
+    //void (*ClearColor)(CommandList&, const ImageView& view, const vec4f& clearColor);
+    //void (*ClearDepth)(CommandList&, const ImageView& view, float clearDepth);
+    void (*DrawIndexedInstanced)(CommandList&, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation);
 };
 
 extern RHIFunctionTable* g_RHI;
 
 inline BufferHandle CreateBuffer(const BufferDesc& desc)
 {
+    GR_TRACE_START(SYS_RENDERING);
     return g_RHI->CreateBuffer(desc);
 }
 
 inline void SetVertexBuffers(CommandList& cmdList, U32 numViews, BufferHandle views[])
 {
+    GR_TRACE_START(SYS_RENDERING);
     g_RHI->SetVertexBuffers(cmdList, numViews, views);
 }
 
-void InitRHI(const char* backend);
+inline void DrawIndexedInstanced(CommandList& cmdList, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
+{
+    GR_TRACE_START(SYS_RENDERING);
+    g_RHI->DrawIndexedInstanced(cmdList, indexCount, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
+}
+
+void InitRHI(RHI_BACKEND backend);
 
 } // namespace gr::rhi
