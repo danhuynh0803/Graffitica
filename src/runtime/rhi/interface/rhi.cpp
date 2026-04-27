@@ -30,5 +30,4 @@ void InitRHI(RHI_BACKEND backend)
     }
 }
 
-
 }

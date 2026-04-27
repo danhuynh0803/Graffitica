@@ -8,9 +8,12 @@ namespace gr::rhi
 // Function table version to replace static template class for switching backend at runtime
 struct CommandList
 {
-    void* impl;
+    // contains the real backend commandlist/commandbuffer object,
+    // e.g. ID3D12GraphicsCommandList for D3D12, VkCommandBuffer for Vulkan, or a custom CPU command list implementation
+    void* pNativeCmdList;
 };
 
+// Old command list interface - remove later
 template <typename RHI>
 struct ICommandList
 {

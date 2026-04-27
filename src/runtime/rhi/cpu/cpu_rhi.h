@@ -6,6 +6,7 @@
 namespace gr::renderer::rhi
 {
 
+// Old interface - remove later
 class CpuRHI final : public IGraphicsRHI
 {
 public:
@@ -24,6 +25,7 @@ public:
 namespace gr::rhi::cpu
 {
     BufferHandle CreateBuffer_CPU(const BufferDesc& desc);
+    CommandList CreateCommandList_CPU();
     void SetVertexBuffers_CPU(CommandList& cmdList, U32 numViews, BufferHandle views[]);
     void DrawIndexedInstanced_CPU(CommandList&, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation);
 

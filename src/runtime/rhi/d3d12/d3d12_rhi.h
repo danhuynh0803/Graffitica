@@ -17,13 +17,11 @@
 
 namespace gr::rhi::d3d12
 {
+    BufferHandle CreateBuffer_D3D12(const BufferDesc& desc);
+    CommandList CreateCommandList_D3D12();
+    void SetVertexBuffers_D3D12(CommandList& cmdList, U32 numViews, BufferHandle views[]);
+    void DrawIndexedInstanced_D3D12(CommandList& cmdList, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation);
 
-using Microsoft::WRL::ComPtr;
-
-
-BufferHandle CreateBuffer_D3D12(const BufferDesc& desc);
-void SetVertexBuffers_D3D12(CommandList& cmdList, U32 numViews, BufferHandle views[]);
-
-extern RHIFunctionTable D3D12Table;
+    extern RHIFunctionTable D3D12Table;
 
 } // namespace gr::rhi::d3d12

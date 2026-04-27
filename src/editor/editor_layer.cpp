@@ -162,7 +162,7 @@ EditorLayer::EditorLayer(const std::string& name)
             { { 0.25f, -0.25f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } }, // { 0,0,1 }, { 1,0 } },
             { { -0.25f, -0.25f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }, // { 0,0,1 }, { 0,1 } },
         };
-        
+
         const UINT vertexBufferSize = sizeof(triangleVertices);
 
         const auto heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);

@@ -16,9 +16,7 @@ enum class RHI_BACKEND
 namespace gr::rhi
 {
 
-
 struct BufferHandle { U32 index; };
-
 struct BufferDesc
 {
     U32 size;
@@ -27,7 +25,6 @@ struct BufferDesc
 };
 
 struct TextureHandle { U32 index; };
-
 struct TextureDesc
 {
     U32 width;
@@ -37,7 +34,9 @@ struct TextureDesc
 
 struct RHIFunctionTable
 {
+    // Resource creation
     BufferHandle (*CreateBuffer)(const BufferDesc&);
+    CommandList(*CreateCommandList)();
 
     // Binding cmds
     void (*SetVertexBuffers)(CommandList&, U32 numViews, BufferHandle[]);
@@ -48,13 +47,19 @@ struct RHIFunctionTable
     //void (*ClearDepth)(CommandList&, const ImageView& view, float clearDepth);
     void (*DrawIndexedInstanced)(CommandList&, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation);
 };
-
 extern RHIFunctionTable* g_RHI;
+
 
 inline BufferHandle CreateBuffer(const BufferDesc& desc)
 {
     GR_TRACE_START(SYS_RENDERING);
     return g_RHI->CreateBuffer(desc);
+}
+
+inline CommandList CreateCommandList()
+{
+    GR_TRACE_START(SYS_RENDERING);
+    return g_RHI->CreateCommandList();
 }
 
 inline void SetVertexBuffers(CommandList& cmdList, U32 numViews, BufferHandle views[])
