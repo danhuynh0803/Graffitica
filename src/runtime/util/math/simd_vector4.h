@@ -6,6 +6,9 @@
 #include <immintrin.h>
 #include "vector3.h"
 
+#pragma warning(push)
+#pragma warning(disable: 4201)
+
 template<typename T>
 class vec4_128;
 
@@ -172,3 +175,5 @@ inline vec4_128<float>& vec4_128<float>::operator/=(float t) {
     e[3] /= t;
     return *this;
 }
+
+#pragma warning(pop)

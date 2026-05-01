@@ -23,8 +23,8 @@ public:
     Layer(const std::string& name, LayerFlags flags);
     virtual ~Layer() = default;
 
-    virtual void OnUpdate(double dt) {};
-    virtual void OnEvent(Event& event) {};
+    virtual void OnUpdate([[maybe_unused]] double dt) {};
+    virtual void OnEvent([[maybe_unused]] Event& event) {};
 
 private:
     std::string m_Name;

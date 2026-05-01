@@ -57,7 +57,7 @@ public:
         mat44 persp{};
         auto& m = persp.m_Data;
 
-        float rad = vfov * (std::numbers::pi / 180);
+        float rad = vfov * (std::numbers::pi / 180.f);
         m[0][0] = 1.0f / (std::tan(rad * 0.5f)*aspect);
         m[1][1] = 1.0f / std::tan(rad * 0.5f);
 

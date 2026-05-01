@@ -43,7 +43,7 @@ enum ProfilerSubSystems : uint16_t
 // TODO - check if scoped calls can be filtered by subsystem as well
 #define PROFILER_SUBSYSTEMS (SYS_GAME | SYS_RENDERING | SYS_IO | SYS_MEMORY) //| (SYS_PER_VERTEX | SYS_PER_PIXEL)
 
-#define GR_TRACE_START(VarName, Category) ZoneNamed(Name, PROFILER_SUBSYSTEMS & Category);
+//#define GR_TRACE_START(VarName, Category) ZoneNamed(Name, PROFILER_SUBSYSTEMS & Category);
 
 #if _DEBUG || ENABLE_INSTRUMENTATION
     // Set each subsystem to use a different color for visual clarity in Tracy profiler
@@ -52,10 +52,10 @@ enum ProfilerSubSystems : uint16_t
     //#define GR_TRACE_SCOPED(Name, Category) ZoneScopedNC(Name, COLOR(Category), PROFILER_SUBSYSTEMS & Category)
     //#define GR_TRACE_START(Category) ZoneNamedC(_var, COLOR(Category), PROFILER_SUBSYSTEMS & Category);
 
-    #define GR_TRACE_SCOPED(Name, Category) ZoneScopedN(Name, PROFILER_SUBSYSTEMS & Category)
-    #define GR_TRACE_START(Category) ZoneNamed(_var, PROFILER_SUBSYSTEMS & Category);
+    //#define GR_TRACE_SCOPED(Name, Category) ZoneScopedN(Name, (PROFILER_SUBSYSTEMS & Category) != 0)
+    #define GR_TRACE_START(Category) ZoneNamed(_var, (PROFILER_SUBSYSTEMS & Category) != 0);
 #else
-    #define GR_TRACE_SCOPED(Name)
+    #define GR_TRACE_SCOPED(Name, Category)
     #define GR_TRACE_START(Category)
 #endif
 

@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <iostream>
 
+#pragma warning(push)
+#pragma warning(disable: 4201)
+
 template <typename T>
 class vec4
 {
@@ -213,3 +216,5 @@ template <typename T>
 inline vec4<T> unit_vector(vec4<T> v) {
     return v / v.length();
 }
+
+#pragma warning(pop)

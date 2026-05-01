@@ -21,8 +21,8 @@ public :
     Mesh(const SimpleMesh& mesh);
     ~Mesh() = default;
 
-    uint32_t NumVertices() const { return m_Verts.size(); }
-    uint32_t NumFaces() const { return m_Faces.size(); }
+    uint32_t NumVertices() const { return static_cast<uint32_t>(m_Verts.size()); }
+    uint32_t NumFaces() const { return static_cast<uint32_t>(m_Faces.size()); }
     // TODO Data can be passed as singular strided buffer or with multiple streams
     // Allow cpu renderer access to attributes directly for testing
     const std::vector<vec3f>& GetVertices() const { return m_Verts; }

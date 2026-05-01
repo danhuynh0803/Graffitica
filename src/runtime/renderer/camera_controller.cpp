@@ -48,8 +48,8 @@ void CameraController::OnEvent(Event& e)
     EventDispatcher disp(e);
     disp.Dispatch<InputStateEvent>(std::bind(&CameraController::OnInputHeld, this, std::placeholders::_1));
     disp.Dispatch<MouseMovedEvent>(std::bind(&CameraController::OnMouseMoved, this, std::placeholders::_1));
-    disp.Dispatch<MouseButtonPressedEvent>(std::bind(&CameraController::OnMouseButtonPressed, this, std::placeholders::_1));
-    disp.Dispatch<MouseButtonReleasedEvent>(std::bind(&CameraController::OnMouseButtonReleased, this, std::placeholders::_1));
+    //disp.Dispatch<MouseButtonPressedEvent>(std::bind(&CameraController::OnMouseButtonPressed, this, std::placeholders::_1));
+    //disp.Dispatch<MouseButtonReleasedEvent>(std::bind(&CameraController::OnMouseButtonReleased, this, std::placeholders::_1));
     //disp.Dispatch<MouseButtonHeldEvent>(std::bind(&CameraController::OnMouseButtonHeld, this, std::placeholders::_1));
     //disp.Dispatch<MouseScrolledEvent>(std::bind(&CameraController::OnMouseScrolled, this, std::placeholders::_1));
 }
@@ -111,24 +111,24 @@ bool CameraController::OnMouseMoved(MouseMovedEvent& e)
     return false;
 }
 
-bool CameraController::OnMouseButtonPressed(MouseButtonPressedEvent& e)
-{
-    return false;
-}
-
-bool CameraController::OnMouseButtonReleased(MouseButtonReleasedEvent& e)
-{
-    return false;
-}
-
-bool CameraController::OnMouseButtonHeld(MouseButtonHeldEvent& e)
-{
-    return false;
-}
-
-bool CameraController::OnMouseScrolled(MouseScrolledEvent& e)
-{
-    return false;
-}
+//bool CameraController::OnMouseButtonPressed(MouseButtonPressedEvent& e)
+//{
+//    return false;
+//}
+//
+//bool CameraController::OnMouseButtonReleased(MouseButtonReleasedEvent& e)
+//{
+//    return false;
+//}
+//
+//bool CameraController::OnMouseButtonHeld(MouseButtonHeldEvent& e)
+//{
+//    return false;
+//}
+//
+//bool CameraController::OnMouseScrolled(MouseScrolledEvent& e)
+//{
+//    return false;
+//}
 
 }

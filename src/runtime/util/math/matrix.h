@@ -62,9 +62,6 @@ public:
     //inline friend std::ostream& operator <<(std::ostream& os, const mat4& m);
 
     //std::vector<std::vector<float>> entry;
-    union {
-        //T m_Data[ROW*COL];
-    };
 
     T* operator[](size_t row) {
         return m_Data[row];

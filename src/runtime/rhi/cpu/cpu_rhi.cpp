@@ -29,8 +29,10 @@ void SetVertexBuffers_CPU(CommandList& cmdList, U32 numViews, BufferHandle views
 
 void DrawIndexedInstanced_CPU(CommandList&, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
 {
+    std::cout << "CPU DrawIndexedInstanced called with indexCount: " << indexCount << ", instanceCount: " << instanceCount
+              << ", startIndexLocation: " << startIndexLocation << ", baseVertexLocation: " << baseVertexLocation
+        << ", startInstanceLocation: " << startInstanceLocation << std::endl;
     GR_TRACE_START(SYS_RENDERING);
-
 }
 
 // TODO find a static way to verify function table is populated and order matches?
@@ -314,11 +316,11 @@ bool IsCulled(const vec4f& v0, const vec4f& v1, const vec4f& v2, const Rasterize
     return false;
 }
 
-auto NDCToViewport = [&](const vec4f& p, int width, int height)
+auto NDCToViewport = [](const vec4f& p, int width, int height)
     {
         vec4f coords(
             (0.5f * p.x + 0.5f) * width,
-            (1.0f - (0.5f * p.y + 0.5)) * height, // map to y-up space
+            (1.0f - (0.5f * p.y + 0.5f)) * height, // map to y-up space
             p.z, // TODO remap from [-1,1] -> [0,1]
             p.w
         );
@@ -336,18 +338,14 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
     auto& colorView = fb->colorView;
     auto& depthView = fb->depthView;
     const auto& state = cmd.rasterizerState;
-    const auto& mvp = cmd.mvp;
     const auto& shaderModule = cmd.shaderModule;
 
-    const auto& positions = vb.m_Positions;
     const auto& colors = vb.m_VertexColors;
     const auto& verts = vb.m_MeshData->GetVertices();
     const int width = fb->colorView->width;
     const int height = fb->colorView->height;
 
-    std::vector<vec4f>& colorData = colorView->colorData;
-
-    for (int tri = firstIndex; tri < indexCount; ++tri)
+    for (U32 tri = firstIndex; tri < indexCount; ++tri)
     {
         //GR_TRACE_SCOPED("TriangleLoop");
         const std::vector<int>& face = vb.m_MeshData->face(tri);
@@ -399,16 +397,11 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
         const float totalArea = CalculateTriangleArea(a, b, c);
         const float invTotalArea = 1.0f / totalArea;
 
-        // TODO profile with some timer utilities
-        // SCOPED_TIMER()
-        const float width = colorView->width;
-        const float height = colorView->height;
-
         // clipping
-        int minX = std::clamp(std::min(a.x, std::min(b.x, c.x)), 0.0f, width - 1);
-        int maxX = std::clamp(std::max(a.x, std::max(b.x, c.x)), 0.0f, width - 1);
-        int minY = std::clamp(std::min(a.y, std::min(b.y, c.y)), 0.0f, height - 1);
-        int maxY = std::clamp(std::max(a.y, std::max(b.y, c.y)), 0.0f, height - 1);
+        int minX = static_cast<int>(std::clamp(std::min(a.x, std::min(b.x, c.x)), 0.0f, width - 1.0f));
+        int maxX = static_cast<int>(std::clamp(std::max(a.x, std::max(b.x, c.x)), 0.0f, width - 1.0f));
+        int minY = static_cast<int>(std::clamp(std::min(a.y, std::min(b.y, c.y)), 0.0f, height - 1.0f));
+        int maxY = static_cast<int>(std::clamp(std::max(a.y, std::max(b.y, c.y)), 0.0f, height - 1.0f));
 
         { //GR_TRACE_SCOPED("Rasterization");
 #pragma omp parallel for
@@ -424,7 +417,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
                 {
                     // TODO profile perf between the two
                     // TODO replace barycentric with Cramer's rule ver
-                    vec4f P(x, y, 0, 1);
+                    vec4f P(static_cast<float>(x), static_cast<float>(y), 0.0f, 1.0f);
 
                     float u, v, w;
                     {
@@ -434,7 +427,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
                         //if (u < 0) continue;
                         v = CalculateTriangleArea(P, c, a) * invTotalArea;
                         //if (v < 0) continue;
-                        w = 1.0 - u - v; //CalculateTriangleArea(P, a, b) * invTotalArea;
+                        w = 1.0f - u - v; //CalculateTriangleArea(P, a, b) * invTotalArea;
                         //if (w < 0) continue;
                     }
 
@@ -511,10 +504,7 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
     auto& colorView = fb->colorView;
     auto& depthView = fb->depthView;
     const auto& state = cmd.rasterizerState;
-    const auto& mvp = cmd.mvp;
     const auto& shaderModule = cmd.shaderModule;
-    const auto& positions = vb.m_Positions;
-    const auto& colors = vb.m_VertexColors;
     const auto& verts = vb.m_MeshData->GetVertices();
     const auto& texCoords = vb.m_MeshData->GetTexCoords();
     const auto& normals = vb.m_MeshData->GetNormals();
@@ -524,12 +514,12 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
     // Input assembling
     std::vector<Triangle> triangeList;
     {
-        GR_TRACE_SCOPED("InputAssemblyList", SYS_RENDERING);
+        GR_TRACE_SCOPED("InputAssemblyList");
         std::vector<std::pair<bool, gr::rhi::Varyings>> vertexCache(verts.size()); // simple cache to avoid redundant vertex shader executions for shared vertices across triangles, maps vertex index to post-VS output
         triangeList.reserve(indexCount);
         VertexAttributes inputAttributes[3];
         gr::rhi::Varyings perVertexOutputs[3];
-        for (int faceIndex = firstIndex; faceIndex < indexCount; ++faceIndex)
+        for (U32 faceIndex = firstIndex; faceIndex < indexCount; ++faceIndex)
         {
             //GR_TRACE_SCOPED("TriangleAssembly", SYS_PER_VERTEX);
             const std::vector<int>& face = vb.m_MeshData->face(faceIndex);
@@ -577,7 +567,7 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
 
             gr::rhi::Triangle primitive;
             {
-                GR_TRACE_SCOPED("ViewportTransform", SYS_PER_VERTEX);
+                GR_TRACE_SCOPED("ViewportTransform");
                 for (int i = 0; i < 3; ++i)
                 {
                     primitive.position[i] = NDCToViewport(
@@ -604,7 +594,7 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
     std::vector<Tile> tileList(kNumTilesX * kNumTilesY);
     U32 totalTileTriCount = 0;
     {
-        GR_TRACE_SCOPED("FirstBinningPass - Determine Counts", SYS_RENDERING)
+        GR_TRACE_SCOPED("FirstBinningPass - Determine Counts")
             for (int i = 0; i < triangeList.size(); ++i)
             {
                 const auto& primitive = triangeList[i];
@@ -614,10 +604,10 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
                 const auto& c = primitive.position[2];
 
                 // clipping
-                int minX = std::min(a.x, std::min(b.x, c.x));
-                int maxX = std::max(a.x, std::max(b.x, c.x));
-                int minY = std::min(a.y, std::min(b.y, c.y));
-                int maxY = std::max(a.y, std::max(b.y, c.y));
+                int minX = static_cast<int>(std::min(a.x, std::min(b.x, c.x)));
+                int maxX = static_cast<int>(std::max(a.x, std::max(b.x, c.x)));
+                int minY = static_cast<int>(std::min(a.y, std::min(b.y, c.y)));
+                int maxY = static_cast<int>(std::max(a.y, std::max(b.y, c.y)));
 
                 // binning
                 int minTileX = std::max(minX / kTileSizeX, 0);
@@ -641,7 +631,7 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
     // Init w/ -1 to cause crash if we mess up the offsets/counts, TODO remove this after testing
     std::vector<int> triangleIndices(totalTileTriCount, -1);
     {
-        GR_TRACE_SCOPED("TileStartAddresses", SYS_RENDERING)
+        GR_TRACE_SCOPED("TileStartAddresses")
             int globalOffset = 0;
         for (auto& tile : tileList)
         {
@@ -655,7 +645,7 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
     }
 
     {
-        GR_TRACE_SCOPED("SecondBinningPass - Generate Tile Triangle List", SYS_RENDERING);
+        GR_TRACE_SCOPED("SecondBinningPass - Generate Tile Triangle List");
         for (int i = 0; i < triangeList.size(); ++i)
         {
             const auto& primitive = triangeList[i];
@@ -665,10 +655,10 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
             const auto& c = primitive.position[2];
 
             // clipping
-            int minX = std::min(a.x, std::min(b.x, c.x));
-            int maxX = std::max(a.x, std::max(b.x, c.x));
-            int minY = std::min(a.y, std::min(b.y, c.y));
-            int maxY = std::max(a.y, std::max(b.y, c.y));
+            int minX = static_cast<int>(std::min(a.x, std::min(b.x, c.x)));
+            int maxX = static_cast<int>(std::max(a.x, std::max(b.x, c.x)));
+            int minY = static_cast<int>(std::min(a.y, std::min(b.y, c.y)));
+            int maxY = static_cast<int>(std::max(a.y, std::max(b.y, c.y)));
 
             // binning
             int minTileX = std::max(minX / kTileSizeX, 0);
@@ -689,7 +679,7 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
     }
 
     {
-        GR_TRACE_SCOPED("RasterizeTiles", SYS_RENDERING)
+        GR_TRACE_SCOPED("RasterizeTiles");
 #pragma omp parallel for
             // Iterate through all tiles
             for (int ty = 0; ty < kNumTilesY; ++ty)
@@ -726,12 +716,11 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
                         {
                             for (U32 x = startX; x < endX; ++x)
                             {
-                                vec4f P(x, y, 0, 1);
+                                vec4f P(static_cast<float>(x), static_cast<float>(y), 0.0f, 1.0f);
 
                                 float u = CalculateTriangleArea(P, b, c) * invTotalArea;
                                 float v = CalculateTriangleArea(P, c, a) * invTotalArea;
-                                float w = 1.0 - u - v; //CalculateTriangleArea(P, a, b) * invTotalArea;
-
+                                float w = 1.0f - u - v; //CalculateTriangleArea(P, a, b) * invTotalArea;
                                 if (u < 0 || v < 0 || w < 0) {
                                     continue;
                                 }

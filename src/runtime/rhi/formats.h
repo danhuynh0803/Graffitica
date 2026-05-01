@@ -57,7 +57,7 @@ struct FORMAT_D24_UNORM_S8_UINT final : DepthFormat
     {
         GR_TRACE_START(SYS_PER_PIXEL);
         FORMAT_D24_UNORM_S8_UINT o;
-        o.depth = depth; // todo convert to int range
+        o.depth = static_cast<U32>(depth); // todo convert to int range
         o.stencil = stencil;
         return o;
     }

@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <iostream>
 
+#pragma warning(push)
+#pragma warning(disable: 4201)
+
 template <typename T>
 class vec3
 {
@@ -202,4 +205,4 @@ inline vec3<T> normalize(vec3<T> v) {
     return v / v.length();
 }
 
-
+#pragma warning(pop)

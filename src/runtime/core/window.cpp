@@ -120,7 +120,7 @@ void Window::OnUpdate()
     m_GraphicsContext->UpdateBackBuffer(m_PresentSurface);
 
     {
-        GR_TRACE_SCOPED("SDLBlitSurface", SYS_RENDERING);
+        GR_TRACE_SCOPED("SDLBlitSurface");
         SDL_Rect rect{ .x = 0, .y = 0, .w = static_cast<int>(m_Width), .h = static_cast<int>(m_Height) };
         SDL_BlitSurface(m_PresentSurface, &rect, SDL_GetWindowSurface(m_Window), &rect);
         SDL_UpdateWindowSurface(m_Window);
@@ -138,8 +138,6 @@ gr::rhi::ImageFormat Window::GetSurfaceFormat() const
             "Missing SDL_PixelFormat->gr::ImageFormat conversion: " + m_PresentSurface->format
         );
     }
-
-    return gr::rhi::ImageFormat::UNDEFINED;
 }
 
 void Window::SetEventCallback(const EventCallbackFn& callback)

@@ -41,7 +41,7 @@ void Application::Run()
     while (m_IsRunning)
     {
         // TODO profiler keep track of frame iterations
-        GR_TRACE_SCOPED("Frame", SYS_GAME);
+        GR_TRACE_SCOPED("Frame");
 
         time.Update();
         m_Window->PollEvents();
