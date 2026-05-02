@@ -67,6 +67,8 @@ namespace
     ComPtr<ID3D12Resource> presentBuffers[3];
     ComPtr<ID3D12Resource> vertexBuffer;
     D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
+    ComPtr<ID3D12Resource> indexBuffer;
+    D3D12_INDEX_BUFFER_VIEW indexBufferView;
 
     struct Vertex
     {
@@ -158,9 +160,15 @@ EditorLayer::EditorLayer(const std::string& name)
         // Define geometry for a triangle.
         Vertex triangleVertices[] =
         {
-            { { 0.0f, 0.25f, 0.0f}, { 1.0f, 0.0f, 0.0f, 1.0f } }, // { 0,0,1 }, { 0,0 } },
-            { { 0.25f, -0.25f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } }, // { 0,0,1 }, { 1,0 } },
-            { { -0.25f, -0.25f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }, // { 0,0,1 }, { 0,1 } },
+            //{ { 0.0f, 0.25f, 0.0f}, { 1.0f, 0.0f, 0.0f, 1.0f } }, // { 0,0,1 }, { 0,0 } },
+            //{ { 0.25f, -0.25f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } }, // { 0,0,1 }, { 1,0 } },
+            //{ { -0.25f, -0.25f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }, // { 0,0,1 }, { 0,1 } },
+            
+            { { -0.5f,  0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+            { {  0.5f, -0.5f, 0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+            { { -0.5f, -0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+            { {  0.5f,  0.5f, 0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f } },
+
         };
 
         const UINT vertexBufferSize = sizeof(triangleVertices);
@@ -198,13 +206,101 @@ EditorLayer::EditorLayer(const std::string& name)
             rhi::d3d12::ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
         }
     }
+
+    { // Index buffer view
+        U16 indices[] = {
+            0, 1, 2,
+            0, 3, 1,
+        };
+        
+        const UINT sizeInBytes = sizeof(indices);
+        const auto heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+        const auto buffer = CD3DX12_RESOURCE_DESC::Buffer(sizeInBytes);
+
+        device->CreateCommittedResource(
+            &heap,
+            D3D12_HEAP_FLAG_NONE,
+            &buffer,
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            nullptr,
+            IID_PPV_ARGS(&indexBuffer)
+        );
+
+         // Copy cpu memory data into our default buffer using an upload buffer
+        U8* pIndexDataBegin;
+        CD3DX12_RANGE readRange(0,0);
+        indexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pIndexDataBegin));
+        memcpy(pIndexDataBegin, indices, sizeInBytes);
+        indexBuffer->Unmap(0, nullptr);
+
+        // Initialize index buffer view
+        indexBufferView.BufferLocation = indexBuffer->GetGPUVirtualAddress();
+        indexBufferView.SizeInBytes = sizeInBytes;
+        indexBufferView.Format = DXGI_FORMAT_R16_UINT;
+
+        device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
+        fenceValue = 1;
+        fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+        if (!fenceEvent)
+        {
+            rhi::d3d12::ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
+        }
+
+    }
+
+    // SRV heap for texture
+    D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc {};
+    srvHeapDesc.NumDescriptors = 1;
+    srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    ComPtr<ID3D12DescriptorHeap> srvHeap;
+    device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&srvHeap));
+
+    //// Create texture
+    ComPtr<ID3D12Resource> texture;
+    ComPtr<ID3D12Resource> textureUploadHeap;
+    {
+        D3D12_RESOURCE_DESC textureDesc = {};
+        textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+        textureDesc.Width = 256;
+        textureDesc.Height = 256;
+        textureDesc.DepthOrArraySize = 1;
+        textureDesc.MipLevels = 1;
+        textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        textureDesc.SampleDesc.Count = 1;
+        textureDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+        textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+        auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+        rhi::d3d12::ThrowIfFailed(device->CreateCommittedResource(
+            &heapProps,
+            D3D12_HEAP_FLAG_NONE,
+            &textureDesc,
+            D3D12_RESOURCE_STATE_COPY_DEST,
+            nullptr,
+            IID_PPV_ARGS(&texture))
+        );
+
+        const U64 uploadBufferSize = GetRequiredIntermediateSize(texture.Get(), 0, 1);
+
+        // Create the GPU upload buffer.
+        auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
+        rhi::d3d12::ThrowIfFailed(device->CreateCommittedResource(
+            &heapProps,
+            D3D12_HEAP_FLAG_NONE,
+            &resourceDesc,
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            nullptr,
+            IID_PPV_ARGS(&textureUploadHeap))
+        );
+    }
 }
 
 void EditorLayer::OnUpdate(double dt)
 {
     GR_TRACE_START(SYS_GAME);
 
-    cameraController.OnUpdate(dt);
+    cameraController.OnUpdate(static_cast<float>(dt));
 
     // Recording commands
     commandAllocator->Reset();
@@ -227,12 +323,14 @@ void EditorLayer::OnUpdate(double dt)
     CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(swapchain->GetCPUDescriptorHandleForCurrentFrame());
     commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
-    const float clearColor[] = { .4, .5, .7, 1.0 };
+    const float clearColor[] = { .4f, .5f, .7f, 1.0f };
     commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
     //commandList2->ClearColor(clearColor);
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
-    commandList->DrawInstanced(3, 1, 0, 0);
+    //commandList->DrawInstanced(3, 1, 0, 0);
+    commandList->IASetIndexBuffer(&indexBufferView);
+    commandList->DrawIndexedInstanced(indexBufferView.SizeInBytes / sizeof(UINT16), 1, 0, 0, 0);
     // Transition the back buffer to be presented
     {
         auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
@@ -268,4 +366,4 @@ void EditorLayer::OnEvent(Event& event)
     cameraController.OnEvent(event);
 }
 
-};
+} // namespace gr
