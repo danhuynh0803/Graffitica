@@ -101,6 +101,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 
     d3d12
     dxgi
+    dxguid
     d3dcompiler
     Microsoft::DirectX-Headers
     Microsoft::DirectX12-Agility
