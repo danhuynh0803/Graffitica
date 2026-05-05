@@ -70,6 +70,21 @@ namespace {
 
         *ppAdapter = adapter.Detach();
     }
+
+    FeatureSupportData CheckFeatureSupport(const ComPtr<ID3D12Device>& device)
+    {
+        FeatureSupportData featureSupportData{};
+
+        D3D12_FEATURE_DATA_D3D12_OPTIONS5 options = {};
+        ThrowIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &options, sizeof(options)));
+
+        if (options.RaytracingTier >= D3D12_RAYTRACING_TIER_1_0)
+        {
+            featureSupportData.supportsRaytracing = true;
+        }
+
+        return featureSupportData;
+    }
 }
 
 D3D12GraphicsContext* D3D12GraphicsContext::CreateInstance(SDL_Window* window)
@@ -104,7 +119,10 @@ D3D12GraphicsContext::D3D12GraphicsContext(SDL_Window* window)
     // Get Hardware Adapter
     ComPtr<IDXGIAdapter1> hardwareAdapter;
     GetHardwareAdapter(factory.Get(), &hardwareAdapter);
-    ThrowIfFailed(D3D12CreateDevice(hardwareAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_Device)));
+    ThrowIfFailed(D3D12CreateDevice(hardwareAdapter.Get(), D3D_FEATURE_LEVEL_12_2, IID_PPV_ARGS(&m_Device)));
+
+    // Check feature support and cache it for later use
+    m_FeatureSupportData = CheckFeatureSupport(m_Device);
 
     // Command queue
     D3D12_COMMAND_QUEUE_DESC queueDesc = {};
