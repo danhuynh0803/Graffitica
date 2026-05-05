@@ -3,6 +3,9 @@
 #include <exception>
 #include <wrl/wrappers/corewrappers.h>
 
+// TODO rename to WindowsUtil or something more general since this is for non-d3d12 specific utilities
+// D3D12Helpers.h should be for utilities that are more specific to d3d12 like shader compilation, resource creation, etc.
+
 namespace gr::rhi::d3d12
 {
 

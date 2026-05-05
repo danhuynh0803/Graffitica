@@ -16,6 +16,7 @@
 #include "rhi/cpu/cpu_graphics_context.h"
 #include "rhi/d3d12/d3d12_graphics_context.h"
 #include "rhi/d3d12/d3d12_util.h"
+#include "rhi/d3d12/D3D12Raytracing.h"
 
 #include "renderer/camera.h"
 #include "renderer/camera_controller.h"
@@ -26,6 +27,7 @@
 
 #include "rhi/interface/command_list.h"
 #include "rhi/d3d12/d3d12_command_list.h"
+#include "rhi/d3d12/D3D12Helpers.h"
 
 #include <DirectXMath.h>
 
@@ -78,6 +80,9 @@ namespace
         vec3f normal;
         vec2f uv;
     };
+
+    ComPtr<ID3D12Resource> bottomLevelAS;
+    rhi::d3d12::AccelerationStructureBuffer topLevelASBuffer;
 }
 
 EditorLayer::EditorLayer(const std::string& name)
@@ -169,40 +174,12 @@ EditorLayer::EditorLayer(const std::string& name)
 
         };
 
-        const UINT vertexBufferSize = sizeof(triangleVertices);
-
-        const auto heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-        const auto buffer = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
-        // Create the vertex buffer resource in the GPU's default heap and copy vertex data into it using the upload heap.
-        rhi::d3d12::ThrowIfFailed(device->CreateCommittedResource(
-            //&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-            &heap,
-            D3D12_HEAP_FLAG_NONE,
-            &buffer, //&CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize),
-            D3D12_RESOURCE_STATE_GENERIC_READ,
-            nullptr,
-            IID_PPV_ARGS(&vertexBuffer))
-        );
-
-        // Copy the triangle data to the vertex buffer.
-        U8* pVertexDataBegin;
-        CD3DX12_RANGE readRange(0, 0); // We do not intend to read from this resource on the CPU.
-        rhi::d3d12::ThrowIfFailed(vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
-        memcpy(pVertexDataBegin, triangleVertices, vertexBufferSize);
-        vertexBuffer->Unmap(0, nullptr);
+        rhi::d3d12::AllocateAndMapUploadBuffer(device.Get(), triangleVertices, sizeof(triangleVertices), &vertexBuffer, L"NormalTriangle");
 
         // Initialize the vertex buffer view.
         vertexBufferView.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
         vertexBufferView.StrideInBytes = sizeof(Vertex);
-        vertexBufferView.SizeInBytes = vertexBufferSize;
-
-        gr::rhi::d3d12::ThrowIfFailed(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)));
-        fenceValue = 1;
-        fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-        if (fenceEvent == nullptr)
-        {
-            rhi::d3d12::ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
-        }
+        vertexBufferView.SizeInBytes = sizeof(triangleVertices);
     }
 
     { // Index buffer view
@@ -210,40 +187,13 @@ EditorLayer::EditorLayer(const std::string& name)
             0, 1, 2,
             0, 3, 1,
         };
-        
-        const UINT sizeInBytes = sizeof(indices);
-        const auto heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-        const auto buffer = CD3DX12_RESOURCE_DESC::Buffer(sizeInBytes);
 
-        device->CreateCommittedResource(
-            &heap,
-            D3D12_HEAP_FLAG_NONE,
-            &buffer,
-            D3D12_RESOURCE_STATE_GENERIC_READ,
-            nullptr,
-            IID_PPV_ARGS(&indexBuffer)
-        );
-
-         // Copy cpu memory data into our default buffer using an upload buffer
-        U8* pIndexDataBegin;
-        CD3DX12_RANGE readRange(0,0);
-        indexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pIndexDataBegin));
-        memcpy(pIndexDataBegin, indices, sizeInBytes);
-        indexBuffer->Unmap(0, nullptr);
+        rhi::d3d12::AllocateAndMapUploadBuffer(device.Get(), indices, sizeof(indices), &indexBuffer, L"IndexBuffer");
 
         // Initialize index buffer view
         indexBufferView.BufferLocation = indexBuffer->GetGPUVirtualAddress();
-        indexBufferView.SizeInBytes = sizeInBytes;
+        indexBufferView.SizeInBytes = sizeof(indices);
         indexBufferView.Format = DXGI_FORMAT_R16_UINT;
-
-        device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
-        fenceValue = 1;
-        fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-        if (!fenceEvent)
-        {
-            rhi::d3d12::ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
-        }
-
     }
 
     // SRV heap for texture
@@ -291,6 +241,13 @@ EditorLayer::EditorLayer(const std::string& name)
             nullptr,
             IID_PPV_ARGS(&textureUploadHeap))
         );
+    }
+
+    device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
+    fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+    if (!fenceEvent)
+    {
+        rhi::d3d12::ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
     }
 }
 
