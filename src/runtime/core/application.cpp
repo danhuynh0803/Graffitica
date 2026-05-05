@@ -98,8 +98,9 @@ bool Application::OnKeyPressed(const KeyPressedEvent& e)
     if (e.GetKeyPressed() == ScanCode::ESCAPE)
     {
         m_IsRunning = false;
+        return true;
     }
-    return true;
+    return false;
 }
 
 } // namespace gr
