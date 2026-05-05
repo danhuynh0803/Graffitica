@@ -18,14 +18,16 @@ public:
     //virtual void OnOverlayUpdate() {};
     virtual void OnEvent(Event& event) override;
 
-    bool OnWindowResize(WindowResizeEvent& e);
-    bool OnMouseMoved(MouseMovedEvent& e);
-    bool OnMouseButtonHeld(MouseButtonHeldEvent& e);
-    bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
-    bool OnMouseScrolled(MouseScrolledEvent& e);
+    //bool OnWindowResize(WindowResizeEvent& e);
+    //bool OnMouseMoved(MouseMovedEvent& e);
+    //bool OnMouseButtonHeld(MouseButtonHeldEvent& e);
+    //bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
+    //bool OnMouseScrolled(MouseScrolledEvent& e);
+    bool OnKeyPressed(KeyPressedEvent& e);
 
 private:
     std::string m_Name;
+    bool m_Raster = false;
 };
 
 

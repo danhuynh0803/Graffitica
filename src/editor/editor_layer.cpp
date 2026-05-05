@@ -321,14 +321,22 @@ void EditorLayer::OnUpdate(double dt)
     CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(swapchain->GetCPUDescriptorHandleForCurrentFrame());
     commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
-    const float clearColor[] = { .4f, .5f, .7f, 1.0f };
-    commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-    //commandList2->ClearColor(clearColor);
-    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
-    //commandList->DrawInstanced(3, 1, 0, 0);
-    commandList->IASetIndexBuffer(&indexBufferView);
-    commandList->DrawIndexedInstanced(indexBufferView.SizeInBytes / sizeof(UINT16), 1, 0, 0, 0);
+    if (m_Raster)
+    {
+        const float clearColor[] = { .4f, .5f, .7f, 1.0f };
+        commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+        //commandList2->ClearColor(clearColor);
+        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+        //commandList->DrawInstanced(3, 1, 0, 0);
+        commandList->IASetIndexBuffer(&indexBufferView);
+        commandList->DrawIndexedInstanced(indexBufferView.SizeInBytes / sizeof(UINT16), 1, 0, 0, 0);
+    }
+    else // RT
+    {
+        const float clearColor[] = { 0.6f, 0.8f, 0.4f, 1.0f };
+        commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+    }
     // Transition the back buffer to be presented
     {
         auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
@@ -358,10 +366,25 @@ void EditorLayer::OnUpdate(double dt)
     }
 }
 
-void EditorLayer::OnEvent(Event& event)
+void EditorLayer::OnEvent(Event& e)
 {
     GR_TRACE_START(SYS_IO);
-    cameraController.OnEvent(event);
+    cameraController.OnEvent(e);
+
+    EventDispatcher disp(e);
+    disp.Dispatch<KeyPressedEvent>(std::bind(&EditorLayer::OnKeyPressed, this, std::placeholders::_1));
+
+}
+
+bool EditorLayer::OnKeyPressed(KeyPressedEvent& e)
+{
+    GR_TRACE_START(SYS_IO);
+    // Handle input state events here
+    if (e.GetKeyPressed() == KEY_SPACE) {
+        m_Raster = !m_Raster;
+    }
+
+    return false;
 }
 
 } // namespace gr
