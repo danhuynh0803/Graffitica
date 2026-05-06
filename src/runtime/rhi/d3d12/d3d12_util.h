@@ -1,6 +1,7 @@
 #pragma once
 
 #include <exception>
+#include <stdexcept>
 #include <wrl/wrappers/corewrappers.h>
 
 // TODO rename to WindowsUtil or something more general since this is for non-d3d12 specific utilities

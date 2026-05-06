@@ -56,13 +56,10 @@ namespace
 
     ComPtr<ID3D12CommandAllocator> commandAllocator;
     ComPtr<ID3D12CommandQueue> commandQueue;
-    ComPtr<ID3D12Fence> fence;
     ComPtr<ID3D12PipelineState> pipelineState;
     ComPtr<ID3D12GraphicsCommandList> commandList;
     rhi::d3d12::D3D12CommandList* commandList2;
     ComPtr<ID3D12DescriptorHeap> rtvHeap;
-    HANDLE fenceEvent;
-    U64 fenceValue;
 
     ComPtr<ID3D12RootSignature> rootSignature;
 
@@ -71,6 +68,8 @@ namespace
     D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
     ComPtr<ID3D12Resource> indexBuffer;
     D3D12_INDEX_BUFFER_VIEW indexBufferView;
+    
+    rhi::d3d12::D3D12FenceObject fenceObject{};
 
     struct Vertex
     {
@@ -82,7 +81,7 @@ namespace
     };
 
     ComPtr<ID3D12Resource> bottomLevelAS;
-    rhi::d3d12::AccelerationStructureBuffer topLevelASBuffer;
+    ComPtr<ID3D12Resource> topLevelAS;
 }
 
 EditorLayer::EditorLayer(const std::string& name)
@@ -113,6 +112,15 @@ EditorLayer::EditorLayer(const std::string& name)
     rhi::d3d12::ThrowIfFailed(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)));
     rhi::d3d12::ThrowIfFailed(commandList->Close());
    
+    // Create fence sync object
+    device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fenceObject.pFence));
+    fenceObject.fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+    if (!fenceObject.fenceEvent)
+    {
+        rhi::d3d12::ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
+    }
+
+
     rtvHeap = gfxContext->GetRTVDescriptorHeap();
 
     // empty root signature since we are not binding any resources for this test
@@ -162,18 +170,23 @@ EditorLayer::EditorLayer(const std::string& name)
         rhi::d3d12::ThrowIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
     }
 
+    // Define geometry for a triangle.
+    Vertex triangleVertices[] =
+    {
+        { { -0.5f,  0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
+        { {  0.5f, -0.5f, 0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f } },
+        { { -0.5f, -0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f } },
+        { {  0.5f,  0.5f, 0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f } },
+
+    };
+
+    U16 indices[] = {
+        0, 1, 2,
+        0, 3, 1,
+    };
+
     // Create Vertex buffer
     {
-        // Define geometry for a triangle.
-        Vertex triangleVertices[] =
-        {
-            { { -0.5f,  0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
-            { {  0.5f, -0.5f, 0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f } },
-            { { -0.5f, -0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f } },
-            { {  0.5f,  0.5f, 0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f } },
-
-        };
-
         rhi::d3d12::AllocateAndMapUploadBuffer(device.Get(), triangleVertices, sizeof(triangleVertices), &vertexBuffer, L"NormalTriangle");
 
         // Initialize the vertex buffer view.
@@ -183,11 +196,6 @@ EditorLayer::EditorLayer(const std::string& name)
     }
 
     { // Index buffer view
-        U16 indices[] = {
-            0, 1, 2,
-            0, 3, 1,
-        };
-
         rhi::d3d12::AllocateAndMapUploadBuffer(device.Get(), indices, sizeof(indices), &indexBuffer, L"IndexBuffer");
 
         // Initialize index buffer view
@@ -196,6 +204,11 @@ EditorLayer::EditorLayer(const std::string& name)
         indexBufferView.Format = DXGI_FORMAT_R16_UINT;
     }
 
+    bottomLevelAS = rhi::d3d12::CreateBLAS(fenceObject,
+        vertexBuffer.Get(), sizeof(triangleVertices) / sizeof(Vertex), sizeof(Vertex),
+        indexBuffer.Get(), sizeof(indices), L"TriangleBLAS");
+
+    
     // SRV heap for texture
     D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc {};
     srvHeapDesc.NumDescriptors = 1;
@@ -241,13 +254,6 @@ EditorLayer::EditorLayer(const std::string& name)
             nullptr,
             IID_PPV_ARGS(&textureUploadHeap))
         );
-    }
-
-    device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
-    fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-    if (!fenceEvent)
-    {
-        rhi::d3d12::ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
     }
 }
 
@@ -311,9 +317,11 @@ void EditorLayer::OnUpdate(double dt)
     swapchain->Present();
 
     // Wait for the GPU to finish rendering the frame
-    const UINT64 currentFenceValue = fenceValue;
+    auto& fence = fenceObject.pFence;
+    auto& fenceEvent = fenceObject.fenceEvent;
+    const UINT64 currentFenceValue = fenceObject.fenceValue;
     rhi::d3d12::ThrowIfFailed(commandQueue->Signal(fence.Get(), currentFenceValue));
-    fenceValue++;
+    fenceObject.fenceValue++;
 
     // Wait until the previous frame is finished
     if (fence->GetCompletedValue() < currentFenceValue)
