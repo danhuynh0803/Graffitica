@@ -44,7 +44,7 @@ void RayGeneration()
 
     TraceRay(
         inSceneAS,
-        0x00, //RAY_FLAG_NONE, // TODO cant find this identifier?
+        RAY_FLAG_NONE,
         0xFF,   // InstanceOcclusionMask
         0,      // RayContributionToHitGroupIndex
         0,      // MultiplierForGeometryContributionToHitGroupIndex
