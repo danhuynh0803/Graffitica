@@ -8,8 +8,8 @@ namespace gr::rhi::d3d12
 namespace {
 
 ID3D12Resource* CreateAccelerationStructureBuffer(
-    const D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& inputs,
     D3D12FenceObject& fenceObject,
+    const D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& inputs,
     U64* updateScratchSize = nullptr)
 {
     GR_TRACE_START(SYS_RENDERING);
@@ -65,9 +65,9 @@ ID3D12Resource* CreateAccelerationStructureBuffer(
 }
 
 ID3D12Resource* CreateBLAS(
-    D3D12FenceObject fenceObject,
+    D3D12FenceObject& fenceObject,
     ID3D12Resource* vertexBuffer, U32 vertexCount, U32 vertexStrideInBytes,
-    ID3D12Resource* indexBuffer, U32 indexCount,
+    ID3D12Resource* indexBuffer, U32 indexSizeInBytes,
     const WCHAR* debugName)
 {
     D3D12_RAYTRACING_GEOMETRY_DESC desc{
@@ -77,7 +77,7 @@ ID3D12Resource* CreateBLAS(
             .Transform3x4 = 0,
             .IndexFormat = indexBuffer ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_UNKNOWN,
             .VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT,
-            .IndexCount = indexCount,
+            .IndexCount = indexSizeInBytes,
             .VertexCount = vertexCount,
             .IndexBuffer = indexBuffer ? indexBuffer->GetGPUVirtualAddress() : 0,
             .VertexBuffer = {
@@ -95,7 +95,22 @@ ID3D12Resource* CreateBLAS(
         .pGeometryDescs = &desc
     };
 
-    auto* resource = CreateAccelerationStructureBuffer(inputs, fenceObject, nullptr);
+    auto* resource = CreateAccelerationStructureBuffer(fenceObject, inputs, nullptr);
+    resource->SetName(debugName);
+    return resource;
+}
+
+ID3D12Resource* CreateTLAS(D3D12FenceObject& fenceObject, ID3D12Resource* instances, U32 numInstances, U64* updateScratchSize, const WCHAR* debugName)
+{
+    D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs = {
+        .Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL,
+        .Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_ALLOW_UPDATE,
+        .NumDescs = numInstances,
+        .DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY,
+        .InstanceDescs = instances->GetGPUVirtualAddress()
+    };
+
+    auto* resource = CreateAccelerationStructureBuffer(fenceObject, inputs, updateScratchSize);
     resource->SetName(debugName);
     return resource;
 }

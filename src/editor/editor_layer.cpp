@@ -57,6 +57,8 @@ namespace
     ComPtr<ID3D12CommandAllocator> commandAllocator;
     ComPtr<ID3D12CommandQueue> commandQueue;
     ComPtr<ID3D12PipelineState> pipelineState;
+    ComPtr<ID3D12StateObject> rtPipelineState;
+    ComPtr<ID3D12RootSignature> rtRootSignature;
     ComPtr<ID3D12GraphicsCommandList> commandList;
     rhi::d3d12::D3D12CommandList* commandList2;
     ComPtr<ID3D12DescriptorHeap> rtvHeap;
@@ -80,8 +82,73 @@ namespace
         vec2f uv;
     };
 
+    // RT-specific data
     ComPtr<ID3D12Resource> bottomLevelAS;
     ComPtr<ID3D12Resource> topLevelAS;
+    ComPtr<ID3D12Resource> topLevelASScratch;
+
+    constexpr U32 NUM_INSTANCES = 1;
+    ComPtr<ID3D12Resource> instances;
+    D3D12_RAYTRACING_INSTANCE_DESC* instanceData;
+
+    void UpdateTransforms()
+    {
+        using namespace DirectX;
+
+        auto* ptr =  reinterpret_cast<XMFLOAT3X4*>(&instanceData->Transform);
+        // Test with identity first
+        XMMATRIX identity{};
+        XMStoreFloat3x4(ptr, identity);
+    }
+
+    void InitRootSignature()
+    {
+        D3D12_DESCRIPTOR_RANGE uavRange = {
+            .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
+            .NumDescriptors = 1,
+        };
+
+        D3D12_ROOT_PARAMETER params[] = {
+            {
+                .ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE,
+                .DescriptorTable = {.NumDescriptorRanges = 1,
+                                    .pDescriptorRanges = &uavRange},
+            },
+            {
+                .ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV,
+                .Descriptor = { .ShaderRegister = 0, .RegisterSpace = 0 }
+            }
+        };
+
+        D3D12_ROOT_SIGNATURE_DESC desc = { .NumParameters = std::size(params),
+                                           .pParameters = params };
+
+        ID3DBlob* blob{};
+        D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1_0, &blob, nullptr);
+        
+        auto device = rhi::d3d12::D3D12GraphicsContext::GetInstance()->GetDevice();
+        device->CreateRootSignature(0, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+
+        blob->Release();
+    }
+
+    void InitPipeline()
+    {
+        D3D12_DXIL_LIBRARY_DESC lib = {
+          //.DXILLibrary = {.pShaderBytecode = compiledShader,
+          //                .BytecodeLength = std::size(compiledShader)} };
+        };
+        D3D12_HIT_GROUP_DESC hitGroup = { .HitGroupExport = L"HitGroup",
+                                     .Type = D3D12_HIT_GROUP_TYPE_TRIANGLES,
+                                     .ClosestHitShaderImport = L"ClosestHit" };
+
+        D3D12_RAYTRACING_SHADER_CONFIG shaderCfg = {
+            .MaxPayloadSizeInBytes = 20,
+            .MaxAttributeSizeInBytes = 8,
+        };
+
+
+    }
 }
 
 EditorLayer::EditorLayer(const std::string& name)
@@ -119,7 +186,6 @@ EditorLayer::EditorLayer(const std::string& name)
     {
         rhi::d3d12::ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
     }
-
 
     rtvHeap = gfxContext->GetRTVDescriptorHeap();
 
@@ -208,7 +274,34 @@ EditorLayer::EditorLayer(const std::string& name)
         vertexBuffer.Get(), sizeof(triangleVertices) / sizeof(Vertex), sizeof(Vertex),
         indexBuffer.Get(), sizeof(indices), L"TriangleBLAS");
 
-    
+    auto instancesDesc = rhi::d3d12::BASIC_BUFFER_DESC;
+    instancesDesc.Width = sizeof(D3D12_RAYTRACING_INSTANCE_DESC);
+    device->CreateCommittedResource(
+        &rhi::d3d12::UPLOAD_HEAP, D3D12_HEAP_FLAG_NONE,
+        &instancesDesc, D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&instances)
+    );
+    // Keep this resource persistently mapped since we'll update it per frame
+    instances->Map(0, nullptr, reinterpret_cast<void**>(&instanceData));
+    for (U32 i = 0; i < NUM_INSTANCES; ++i)
+    {
+        *instanceData = {
+            .InstanceID = i,
+            .InstanceMask = 1,
+            .AccelerationStructure = bottomLevelAS->GetGPUVirtualAddress()
+        };
+    }
+
+    UpdateTransforms();
+    U64 updateScratchSize;
+    topLevelAS = rhi::d3d12::CreateTLAS(fenceObject, instances.Get(), NUM_INSTANCES, &updateScratchSize);
+
+    auto desc = rhi::d3d12::BASIC_BUFFER_DESC;
+    desc.Width = std::max(updateScratchSize, 8ULL);
+    desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+    device->CreateCommittedResource(&rhi::d3d12::DEFAULT_HEAP, D3D12_HEAP_FLAG_NONE, &desc,
+                                    D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&topLevelASScratch));
+
+
     // SRV heap for texture
     D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc {};
     srvHeapDesc.NumDescriptors = 1;

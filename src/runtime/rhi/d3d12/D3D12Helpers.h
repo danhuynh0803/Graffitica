@@ -16,6 +16,19 @@ constexpr D3D12_HEAP_PROPERTIES UPLOAD_HEAP = { .Type = D3D12_HEAP_TYPE_UPLOAD }
 constexpr D3D12_HEAP_PROPERTIES DEFAULT_HEAP = { .Type = D3D12_HEAP_TYPE_DEFAULT };
 constexpr D3D12_HEAP_PROPERTIES READBACK_HEAP = { .Type = D3D12_HEAP_TYPE_READBACK };
 
+constexpr D3D12_RESOURCE_DESC BASIC_BUFFER_DESC = {
+    .Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
+    .Width = 0,
+    .Height = 1,
+    .DepthOrArraySize = 1,
+    .MipLevels = 1,
+    .SampleDesc = {
+        .Count = 1,
+        .Quality = 0
+    },
+    .Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR
+};
+
 inline ID3D12Resource* CreateBufferResource(U64 size, D3D12_RESOURCE_FLAGS flags, D3D12_RESOURCE_STATES initialState, D3D12_HEAP_TYPE heapType, const WCHAR* debugName = L"NONAME")
 {
     GR_TRACE_START(SYS_RENDERING);
