@@ -83,6 +83,7 @@
 #file(GLOB_RECURSE HLSL_SHADERS "src/shaders/*.hlsl")
 
 set(HLSL_SHADERS triangle.hlsl)
+set(HLSL_SHADERS_LIB triangle.hlsl rt.hlsl)
 
 # Output directory for compiled shaders
 set(SHADER_OUTPUT_DIR ${CMAKE_BINARY_DIR}/Shaders)
@@ -131,6 +132,31 @@ foreach(FILE ${HLSL_SHADERS})
         VERBATIM
     )
 endforeach()
+
+# Creating dxil-lib for RT shaders
+foreach(FILE ${HLSL_SHADERS_LIB})
+    get_filename_component(FILE_WE ${FILE} NAME_WE)
+    set(SHADER_BIN ${SHADER_OUTPUT_DIR}/${FILE_WE}.cso)
+    list(APPEND COMPILED_SHADERS ${SHADER_BIN})
+    add_custom_command(
+        OUTPUT ${SHADER_BIN}
+        COMMAND dxc.exe
+            /T lib_6_3
+            /Fo ${SHADER_BIN}
+            # generate compiled header as well
+            # easy way to statically verify if shader was compiled
+            # name_bytecode var wouldnt exist
+            /Fh ${SHADER_OUTPUT_DIR}/${FILE_WE}.fxh
+            /Vn ${FILE_WE}_bytecode
+            ${CMAKE_CURRENT_SOURCE_DIR}/${FILE}
+        DEPENDS ${FILE}
+        COMMENT "Compiling HLSL shader ${FILE}"
+        VERBATIM
+    )
+
+endforeach()
+
+
 
 # Custom target that builds all shaders
 add_custom_target(CompileShaders ALL
