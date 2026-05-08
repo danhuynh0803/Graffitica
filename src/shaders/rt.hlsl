@@ -66,7 +66,5 @@ void Miss(inout Payload payload)
 void ClosestHit(inout Payload payload, BuiltInTriangleIntersectionAttributes attribs)
 {
     float2 uv = attribs.barycentrics;
-
-    //payload.color = float3(uv, 1.0);
-    payload.color = float3(1.0, 0.0, 1.0);
+    payload.color = float3(uv, 1.0);
 }

@@ -98,7 +98,7 @@ namespace
 
         auto* ptr =  reinterpret_cast<XMFLOAT3X4*>(&instanceData->Transform);
         // Test with identity first
-        XMMATRIX identity{};
+        XMMATRIX identity = XMMatrixIdentity();
         XMStoreFloat3x4(ptr, identity);
     }
 
@@ -349,10 +349,10 @@ EditorLayer::EditorLayer(const std::string& name)
 
     bottomLevelAS = rhi::d3d12::CreateBLAS(fenceObject,
         vertexBuffer.Get(), sizeof(triangleVertices) / sizeof(Vertex), sizeof(Vertex),
-        indexBuffer.Get(), sizeof(indices), L"TriangleBLAS");
+        indexBuffer.Get(), std::size(indices), L"TriangleBLAS");
 
     auto instancesDesc = rhi::d3d12::BASIC_BUFFER_DESC;
-    instancesDesc.Width = sizeof(D3D12_RAYTRACING_INSTANCE_DESC);
+    instancesDesc.Width = sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * NUM_INSTANCES;
     device->CreateCommittedResource(
         &rhi::d3d12::UPLOAD_HEAP, D3D12_HEAP_FLAG_NONE,
         &instancesDesc, D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&instances)
@@ -370,7 +370,7 @@ EditorLayer::EditorLayer(const std::string& name)
 
     UpdateTransforms();
     U64 updateScratchSize;
-    topLevelAS = rhi::d3d12::CreateTLAS(fenceObject, instances.Get(), NUM_INSTANCES, &updateScratchSize);
+    topLevelAS = rhi::d3d12::CreateTLAS(fenceObject, instances.Get(), NUM_INSTANCES, &updateScratchSize, L"TriangleTLAS");
 
     auto desc = rhi::d3d12::BASIC_BUFFER_DESC;
     desc.Width = std::max(updateScratchSize, 8ULL);

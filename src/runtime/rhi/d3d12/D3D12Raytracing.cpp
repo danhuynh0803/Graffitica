@@ -36,11 +36,13 @@ ID3D12Resource* CreateAccelerationStructureBuffer(
 
     // TODO: inefficient but generate a new commandlist to build AS for simplicity for now
     ComPtr<ID3D12GraphicsCommandList10> commandList;
+
     ThrowIfFailed(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)));
+    commandList->Close();
 
     D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_DESC postBuildInfoDesc{};
     commandList->Reset(commandAllocator.Get(), nullptr);
-    commandList->BuildRaytracingAccelerationStructure(&asDesc, 1, &postBuildInfoDesc);
+    commandList->BuildRaytracingAccelerationStructure(&asDesc, 0, nullptr);
 
     // TODO log postBuildInfo for statistics and debugging
     {
