@@ -20,6 +20,9 @@ public:
                    ComPtr<ID3D12CommandQueue> commandQueue,
                    const SwapchainProperties& props);
     ~D3D12Swapchain() = default;
+
+    IDXGISwapChain3* GetRawSwapchain() const { return m_RawSwapchain.Get(); }
+
     ImageFormat GetSurfaceFormat() const;
 
     void UpdateBackBuffer(SDL_Surface* surfaceToUpdate);

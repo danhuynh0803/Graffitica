@@ -1,21 +1,20 @@
-#include "shared/rt_payload.h"
+//#include "shared/rt_payload.h"
 
-//struct Payload
-//{
-//    float3 color;
-//    bool isSpecular;
-//    bool isMissed;
-//};
+struct Payload
+{
+    float3 color;
+    bool isSpecular;
+    bool isMissed;
+};
 
 // Store AS as an SRV
 RaytracingAccelerationStructure inSceneAS : register(t0);
-
 RWTexture2D<float4> outUAV : register(u0);
 
 // TODO pass CBV for camera and environment info
 // hardcode to get working
-const float3 cameraOrigin = float3(0,0,1);
-const float3 background = float3(0.24, 0.44, 0.72);
+static const float3 cameraOrigin = float3(0,0,1);
+static const float3 background = float3(0.24, 0.44, 0.72);
 
 [shader("raygeneration")]
 void RayGeneration()
@@ -68,5 +67,6 @@ void ClosestHit(inout Payload payload, BuiltInTriangleIntersectionAttributes att
 {
     float2 uv = attribs.barycentrics;
 
-    payload.color = float3(uv, 1.0);
+    //payload.color = float3(uv, 1.0);
+    payload.color = float3(1.0, 0.0, 1.0);
 }
