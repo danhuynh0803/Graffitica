@@ -47,8 +47,6 @@ namespace
         //.m_MeshData = std::make_shared<Mesh>("../assets/models/xyzrgb_dragon.obj"),
     };
 
-    RasterizerState drawState;
-
     gr::Camera camera({ 0,0,1 }, { 0,0,0 });
     std::vector<rhi::Framebuffer> presentFrameBuffers;
 
@@ -69,7 +67,7 @@ namespace
     D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
     ComPtr<ID3D12Resource> indexBuffer;
     D3D12_INDEX_BUFFER_VIEW indexBufferView;
-    
+
     rhi::d3d12::D3D12FenceObject fenceObject{};
 
     struct Vertex
@@ -257,16 +255,6 @@ EditorLayer::EditorLayer(const std::string& name)
         rhi::d3d12::ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
     }
 
-    // empty root signature since we are not binding any resources for this test
-    {
-        D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
-        rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
-        ComPtr<ID3DBlob> signature;
-        ComPtr<ID3DBlob> error;
-        rhi::d3d12::ThrowIfFailed(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
-        rhi::d3d12::ThrowIfFailed(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)));
-    }
-
     // generate the pipeline state
     {
         UINT8* pVertexShaderBytecode = nullptr;
@@ -287,21 +275,21 @@ EditorLayer::EditorLayer(const std::string& name)
             { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, offsetof(Vertex, uv), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
         };
 
-        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-        psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
-        psoDesc.pRootSignature = rootSignature.Get();
-        psoDesc.VS = { pVertexShaderBytecode, vertexShaderSize };
-        psoDesc.PS = { pPixelShaderBytecode, pixelShaderSize };
-        psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-        psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-        psoDesc.DepthStencilState.DepthEnable = FALSE;
-        psoDesc.DepthStencilState.StencilEnable = FALSE;
-        psoDesc.SampleMask = UINT_MAX;
-        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-        psoDesc.NumRenderTargets = 1;
-        psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;//swapchain->GetBackBufferFormat();
-        psoDesc.SampleDesc.Count = 1;
-        rhi::d3d12::ThrowIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
+        //D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+        //psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
+        //psoDesc.pRootSignature = rootSignature.Get();
+        //psoDesc.VS = { pVertexShaderBytecode, vertexShaderSize };
+        //psoDesc.PS = { pPixelShaderBytecode, pixelShaderSize };
+        //psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+        //psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+        //psoDesc.DepthStencilState.DepthEnable = FALSE;
+        //psoDesc.DepthStencilState.StencilEnable = FALSE;
+        //psoDesc.SampleMask = UINT_MAX;
+        //psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        //psoDesc.NumRenderTargets = 1;
+        //psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;//swapchain->GetBackBufferFormat();
+        //psoDesc.SampleDesc.Count = 1;
+        //rhi::d3d12::ThrowIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
     }
 
     // Define geometry for a triangle.
@@ -525,19 +513,6 @@ void EditorLayer::OnUpdate(double dt)
     }
     CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(swapchain->GetCPUDescriptorHandleForCurrentFrame());
 
-    if (m_Raster)
-    {
-        commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
-        const float clearColor[] = { .4f, .5f, .7f, 1.0f };
-        commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-        //commandList2->ClearColor(clearColor);
-        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
-        //commandList->DrawInstanced(3, 1, 0, 0);
-        commandList->IASetIndexBuffer(&indexBufferView);
-        commandList->DrawIndexedInstanced(indexBufferView.SizeInBytes / sizeof(UINT16), 1, 0, 0, 0);
-    }
-    else // RT
     {
         const float clearColor[] = { 0.6f, 0.8f, 0.4f, 1.0f };
         commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
@@ -645,7 +620,7 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e)
     GR_TRACE_START(SYS_IO);
     // Handle input state events here
     if (e.GetKeyPressed() == KEY_SPACE) {
-        m_Raster = !m_Raster;
+
     }
 
     return false;
