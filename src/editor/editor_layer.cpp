@@ -92,14 +92,20 @@ namespace
     ComPtr<ID3D12Resource> instances;
     D3D12_RAYTRACING_INSTANCE_DESC* instanceData;
 
-    void UpdateTransforms()
+    void UpdateTransforms(double dt)
     {
         using namespace DirectX;
-
         auto* ptr =  reinterpret_cast<XMFLOAT3X4*>(&instanceData->Transform);
-        // Test with identity first
-        XMMATRIX identity = XMMatrixIdentity();
-        XMStoreFloat3x4(ptr, identity);
+        if (dt == 0) {
+            XMMATRIX identity = XMMatrixIdentity();
+            XMStoreFloat3x4(ptr, identity);
+            return;
+        }
+        
+        static float time = 0;
+        time += dt;
+        auto rot = XMMatrixRotationRollPitchYaw(0., time/3, 0.);
+        XMStoreFloat3x4(ptr, rot);
     }
 
     void InitRootSignature()
@@ -211,9 +217,9 @@ namespace
         props->Release();
     }
 
-    void UpdateScene()
+    void UpdateScene(double dt)
     {
-        UpdateTransforms();
+        UpdateTransforms(dt);
 
         D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC desc = {
         .DestAccelerationStructureData = topLevelAS->GetGPUVirtualAddress(),
@@ -234,21 +240,6 @@ EditorLayer::EditorLayer(const std::string& name)
     : m_Name(name), Layer("Editor", gr::LayerFlags::DEFAULT)
 {
     GR_TRACE_START(SYS_GAME);
-
-    // TODO - wrap into a random utility system later
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<float> dis(0.0f, 1.0f);
-
-    // gen random triangle colors to visualize
-    for (int i = 0; i < 1000; ++i)
-        model.m_VertexColors.emplace_back(dis(gen), dis(gen), dis(gen), 1.);
-
-    drawState = {
-        .fillMode = FILL_MODE::FILL_MODE_SOLID,
-        .cullMode = CULL_MODE::CULL_MODE_BACK,
-        .frontCounterClockwise = true,
-    };
 
     gfxContext = rhi::d3d12::D3D12GraphicsContext::GetInstance();
     auto device = gfxContext->GetDevice();
@@ -314,42 +305,88 @@ EditorLayer::EditorLayer(const std::string& name)
     }
 
     // Define geometry for a triangle.
-    Vertex triangleVertices[] =
+    Vertex cubeVertices[] =
     {
-        { { -0.5f,  0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
-        { {  0.5f, -0.5f, 0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f } },
-        { { -0.5f, -0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f } },
-        { {  0.5f,  0.5f, 0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f } },
+        // +Z (front)
+        { { -0.5f,  0.5f,  0.5f }, {1,0,0,1}, { 0, 0, 1 }, {0,0} },
+        { {  0.5f,  0.5f,  0.5f }, {0,1,0,1}, { 0, 0, 1 }, {1,0} },
+        { {  0.5f, -0.5f,  0.5f }, {0,0,1,1}, { 0, 0, 1 }, {1,1} },
+        { { -0.5f, -0.5f,  0.5f }, {1,0,1,1}, { 0, 0, 1 }, {0,1} },
 
+        // -Z (back)
+        { {  0.5f,  0.5f, -0.5f }, {1,0,0,1}, { 0, 0,-1 }, {0,0} },
+        { { -0.5f,  0.5f, -0.5f }, {0,1,0,1}, { 0, 0,-1 }, {1,0} },
+        { { -0.5f, -0.5f, -0.5f }, {0,0,1,1}, { 0, 0,-1 }, {1,1} },
+        { {  0.5f, -0.5f, -0.5f }, {1,0,1,1}, { 0, 0,-1 }, {0,1} },
+
+        // +X (right)
+        { { 0.5f,  0.5f,  0.5f }, {1,0,0,1}, { 1, 0, 0 }, {0,0} },
+        { { 0.5f,  0.5f, -0.5f }, {0,1,0,1}, { 1, 0, 0 }, {1,0} },
+        { { 0.5f, -0.5f, -0.5f }, {0,0,1,1}, { 1, 0, 0 }, {1,1} },
+        { { 0.5f, -0.5f,  0.5f }, {1,0,1,1}, { 1, 0, 0 }, {0,1} },
+
+        // -X (left)
+        { { -0.5f,  0.5f, -0.5f }, {1,0,0,1}, { -1, 0, 0 }, {0,0} },
+        { { -0.5f,  0.5f,  0.5f }, {0,1,0,1}, { -1, 0, 0 }, {1,0} },
+        { { -0.5f, -0.5f,  0.5f }, {0,0,1,1}, { -1, 0, 0 }, {1,1} },
+        { { -0.5f, -0.5f, -0.5f }, {1,0,1,1}, { -1, 0, 0 }, {0,1} },
+
+        // +Y (top)
+        { { -0.5f, 0.5f, -0.5f }, {1,0,0,1}, { 0, 1, 0 }, {0,0} },
+        { {  0.5f, 0.5f, -0.5f }, {0,1,0,1}, { 0, 1, 0 }, {1,0} },
+        { {  0.5f, 0.5f,  0.5f }, {0,0,1,1}, { 0, 1, 0 }, {1,1} },
+        { { -0.5f, 0.5f,  0.5f }, {1,0,1,1}, { 0, 1, 0 }, {0,1} },
+
+        // -Y (bottom)
+        { { -0.5f,-0.5f,  0.5f }, {1,0,0,1}, { 0,-1, 0 }, {0,0} },
+        { {  0.5f,-0.5f,  0.5f }, {0,1,0,1}, { 0,-1, 0 }, {1,0} },
+        { {  0.5f,-0.5f, -0.5f }, {0,0,1,1}, { 0,-1, 0 }, {1,1} },
+        { { -0.5f,-0.5f, -0.5f }, {1,0,1,1}, { 0,-1, 0 }, {0,1} },
     };
 
-    U16 indices[] = {
-        0, 1, 2,
-        0, 3, 1,
+    U16 cubeIndices[] =
+    {
+        // +Z
+        0, 1, 2,   0, 2, 3,
+
+        // -Z
+        4, 5, 6,   4, 6, 7,
+
+        // +X
+        8, 9,10,   8,10,11,
+
+        // -X
+        12,13,14,  12,14,15,
+
+        // +Y
+        16,17,18,  16,18,19,
+
+        // -Y
+        20,21,22,  20,22,23
     };
 
     // Create Vertex buffer
     {
-        rhi::d3d12::AllocateAndMapUploadBuffer(device.Get(), triangleVertices, sizeof(triangleVertices), &vertexBuffer, L"NormalTriangle");
+        rhi::d3d12::AllocateAndMapUploadBuffer(device.Get(), cubeVertices, sizeof(cubeVertices), &vertexBuffer, L"NormalTriangle");
 
         // Initialize the vertex buffer view.
         vertexBufferView.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
         vertexBufferView.StrideInBytes = sizeof(Vertex);
-        vertexBufferView.SizeInBytes = sizeof(triangleVertices);
+        vertexBufferView.SizeInBytes = sizeof(cubeVertices);
     }
 
     { // Index buffer view
-        rhi::d3d12::AllocateAndMapUploadBuffer(device.Get(), indices, sizeof(indices), &indexBuffer, L"IndexBuffer");
+        rhi::d3d12::AllocateAndMapUploadBuffer(device.Get(), cubeIndices, sizeof(cubeIndices), &indexBuffer, L"IndexBuffer");
 
         // Initialize index buffer view
         indexBufferView.BufferLocation = indexBuffer->GetGPUVirtualAddress();
-        indexBufferView.SizeInBytes = sizeof(indices);
+        indexBufferView.SizeInBytes = sizeof(cubeIndices);
         indexBufferView.Format = DXGI_FORMAT_R16_UINT;
     }
 
     bottomLevelAS = rhi::d3d12::CreateBLAS(fenceObject,
-        vertexBuffer.Get(), sizeof(triangleVertices) / sizeof(Vertex), sizeof(Vertex),
-        indexBuffer.Get(), std::size(indices), L"TriangleBLAS");
+        vertexBuffer.Get(), sizeof(cubeVertices) / sizeof(Vertex), sizeof(Vertex),
+        indexBuffer.Get(), std::size(cubeIndices), L"TriangleBLAS");
 
     auto instancesDesc = rhi::d3d12::BASIC_BUFFER_DESC;
     instancesDesc.Width = sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * NUM_INSTANCES;
@@ -368,7 +405,7 @@ EditorLayer::EditorLayer(const std::string& name)
         };
     }
 
-    UpdateTransforms();
+    UpdateTransforms(0);
     U64 updateScratchSize;
     topLevelAS = rhi::d3d12::CreateTLAS(fenceObject, instances.Get(), NUM_INSTANCES, &updateScratchSize, L"TriangleTLAS");
 
@@ -504,7 +541,7 @@ void EditorLayer::OnUpdate(double dt)
     {
         const float clearColor[] = { 0.6f, 0.8f, 0.4f, 1.0f };
         commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-        UpdateScene(); // Update TLAS on GPU
+        UpdateScene(dt); // Update TLAS on GPU
         commandList->SetPipelineState1(rtPipelineState.Get());
         commandList->SetComputeRootSignature(rtRootSignature.Get());
         commandList->SetDescriptorHeaps(1, &rtUAVHeap);
