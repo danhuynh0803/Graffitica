@@ -23,6 +23,8 @@ CommandList CreateCommandList_CPU()
 
 void SetVertexBuffers_CPU(CommandList& cmdList, U32 numViews, BufferHandle views[])
 {
+    CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdList.pNativeCmdList);
+
     GR_TRACE_START(SYS_RENDERING);
     std::cout << "CPU SetVertexBuffers called with numViews: " << numViews << std::endl;
 }

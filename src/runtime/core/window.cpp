@@ -8,9 +8,13 @@
 namespace gr
 {
 
-gr::rhi::IGraphicsContext* CreateRHI(RHI_BACKEND rhi, SDL_Window* window)
+// TODO rhi backend should be initialized by renderer
+// For testing function table dispatch
+gr::rhi::IGraphicsContext* CreateRHI(RHI_BACKEND backend, SDL_Window* window)
 {
-    switch (rhi)
+    rhi::InitRHI(backend);
+
+    switch (backend)
     {
     case RHI_BACKEND::D3D12:
         return rhi::IGraphicsContext::Create<rhi::d3d12::D3D12GraphicsContext>(window);
@@ -22,6 +26,8 @@ gr::rhi::IGraphicsContext* CreateRHI(RHI_BACKEND rhi, SDL_Window* window)
     default:
         throw std::runtime_error("Unsupported RHI selected");
     }
+
+
 }
 
 // For platform-specific windows if needed later
