@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include "core/window.h"
+#include "rhi/interface/rhi.h"
 #include "rhi/cpu/cpu_graphics_context.h"
 #include "rhi/d3d12/d3d12_graphics_context.h"
 #include "core/event.h"
@@ -7,14 +8,20 @@
 namespace gr
 {
 
-gr::rhi::IGraphicsContext* CreateRHI(const std::string& rhiName, SDL_Window* window)
+gr::rhi::IGraphicsContext* CreateRHI(RHI_BACKEND rhi, SDL_Window* window)
 {
-    if (rhiName == "cpu")
-        return rhi::IGraphicsContext::Create<rhi::CPUGraphicsContext>(window);
-    else if (rhiName == "dx12")
+    switch (rhi)
+    {
+    case RHI_BACKEND::D3D12:
         return rhi::IGraphicsContext::Create<rhi::d3d12::D3D12GraphicsContext>(window);
-    else
-        throw std::runtime_error("Unsupported RHI: " + rhiName);
+    case RHI_BACKEND::VULKAN:
+        // TODO
+        break;
+    case RHI_BACKEND::CPU:
+        return rhi::IGraphicsContext::Create<rhi::CPUGraphicsContext>(window);
+    default:
+        throw std::runtime_error("Unsupported RHI selected");
+    }
 }
 
 // For platform-specific windows if needed later
@@ -33,10 +40,7 @@ Window::Window(const WindowProperties& props)
                                 SDL_WINDOW_RESIZABLE);
 
     // TODO generate an engine.config file and read in cli arg flags
-    // TODO convert string to enum type later
-    const std::string rhiName = "dx12";
-    //const std::string rhiName = "cpu";
-    m_GraphicsContext = CreateRHI(rhiName, m_Window);
+    m_GraphicsContext = CreateRHI(RHI_BACKEND::CPU, m_Window);
 }
 
 Window::~Window()

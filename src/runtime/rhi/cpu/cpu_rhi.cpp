@@ -27,13 +27,20 @@ void SetVertexBuffers_CPU(CommandList& cmdList, U32 numViews, BufferHandle views
     std::cout << "CPU SetVertexBuffers called with numViews: " << numViews << std::endl;
 }
 
-void DrawIndexedInstanced_CPU(CommandList&, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
+void DrawIndexedInstanced_CPU(CommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
 {
+    GR_TRACE_START(SYS_RENDERING);
     std::cout << "CPU DrawIndexedInstanced called with indexCount: " << indexCount << ", instanceCount: " << instanceCount
               << ", startIndexLocation: " << startIndexLocation << ", baseVertexLocation: " << baseVertexLocation
         << ", startInstanceLocation: " << startInstanceLocation << std::endl;
-    GR_TRACE_START(SYS_RENDERING);
 }
+
+void DispatchRays_CPU(CommandList& cmdlist, U32 width, U32 height, U32 depth)
+{
+    GR_TRACE_START(SYS_RENDERING);
+    std::cout << "DispatchRays_CPU\n";
+}
+
 
 // TODO find a static way to verify function table is populated and order matches?
 RHIFunctionTable CPUTable = {
@@ -41,6 +48,7 @@ RHIFunctionTable CPUTable = {
     CreateCommandList_CPU,
     SetVertexBuffers_CPU,
     DrawIndexedInstanced_CPU,
+    DispatchRays_CPU,
 };
 
 } // namespace gr::rhi::cpu

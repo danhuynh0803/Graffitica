@@ -6,11 +6,11 @@
 #include "rhi/interface/command_list.h"
 #include "developer/profiler/profiler.h"
 
-enum class RHI_BACKEND
+enum class RHI_BACKEND : uint8_t
 {
-    D3D12,
-    VULKAN,
-    CPU
+    D3D12   = 0,
+    VULKAN  = 1,
+    CPU     = 2,
 };
 
 namespace gr::rhi
@@ -46,6 +46,8 @@ struct RHIFunctionTable
     //void (*ClearColor)(CommandList&, const ImageView& view, const vec4f& clearColor);
     //void (*ClearDepth)(CommandList&, const ImageView& view, float clearDepth);
     void (*DrawIndexedInstanced)(CommandList&, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation);
+
+    void (*DispatchRays)(CommandList&, U32 width, U32 height, U32 depth);
 };
 extern RHIFunctionTable* g_RHI;
 
@@ -72,6 +74,12 @@ inline void DrawIndexedInstanced(CommandList& cmdList, U32 indexCount, U32 insta
 {
     GR_TRACE_START(SYS_RENDERING);
     g_RHI->DrawIndexedInstanced(cmdList, indexCount, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
+}
+
+inline void DispatchRays(CommandList& cmdList, U32 width, U32 height, U32 depth)
+{
+    GR_TRACE_START(SYS_RENDERING);
+    g_RHI->DispatchRays(cmdList, width, height, depth);
 }
 
 void InitRHI(RHI_BACKEND backend);

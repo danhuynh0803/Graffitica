@@ -91,8 +91,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 
 
-find_package(directx-headers CONFIG REQUIRED)
-find_package(directx12-agility CONFIG REQUIRED)
+#find_package(directx-headers CONFIG REQUIRED)
+#find_package(directx12-agility CONFIG REQUIRED)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     SDL3::SDL3
@@ -104,7 +104,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     dxguid
     d3dcompiler
     Microsoft::DirectX-Headers
-    Microsoft::DirectX12-Agility
+    #Microsoft::DirectX12-Agility
 
     Tracy::TracyClient
 )
