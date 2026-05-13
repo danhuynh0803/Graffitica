@@ -119,7 +119,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     dxguid
     d3dcompiler
     Microsoft::DirectX-Headers
-    Microsoft::DirectX12-Agility
+    #Microsoft::DirectX12-Agility
 
     Tracy::TracyClient
 )

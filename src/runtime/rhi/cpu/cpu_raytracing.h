@@ -1,7 +1,10 @@
 #pragma once
 
+#include "util/math/vector.h"
+
 namespace gr::rhi::cpu
 {
+
 
 // Base payload struct for testing
 struct Payload

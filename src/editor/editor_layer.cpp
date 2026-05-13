@@ -309,62 +309,7 @@ void EditorLayer::OnUpdate(double dt)
 
     cameraController.OnUpdate(static_cast<float>(dt));
 
-    // Recording commands
-    commandAllocator->Reset();
 
-    // Reset command list to prepare for recording commands
-    commandList->Reset(commandAllocator.Get(), pipelineState.Get());
-
-    D3D12_VIEWPORT viewport(.0f, 0.f, static_cast<float>(swapchain->GetWidth()), static_cast<float>(swapchain->GetHeight()), 0.f, 1.f);
-    commandList->SetGraphicsRootSignature(rootSignature.Get());
-    commandList->RSSetViewports(1, &viewport);
-    CD3DX12_RECT rect(0, 0, LONG_MAX, LONG_MAX);
-    commandList->RSSetScissorRects(1, &rect);
-    // Transition the back buffer to be used as a render target
-    {
-        auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            swapchain->GetCurrentBackBuffer().Get(),
-            D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-        commandList->ResourceBarrier(1, &barrier);
-    }
-    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(swapchain->GetCPUDescriptorHandleForCurrentFrame());
-    commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
-
-    const float clearColor[] = { .4f, .5f, .7f, 1.0f };
-    commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-    //commandList2->ClearColor(clearColor);
-    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
-    //commandList->DrawInstanced(3, 1, 0, 0);
-    commandList->IASetIndexBuffer(&indexBufferView);
-    commandList->DrawIndexedInstanced(indexBufferView.SizeInBytes / sizeof(UINT16), 1, 0, 0, 0);
-    // Transition the back buffer to be presented
-    {
-        auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            swapchain->GetCurrentBackBuffer().Get(),
-            D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-        commandList->ResourceBarrier(1, &barrier);
-    }
-    commandList->Close();
-
-    // Execute the command list
-    ID3D12CommandList* ppCommandLists[] = { commandList.Get() };
-    commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-
-    // Present the frame
-    swapchain->Present();
-
-    // Wait for the GPU to finish rendering the frame
-    const UINT64 currentFenceValue = fenceValue;
-    rhi::d3d12::ThrowIfFailed(commandQueue->Signal(fence.Get(), currentFenceValue));
-    fenceValue++;
-
-    // Wait until the previous frame is finished
-    if (fence->GetCompletedValue() < currentFenceValue)
-    {
-        fence->SetEventOnCompletion(currentFenceValue, fenceEvent);
-        WaitForSingleObject(fenceEvent, INFINITE);
-    }
 }
 
 void EditorLayer::OnEvent(Event& event)
