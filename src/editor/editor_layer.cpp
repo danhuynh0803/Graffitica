@@ -26,6 +26,7 @@
 
 #include "rhi/interface/command_list.h"
 #include "rhi/d3d12/d3d12_command_list.h"
+#include "rhi/interface/rhi.h"
 
 #include <DirectXMath.h>
 
@@ -35,10 +36,10 @@ namespace gr
 namespace
 {
     // DH TODO rhi abstraction - for testing purposes, we can switch between cpu and gpu contexts here
-    //rhi::CPUGraphicsContext* gfxContext = nullptr;
-    //rhi::CPUSwapchain* swapchain = nullptr;
-    rhi::d3d12::D3D12GraphicsContext* gfxContext = nullptr;
-    rhi::d3d12::D3D12Swapchain* swapchain = nullptr;
+    rhi::CPUGraphicsContext* gfxContext = nullptr;
+    rhi::CPUSwapchain* swapchain = nullptr;
+    //rhi::d3d12::D3D12GraphicsContext* gfxContext = nullptr;
+    //rhi::d3d12::D3D12Swapchain* swapchain = nullptr;
 
     Buffer model{
         .m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
@@ -52,6 +53,8 @@ namespace
 
     CameraController cameraController(&camera);
 
+    gr::rhi::CommandList gCmdlist;
+
 }
 
 EditorLayer::EditorLayer(const std::string& name)
@@ -64,6 +67,7 @@ EditorLayer::EditorLayer(const std::string& name)
     std::mt19937 gen(rd());
     std::uniform_real_distribution<float> dis(0.0f, 1.0f);
 
+    gCmdlist = gr::rhi::CreateCommandList();
 }
 
 void EditorLayer::OnUpdate(double dt)
