@@ -12,16 +12,16 @@ BufferHandle CreateBuffer_CPU(const BufferDesc& desc)
     return BufferHandle();
 }
 
-CommandList CreateCommandList_CPU()
+RHICommandList CreateCommandList_CPU()
 {
     GR_TRACE_START(SYS_RENDERING);
     std::cout << "CPU CreateCommandList called" << std::endl;
-    CommandList cmdList;
+    RHICommandList cmdList;
     cmdList.pNativeCmdList = new CPUCommandList();
     return cmdList;
 }
 
-void SetVertexBuffers_CPU(CommandList& cmdList, U32 numViews, BufferHandle views[])
+void SetVertexBuffers_CPU(RHICommandList& cmdList, U32 numViews, BufferHandle views[])
 {
     CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdList.pNativeCmdList);
 
@@ -29,7 +29,7 @@ void SetVertexBuffers_CPU(CommandList& cmdList, U32 numViews, BufferHandle views
     std::cout << "CPU SetVertexBuffers called with numViews: " << numViews << std::endl;
 }
 
-void DrawIndexedInstanced_CPU(CommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
+void DrawIndexedInstanced_CPU(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
 {
     GR_TRACE_START(SYS_RENDERING);
     std::cout << "CPU DrawIndexedInstanced called with indexCount: " << indexCount << ", instanceCount: " << instanceCount
@@ -37,7 +37,7 @@ void DrawIndexedInstanced_CPU(CommandList& cmdlist, U32 indexCount, U32 instance
         << ", startInstanceLocation: " << startInstanceLocation << std::endl;
 }
 
-void DispatchRays_CPU(CommandList& cmdlist, U32 width, U32 height, U32 depth)
+void DispatchRays_CPU(RHICommandList& cmdlist, U32 width, U32 height, U32 depth)
 {
     GR_TRACE_START(SYS_RENDERING);
     std::cout << "DispatchRays_CPU\n";

@@ -4,7 +4,9 @@
 #include "core/types.h"
 #include "rhi/formats.h"
 #include "rhi/interface/command_list.h"
+#include "rhi/resource.h"
 #include "developer/profiler/profiler.h"
+#include "util/math/vector.h"
 
 enum class RHI_BACKEND : uint8_t
 {
@@ -36,18 +38,16 @@ struct RHIFunctionTable
 {
     // Resource creation
     BufferHandle (*CreateBuffer)(const BufferDesc&);
-    CommandList(*CreateCommandList)();
+    RHICommandList (*CreateCommandList)();
 
     // Binding cmds
-    void (*SetVertexBuffers)(CommandList&, U32 numViews, BufferHandle[]);
+    void (*SetVertexBuffers)(RHICommandList&, U32 numViews, BufferHandle[]);
 
     // Draw cmds
     // TODO refactor imageview for RHI
-    //void (*ClearColor)(CommandList&, const ImageView& view, const vec4f& clearColor);
-    //void (*ClearDepth)(CommandList&, const ImageView& view, float clearDepth);
-    void (*DrawIndexedInstanced)(CommandList&, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation);
+    void (*DrawIndexedInstanced)(RHICommandList&, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation);
 
-    void (*DispatchRays)(CommandList&, U32 width, U32 height, U32 depth);
+    void (*DispatchRays)(RHICommandList&, U32 width, U32 height, U32 depth);
 };
 extern RHIFunctionTable* g_RHI;
 
@@ -58,25 +58,25 @@ inline BufferHandle CreateBuffer(const BufferDesc& desc)
     return g_RHI->CreateBuffer(desc);
 }
 
-inline CommandList CreateCommandList()
+inline RHICommandList CreateCommandList()
 {
     GR_TRACE_START(SYS_RENDERING);
     return g_RHI->CreateCommandList();
 }
 
-inline void SetVertexBuffers(CommandList& cmdList, U32 numViews, BufferHandle views[])
+inline void SetVertexBuffers(RHICommandList& cmdList, U32 numViews, BufferHandle views[])
 {
     GR_TRACE_START(SYS_RENDERING);
     g_RHI->SetVertexBuffers(cmdList, numViews, views);
 }
 
-inline void DrawIndexedInstanced(CommandList& cmdList, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
+inline void DrawIndexedInstanced(RHICommandList& cmdList, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
 {
     GR_TRACE_START(SYS_RENDERING);
     g_RHI->DrawIndexedInstanced(cmdList, indexCount, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
 }
 
-inline void DispatchRays(CommandList& cmdList, U32 width, U32 height, U32 depth)
+inline void DispatchRays(RHICommandList& cmdList, U32 width, U32 height, U32 depth)
 {
     GR_TRACE_START(SYS_RENDERING);
     g_RHI->DispatchRays(cmdList, width, height, depth);

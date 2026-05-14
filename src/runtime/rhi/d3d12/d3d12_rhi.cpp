@@ -11,17 +11,17 @@ BufferHandle CreateBuffer_D3D12(const BufferDesc& desc)
     return BufferHandle();
 }
 
-CommandList CreateCommandList_D3D12()
+RHICommandList CreateCommandList_D3D12()
 {
     std::cout << "D3D12 CreateCommandList called" << std::endl;
-    CommandList cmdList;
+    RHICommandList cmdList;
 
     //rhi::d3d12::ThrowIfFailed(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)));
 
     return cmdList;
 }
 
-void SetVertexBuffers_D3D12(CommandList& cmdList, U32 numViews, BufferHandle views[])
+void SetVertexBuffers_D3D12(RHICommandList& cmdList, U32 numViews, BufferHandle views[])
 {
     std::cout << "D3D12 SetVertexBuffers called with numViews: " << numViews << std::endl;
     for (U32 i = 0; i < numViews; ++i)
@@ -30,7 +30,7 @@ void SetVertexBuffers_D3D12(CommandList& cmdList, U32 numViews, BufferHandle vie
     }
 }
 
-void DrawIndexedInstanced_D3D12(CommandList& cmdList, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
+void DrawIndexedInstanced_D3D12(RHICommandList& cmdList, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
 {
     // TODO
     //cmdList.m_RawCommandList->DrawIndexedInstanced(indexCount, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);

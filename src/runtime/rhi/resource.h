@@ -73,6 +73,18 @@ private:
 
 struct BaseImageView {};
 
+struct RHIImageView
+{
+    U32 width, height;
+    void* data;
+};
+
+struct CPUImageView : public RHIImageView
+{
+
+};
+
+
 template <typename FORMAT>
 struct ImageView : BaseImageView
 {

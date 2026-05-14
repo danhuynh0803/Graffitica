@@ -38,8 +38,8 @@ namespace gr
 namespace
 {
     // DH TODO rhi abstraction - for testing purposes, we can switch between cpu and gpu contexts here
-    rhi::CPUGraphicsContext* gfxContext = nullptr;
-    rhi::CPUSwapchain* swapchain = nullptr;
+    rhi::CPUGraphicsContext* pGfxContext = nullptr;
+    rhi::CPUSwapchain* pSwapchain = nullptr;
     //rhi::d3d12::D3D12GraphicsContext* gfxContext = nullptr;
     //rhi::d3d12::D3D12Swapchain* swapchain = nullptr;
 
@@ -48,30 +48,14 @@ namespace
         //.m_MeshData = std::make_shared<Mesh>("../assets/models/xyzrgb_dragon.obj"),
     };
 
-    RasterizerState drawState;
+    gr::Camera gCamera({ 0,0,1 }, { 0,0,0 });
+    std::vector<rhi::Framebuffer> gPresentFrameBuffers;
 
-    gr::Camera camera({ 0,0,1 }, { 0,0,0 });
-    std::vector<rhi::Framebuffer> presentFrameBuffers;
+    CameraController gCameraController(&gCamera);
 
     CameraController cameraController(&camera);
 
-    ComPtr<ID3D12CommandAllocator> commandAllocator;
-    ComPtr<ID3D12CommandQueue> commandQueue;
-    ComPtr<ID3D12Fence> fence;
-    ComPtr<ID3D12PipelineState> pipelineState;
-    ComPtr<ID3D12GraphicsCommandList> commandList;
-    rhi::d3d12::D3D12CommandList* commandList2;
-    ComPtr<ID3D12DescriptorHeap> rtvHeap;
-    HANDLE fenceEvent;
-    U64 fenceValue;
-
-    ComPtr<ID3D12RootSignature> rootSignature;
-
-    ComPtr<ID3D12Resource> presentBuffers[3];
-    ComPtr<ID3D12Resource> vertexBuffer;
-    D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
-    ComPtr<ID3D12Resource> indexBuffer;
-    D3D12_INDEX_BUFFER_VIEW indexBufferView;
+    gr::rhi::RHICommandList gCmdlist;
 
     struct Vertex
     {
@@ -96,6 +80,8 @@ EditorLayer::EditorLayer(const std::string& name)
     std::mt19937 gen(rd());
     std::uniform_real_distribution<float> dis(0.0f, 1.0f);
 
+    pGfxContext = rhi::CPUGraphicsContext::GetInstance();
+    pSwapchain = pGfxContext->GetSwapchain();
     gCmdlist = gr::rhi::CreateCommandList();
 }
 
@@ -103,15 +89,15 @@ void EditorLayer::OnUpdate(double dt)
 {
     GR_TRACE_START(SYS_GAME);
 
-    cameraController.OnUpdate(static_cast<float>(dt));
-
+    gCameraController.OnUpdate(static_cast<float>(dt));
+    
 
 }
 
 void EditorLayer::OnEvent(Event& event)
 {
     GR_TRACE_START(SYS_IO);
-    cameraController.OnEvent(event);
+    gCameraController.OnEvent(event);
 }
 
 } // namespace gr
