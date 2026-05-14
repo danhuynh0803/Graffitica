@@ -2,8 +2,8 @@
 
 #include <cstdint>
 #include "core/types.h"
-#include "rhi/formats.h"
 #include "rhi/interface/command_list.h"
+#include "rhi/formats.h"
 #include "rhi/resource.h"
 #include "developer/profiler/profiler.h"
 #include "util/math/vector.h"
@@ -34,6 +34,45 @@ struct TextureDesc
     ImageFormat format;
 };
 
+class RHITextureResource {};
+
+class CPUTextureResource : RHITextureResource
+{
+public:
+    CPUTextureResource() = delete;
+
+    CPUTextureResource(const TextureDesc& desc)
+    : m_Width(desc.width), m_Height(desc.height), m_Format(desc.format), m_Data(nullptr)
+    {
+        switch (desc.format)
+        {
+        default:
+            throw("undefined");
+            break;
+        case ImageFormat::R8G8B8A8_UNORM:
+            FORMAT_R8G8B8A8_UNORM* alloc = new FORMAT_R8G8B8A8_UNORM[desc.width * desc.height];
+            m_Data = static_cast<void*>(alloc);
+            break;
+        }
+    }
+
+    ~CPUTextureResource()
+    {
+        // TODO issue when std::vector gets resized
+        if (m_Data)
+            delete m_Data;
+    }
+
+    U32 GetWidth() const { return m_Width; }
+    U32 GetHeight() const { return m_Height; }
+
+//private:
+    U32 m_Width, m_Height;
+    ImageFormat m_Format;
+    void* m_Data;
+};
+
+
 struct RHIFunctionTable
 {
     // Resource creation
@@ -41,13 +80,14 @@ struct RHIFunctionTable
     RHICommandList (*CreateCommandList)();
 
     // Binding cmds
-    void (*SetVertexBuffers)(RHICommandList&, U32 numViews, BufferHandle[]);
+    void (*SetVertexBuffers)(RHICommandList& cmdlist, U32 numViews, BufferHandle[]);
 
     // Draw cmds
     // TODO refactor imageview for RHI
-    void (*DrawIndexedInstanced)(RHICommandList&, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation);
+    void (*ClearColor)(RHICommandList& cmdlist, RHITextureResource& resource, const vec4f& color);
+    void (*DrawIndexedInstanced)(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation);
 
-    void (*DispatchRays)(RHICommandList&, U32 width, U32 height, U32 depth);
+    void (*DispatchRays)(RHICommandList& cmdlist, U32 width, U32 height, U32 depth);
 };
 extern RHIFunctionTable* g_RHI;
 
@@ -64,22 +104,28 @@ inline RHICommandList CreateCommandList()
     return g_RHI->CreateCommandList();
 }
 
-inline void SetVertexBuffers(RHICommandList& cmdList, U32 numViews, BufferHandle views[])
+inline void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])
 {
     GR_TRACE_START(SYS_RENDERING);
-    g_RHI->SetVertexBuffers(cmdList, numViews, views);
+    g_RHI->SetVertexBuffers(cmdlist, numViews, views);
 }
 
-inline void DrawIndexedInstanced(RHICommandList& cmdList, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
+inline void ClearColor(RHICommandList& cmdlist, RHITextureResource& resource, const vec4f& color)
 {
     GR_TRACE_START(SYS_RENDERING);
-    g_RHI->DrawIndexedInstanced(cmdList, indexCount, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
+    g_RHI->ClearColor(cmdlist, resource, color);
 }
 
-inline void DispatchRays(RHICommandList& cmdList, U32 width, U32 height, U32 depth)
+inline void DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
 {
     GR_TRACE_START(SYS_RENDERING);
-    g_RHI->DispatchRays(cmdList, width, height, depth);
+    g_RHI->DrawIndexedInstanced(cmdlist, indexCount, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
+}
+
+inline void DispatchRays(RHICommandList& cmdlist, U32 width, U32 height, U32 depth)
+{
+    GR_TRACE_START(SYS_RENDERING);
+    g_RHI->DispatchRays(cmdlist, width, height, depth);
 }
 
 void InitRHI(RHI_BACKEND backend);

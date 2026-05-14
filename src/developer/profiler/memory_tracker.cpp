@@ -5,7 +5,7 @@
 void* operator new(size_t size)
 {
     GR_TRACE_START(SYS_MEMORY);
-    void* p = malloc(size);
+    void* p = std::malloc(size);
     MemoryTracker::TrackAlloc(p, size);
     return p;
 }
@@ -14,6 +14,6 @@ void operator delete(void* ptr) noexcept
 {
     GR_TRACE_START(SYS_MEMORY);
     MemoryTracker::TrackFreed(ptr);
-    free(ptr);
+    std::free(ptr);
 }
 #endif
