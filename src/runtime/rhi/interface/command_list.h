@@ -1,13 +1,31 @@
 #pragma once
 
-#include "rhi/resource.h"
+#include "util/math/vector.h"
 
 namespace gr::rhi
 {
 
+class RHITextureResource;
+
 // Function table version to replace static template class for switching backend at runtime
-struct RHICommandList
+class RHICommandList
 {
+public:
+    //void ClearColor(ImageView<FORMAT>& view, const vec4f& clearColor)
+    //{
+    //    static_cast<TRHI*>(this)->ClearColorImpl(view, clearColor);
+    //}
+    //
+    //void ClearDepth(ImageView<FORMAT>& view, float clearDepth)
+    //{
+    //    static_cast<TRHI*>(this)->ClearDepthImpl(view, clearDepth);
+    //}
+    //
+    //void DrawIndexed()
+    //{
+    //
+    //}
+
     // contains the real backend commandlist/commandbuffer object,
     // e.g. ID3D12GraphicsCommandList for D3D12, VkCommandBuffer for Vulkan, or a custom CPU command list implementation
     void* pNativeCmdList;
@@ -15,24 +33,26 @@ struct RHICommandList
 
 // Old command list interface - remove later
 template <typename RHI>
-struct ICommandList
+class ICommandList
 {
-    template <typename FORMAT>
-    void ClearColor(ImageView<FORMAT>& view, const vec4f& clearColor)
-    {
-        static_cast<RHI*>(this)->ClearColorImpl(view, clearColor);
-    }
+    void ClearColorImpl(RHITextureResource& view, const vec4f& clearColor);
 
-    template <typename FORMAT>
-    void ClearDepth(ImageView<FORMAT>& view, float clearDepth)
-    {
-        static_cast<RHI*>(this)->ClearDepthImpl(view, clearDepth);
-    }
-
-    void DrawIndexed()
-    {
-
-    }
+    //template <typename FORMAT>
+    //void ClearColor(ImageView<FORMAT>& view, const vec4f& clearColor)
+    //{
+    //    static_cast<RHI*>(this)->ClearColorImpl(view, clearColor);
+    //}
+    //
+    //template <typename FORMAT>
+    //void ClearDepth(ImageView<FORMAT>& view, float clearDepth)
+    //{
+    //    static_cast<RHI*>(this)->ClearDepthImpl(view, clearDepth);
+    //}
+    //
+    //void DrawIndexed()
+    //{
+    //
+    //}
 };
 
 }

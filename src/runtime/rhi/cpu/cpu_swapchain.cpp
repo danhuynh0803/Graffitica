@@ -44,13 +44,12 @@ CPUSwapchain::CPUSwapchain(const SwapchainProperties& props)
 
     m_PresentSurface = SDL_CreateSurface(width, height, ImageFormatToSDL(props.format));
 
+    // TODO Allocation resize destructions issue so reserve size upfront
+    // need to investigate later
+    m_PresentResources.reserve(imageCount);
     for (int i = 0; i < imageCount; ++i)
     {
-        m_PresentImages.emplace_back(width, height);
-        // Imageview interface requiring image param needs to be cleaned U
-        // maybe have Image generate ImageViews per some helper?
-        const auto& justInsertedImage = m_PresentImages.at(i);
-        m_PresentImageViews.emplace_back(justInsertedImage);
+        m_PresentResources.emplace_back(TextureDesc{width, height, m_SwapchainFormat});
     }
 }
 
@@ -58,14 +57,10 @@ void CPUSwapchain::UpdateBackBuffer(SDL_Surface* surfaceToUpdate)
 {
     GR_TRACE_START(SYS_RENDERING);
 
-    const auto& currBackBufferImageView = m_PresentImageViews.at(m_CurrentFrameIndex);
+    const auto& currBackBufferImageView = m_PresentResources.at(m_CurrentFrameIndex);
     m_CurrentFrameIndex = (m_CurrentFrameIndex + 1) % m_ImageCount;
 
-    // Memcpy here was for handling conversions between different formats and layouts of the imageview and SDL surface
-    // However, if swapchain format matches provided view then we should avoid the copy
-    //GR_TRACE_SCOPED("SDLMemcpy", SYS_RENDERING);
-    //std::memcpy(surfaceToUpdate->pixels, currBackBufferImageView.data, m_Width * m_Height * sizeof(FORMAT_R8G8B8A8_UNORM));
-    surfaceToUpdate->pixels = currBackBufferImageView.data;
+    surfaceToUpdate->pixels = currBackBufferImageView.m_Data;
 }
 
 }

@@ -79,12 +79,6 @@ struct RHIImageView
     void* data;
 };
 
-struct CPUImageView : public RHIImageView
-{
-
-};
-
-
 template <typename FORMAT>
 struct ImageView : BaseImageView
 {

@@ -1,7 +1,9 @@
 #pragma once
-#include <directx/d3dx12.h>
 #include "rhi/interface/command_list.h"
-#include <wrl/client.h>
+#include "rhi/interface/framebuffer.h"
+#include "rhi/rasterizer_state.h"
+#include "rhi/shader.h"
+#include "rhi/interface/rhi.h"
 
 namespace gr::rhi::cpu
 {
@@ -9,19 +11,24 @@ namespace gr::rhi::cpu
 class CPUCommandList final : public ICommandList<CPUCommandList>
 {
 public:
-    template <typename FORMAT>
-    inline void ClearColorImpl(ImageView<FORMAT>& view, const vec4f& clearColor);
-    template <typename FORMAT>
-    inline void ClearDepthImpl(ImageView<FORMAT>& view, float clearDepth);
+    void ClearColorImpl(CPUTextureResource& view, const vec4f& clearColor);
+    
+    //template <typename FORMAT>
+    //inline void ClearDepthImpl(ImageView<FORMAT>& view, float clearDepth);
 
-    void DrawIndexedInstancedImpl();
+    //void DrawIndexedInstancedImpl();
 
     //void DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset);
 
     //void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset);
 
 private:
-    Microsoft::WRL::ComPtr<ID3D12CommandList> m_RawCommandList;
+    Framebuffer* framebuffer;
+    // TODO encapsulate into a CPUPipeline struct?
+    RasterizerState* rasterizerState;
+    //gr::rhi::TestShader* shaderModule;
+    gr::rhi::ShaderModule* shaderModule;
+    mat44 mvp;
 };
 
 }

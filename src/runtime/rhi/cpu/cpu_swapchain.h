@@ -5,6 +5,7 @@
 #include "rhi/interface/swapchain.h"
 #include "rhi/resource.h"
 #include "rhi/formats.h"
+#include "rhi/interface/rhi.h"
 
 namespace gr::rhi
 {
@@ -23,15 +24,23 @@ public:
     U32 GetCurrentBackBufferIndex() const { return m_CurrentFrameIndex; }
     U32 GetImageCount() const { return m_ImageCount; }
 
-    template <typename TFormat>
-    ImageView<TFormat>* GetCurrentFrameImageView() {
-        return &m_PresentImageViews.at(m_CurrentFrameIndex);
+    CPUTextureResource& GetCurrentFrameResource() {
+        return m_PresentResources.at(m_CurrentFrameIndex);
     }
 
-    template <typename TFormat>
-    ImageView<TFormat>* GetFrameImageView(int i) {
-        return &m_PresentImageViews.at(i);
+    CPUTextureResource& GetFrameResource(int i) {
+        return m_PresentResources.at(i);
     }
+
+    //template <typename TFormat>
+    //ImageView<TFormat>* GetCurrentFrameImageView() {
+    //    return &m_PresentImageViews.at(m_CurrentFrameIndex);
+    //}
+    //
+    //template <typename TFormat>
+    //ImageView<TFormat>* GetFrameImageView(int i) {
+    //    return &m_PresentImageViews.at(i);
+    //}
 
 private:
     U32 m_Width, m_Height;
@@ -39,8 +48,10 @@ private:
     U32 m_CurrentFrameIndex;
     ImageFormat m_SwapchainFormat;
     //ImageView<R8G8B8A8_UNORM> m_BackBuffer;
-    std::vector<Image<FORMAT_R8G8B8A8_UNORM>> m_PresentImages;
-    std::vector<ImageView<FORMAT_R8G8B8A8_UNORM>> m_PresentImageViews;
+    //std::vector<Image<FORMAT_R8G8B8A8_UNORM>> m_PresentImages;
+    //std::vector<ImageView<FORMAT_R8G8B8A8_UNORM>> m_PresentImageViews;
+    std::vector<CPUTextureResource> m_PresentResources;
+
     SDL_Surface* m_PresentSurface;
 };
 

@@ -30,6 +30,13 @@ void SetVertexBuffers_D3D12(RHICommandList& cmdList, U32 numViews, BufferHandle 
     }
 }
 
+void ClearColor_D3D12(RHICommandList& cmdlist, RHITextureResource& resource, const vec4f& color)
+{
+    //CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
+
+    //pCmdlist->ClearColorImpl()
+}
+
 void DrawIndexedInstanced_D3D12(RHICommandList& cmdList, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
 {
     // TODO
@@ -41,6 +48,7 @@ RHIFunctionTable D3D12Table =
     CreateBuffer_D3D12,
     CreateCommandList_D3D12,
     SetVertexBuffers_D3D12,
+    ClearColor_D3D12,
     DrawIndexedInstanced_D3D12
 };
 

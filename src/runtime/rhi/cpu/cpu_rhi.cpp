@@ -21,12 +21,18 @@ RHICommandList CreateCommandList_CPU()
     return cmdList;
 }
 
-void SetVertexBuffers_CPU(RHICommandList& cmdList, U32 numViews, BufferHandle views[])
+void SetVertexBuffers_CPU(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])
 {
-    CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdList.pNativeCmdList);
+    CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
 
     GR_TRACE_START(SYS_RENDERING);
     std::cout << "CPU SetVertexBuffers called with numViews: " << numViews << std::endl;
+}
+
+void ClearColor_CPU(RHICommandList& cmdlist, RHITextureResource& resource, const vec4f& color)
+{
+    CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
+    //pCmdlist->ClearColorImpl()
 }
 
 void DrawIndexedInstanced_CPU(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
@@ -49,6 +55,7 @@ RHIFunctionTable CPUTable = {
     CreateBuffer_CPU,
     CreateCommandList_CPU,
     SetVertexBuffers_CPU,
+    ClearColor_CPU,
     DrawIndexedInstanced_CPU,
     DispatchRays_CPU,
 };

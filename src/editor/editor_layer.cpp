@@ -52,6 +52,7 @@ namespace
     CameraController gCameraController(&gCamera);
 
     gr::rhi::RHICommandList gCmdlist;
+    //gr::rhi::CPUTextureResource gBackbufferResource;
 
 }
 
@@ -76,7 +77,6 @@ void EditorLayer::OnUpdate(double dt)
 
     gCameraController.OnUpdate(static_cast<float>(dt));
     
-
 }
 
 void EditorLayer::OnEvent(Event& event)
