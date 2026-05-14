@@ -25,10 +25,10 @@ public:
 namespace gr::rhi::cpu
 {
     BufferHandle CreateBuffer_CPU(const BufferDesc& desc);
-    CommandList CreateCommandList_CPU();
-    void SetVertexBuffers_CPU(CommandList& cmdList, U32 numViews, BufferHandle views[]);
-    void DrawIndexedInstanced_CPU(CommandList&, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation);
-    void DispatchRays_CPU(CommandList&, U32 width, U32 height, U32 depth);
+    RHICommandList CreateCommandList_CPU();
+    void SetVertexBuffers_CPU(RHICommandList& cmdList, U32 numViews, BufferHandle views[]);
+    void DrawIndexedInstanced_CPU(RHICommandList&, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation);
+    void DispatchRays_CPU(RHICommandList&, U32 width, U32 height, U32 depth);
 
     extern RHIFunctionTable CPUTable;
 
