@@ -5,16 +5,15 @@
 #include "rhi/shader.h"
 #include "rhi/interface/rhi.h"
 
-namespace gr::rhi::cpu
+namespace gr::rhi
 {
 
 class CPUCommandList final : public ICommandList<CPUCommandList>
 {
 public:
     void ClearColorImpl(RHITextureResource& view, const vec4f& clearColor);
-    
-    //template <typename FORMAT>
-    //inline void ClearDepthImpl(ImageView<FORMAT>& view, float clearDepth);
+
+    void ClearDepthImpl(RHITextureResource& rhiView, float clearDepth);
 
     //void DrawIndexedInstancedImpl();
 

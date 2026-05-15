@@ -53,6 +53,7 @@ namespace
 
     gr::rhi::RHICommandList gCmdlist;
     gr::rhi::RHITextureResource gBackbufferResource;
+    gr::rhi::RHITextureResource gDepthBuffer;
 }
 
 EditorLayer::EditorLayer(const std::string& name)
@@ -68,6 +69,13 @@ EditorLayer::EditorLayer(const std::string& name)
     pGfxContext = rhi::CPUGraphicsContext::GetInstance();
     pSwapchain = pGfxContext->GetSwapchain();
     gCmdlist = gr::rhi::CreateCommandList();
+
+    rhi::TextureDesc depthDesc {
+        .width = pSwapchain->GetWidth(),
+        .height = pSwapchain->GetHeight(),
+        .format = rhi::ImageFormat::D32_SFLOAT
+    };
+    gDepthBuffer = gr::rhi::CreateTexture(depthDesc);
 }
 
 void EditorLayer::OnUpdate(double dt)
@@ -79,6 +87,7 @@ void EditorLayer::OnUpdate(double dt)
     gBackbufferResource.pNativeTextureResource = &(pSwapchain->GetCurrentFrameResource());
 
     gr::rhi::ClearColor(gCmdlist, gBackbufferResource, { .4, .5, .7, 1.0 });
+    gr::rhi::ClearDepth(gCmdlist, gDepthBuffer, 1.0f);
 }
 
 void EditorLayer::OnEvent(Event& event)

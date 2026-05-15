@@ -5,7 +5,7 @@
 #include "rhi/interface/swapchain.h"
 #include "rhi/resource.h"
 #include "rhi/formats.h"
-#include "rhi/interface/rhi.h"
+#include "cpu_rhi.h"
 
 namespace gr::rhi
 {
@@ -15,7 +15,7 @@ class CPUSwapchain final : public ISwapchain
 public:
     CPUSwapchain(const SwapchainProperties& props);
     ~CPUSwapchain() = default;
-    ImageFormat GetSurfaceFormat() const;
+    ImageFormat GetSurfaceFormat() const { return m_SwapchainFormat; }
 
     void UpdateBackBuffer(SDL_Surface* surfaceToUpdate);
 

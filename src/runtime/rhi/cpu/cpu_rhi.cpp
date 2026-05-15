@@ -2,7 +2,7 @@
 #include "developer/profiler/profiler.h"
 #include "rhi/cpu/cpu_command_list.h"
 
-namespace gr::rhi::cpu
+namespace gr::rhi
 {
 
 BufferHandle CreateBuffer_CPU(const BufferDesc& desc)
@@ -10,6 +10,14 @@ BufferHandle CreateBuffer_CPU(const BufferDesc& desc)
     GR_TRACE_START(SYS_RENDERING);
     std::cout << "CPU CreateBuffer called with size: " << desc.size << " and usageFlags: " << desc.usageFlags << std::endl;
     return BufferHandle();
+}
+
+RHITextureResource CreateTexture_CPU(const TextureDesc& desc)
+{
+    GR_TRACE_START(SYS_RENDERING);
+    RHITextureResource res;
+    res.pNativeTextureResource = new CPUTextureResource(desc);
+    return res;
 }
 
 RHICommandList CreateCommandList_CPU()
@@ -35,6 +43,13 @@ void ClearColor_CPU(RHICommandList& cmdlist, RHITextureResource& resource, const
     pCmdlist->ClearColorImpl(resource, color);
 }
 
+void ClearDepth_CPU(RHICommandList& cmdlist, RHITextureResource& resource, float clearDepth)
+{
+    GR_TRACE_START(SYS_RENDERING);
+    CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
+    pCmdlist->ClearDepthImpl(resource, clearDepth);
+}
+
 void DrawIndexedInstanced_CPU(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
 {
     GR_TRACE_START(SYS_RENDERING);
@@ -53,9 +68,11 @@ void DispatchRays_CPU(RHICommandList& cmdlist, U32 width, U32 height, U32 depth)
 // TODO find a static way to verify function table is populated and order matches?
 RHIFunctionTable CPUTable = {
     CreateBuffer_CPU,
+    CreateTexture_CPU,
     CreateCommandList_CPU,
     SetVertexBuffers_CPU,
     ClearColor_CPU,
+    ClearDepth_CPU,
     DrawIndexedInstanced_CPU,
     DispatchRays_CPU,
 };
