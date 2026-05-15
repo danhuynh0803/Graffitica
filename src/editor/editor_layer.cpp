@@ -52,23 +52,11 @@ namespace
     std::vector<rhi::Framebuffer> gPresentFrameBuffers;
 
     CameraController gCameraController(&gCamera);
-
     CameraController cameraController(&camera);
+    ShaderCompilerModule gShaderCompilerModule {};
 
     gr::rhi::RHICommandList gCmdlist;
-    //gr::rhi::CPUTextureResource gBackbufferResource;
-
-    struct Vertex
-    {
-        vec3f position;
-        // TODO: vec4 simd 16byte alignment causing increase struct size
-        vec4f color;
-        vec3f normal;
-        vec2f uv;
-    };
-
-    ShaderCompilerModule gShaderCompilerModule {};
-    gr::rhi::CommandList gCmdlist;
+    gr::rhi::RHITextureResource gBackbufferResource;
 }
 
 EditorLayer::EditorLayer(const std::string& name)
@@ -91,7 +79,10 @@ void EditorLayer::OnUpdate(double dt)
     GR_TRACE_START(SYS_GAME);
 
     gCameraController.OnUpdate(static_cast<float>(dt));
-    
+
+    gBackbufferResource.pNativeTextureResource = &(pSwapchain->GetCurrentFrameResource());
+
+    gr::rhi::ClearColor(gCmdlist, gBackbufferResource, { .4, .5, .7, 1.0 });
 }
 
 void EditorLayer::OnEvent(Event& event)

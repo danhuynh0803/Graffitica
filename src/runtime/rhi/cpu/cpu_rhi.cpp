@@ -23,16 +23,16 @@ RHICommandList CreateCommandList_CPU()
 
 void SetVertexBuffers_CPU(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])
 {
-    CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
-
     GR_TRACE_START(SYS_RENDERING);
+    CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
     std::cout << "CPU SetVertexBuffers called with numViews: " << numViews << std::endl;
 }
 
 void ClearColor_CPU(RHICommandList& cmdlist, RHITextureResource& resource, const vec4f& color)
 {
+    GR_TRACE_START(SYS_RENDERING);
     CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
-    //pCmdlist->ClearColorImpl()
+    pCmdlist->ClearColorImpl(resource, color);
 }
 
 void DrawIndexedInstanced_CPU(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)

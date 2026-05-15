@@ -34,13 +34,15 @@ struct TextureDesc
     ImageFormat format;
 };
 
-class RHITextureResource {};
+struct RHITextureResource
+{
+    void* pNativeTextureResource;
+};
 
-class CPUTextureResource : RHITextureResource
+class CPUTextureResource
 {
 public:
     CPUTextureResource() = delete;
-
     CPUTextureResource(const TextureDesc& desc)
     : m_Width(desc.width), m_Height(desc.height), m_Format(desc.format), m_Data(nullptr)
     {
