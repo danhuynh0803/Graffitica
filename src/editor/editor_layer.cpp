@@ -52,8 +52,7 @@ namespace
     CameraController gCameraController(&gCamera);
 
     gr::rhi::RHICommandList gCmdlist;
-    //gr::rhi::CPUTextureResource gBackbufferResource;
-
+    gr::rhi::RHITextureResource gBackbufferResource;
 }
 
 EditorLayer::EditorLayer(const std::string& name)
@@ -76,7 +75,10 @@ void EditorLayer::OnUpdate(double dt)
     GR_TRACE_START(SYS_GAME);
 
     gCameraController.OnUpdate(static_cast<float>(dt));
-    
+ 
+    gBackbufferResource.pNativeTextureResource = &(pSwapchain->GetCurrentFrameResource());
+
+    gr::rhi::ClearColor(gCmdlist, gBackbufferResource, { .4, .5, .7, 1.0 });
 }
 
 void EditorLayer::OnEvent(Event& event)

@@ -11,7 +11,7 @@ namespace gr::rhi::cpu
 class CPUCommandList final : public ICommandList<CPUCommandList>
 {
 public:
-    void ClearColorImpl(CPUTextureResource& view, const vec4f& clearColor);
+    void ClearColorImpl(RHITextureResource& view, const vec4f& clearColor);
     
     //template <typename FORMAT>
     //inline void ClearDepthImpl(ImageView<FORMAT>& view, float clearDepth);
