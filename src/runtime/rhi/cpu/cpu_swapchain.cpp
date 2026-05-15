@@ -57,10 +57,10 @@ void CPUSwapchain::UpdateBackBuffer(SDL_Surface* surfaceToUpdate)
 {
     GR_TRACE_START(SYS_RENDERING);
 
-    const auto& currBackBufferImageView = m_PresentResources.at(m_CurrentFrameIndex);
+    auto& currBackBufferImageView = m_PresentResources.at(m_CurrentFrameIndex);
     m_CurrentFrameIndex = (m_CurrentFrameIndex + 1) % m_ImageCount;
 
-    surfaceToUpdate->pixels = currBackBufferImageView.m_Data;
+    surfaceToUpdate->pixels = currBackBufferImageView.m_Data.data();
 }
 
 }

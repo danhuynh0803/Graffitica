@@ -44,34 +44,15 @@ class CPUTextureResource
 public:
     CPUTextureResource() = delete;
     CPUTextureResource(const TextureDesc& desc)
-    : m_Width(desc.width), m_Height(desc.height), m_Format(desc.format), m_Data(nullptr)
+    : m_Width(desc.width), m_Height(desc.height), m_Format(desc.format)
     {
-        switch (desc.format)
-        {
-        default:
-            throw("undefined");
-            break;
-        case ImageFormat::R8G8B8A8_UNORM:
-            FORMAT_R8G8B8A8_UNORM* alloc = new FORMAT_R8G8B8A8_UNORM[desc.width * desc.height];
-            m_Data = static_cast<void*>(alloc);
-            break;
-        }
+        auto byteSize = ConvertFormatToByteSize(desc.format);
+        m_Data.resize(m_Width * m_Height * byteSize);
     }
 
-    ~CPUTextureResource()
-    {
-        // TODO issue when std::vector gets resized
-        if (m_Data)
-            delete m_Data;
-    }
-
-    U32 GetWidth() const { return m_Width; }
-    U32 GetHeight() const { return m_Height; }
-
-//private:
     U32 m_Width, m_Height;
     ImageFormat m_Format;
-    void* m_Data;
+    std::vector<U8> m_Data;
 };
 
 

@@ -14,9 +14,11 @@ void CPUCommandList::ClearColorImpl(RHITextureResource& rhiView, const vec4f& cl
     // TODO how does driver handle different color formats when allocating/clearing data?
     switch (view->m_Format)
     {
-    case ImageFormat::R8G8B8A8_UNORM:
-        std::fill_n(static_cast<FORMAT_R8G8B8A8_UNORM*>(view->m_Data), size, FORMAT_R8G8B8A8_UNORM::to(clearColor));
+    case ImageFormat::R8G8B8A8_UNORM: {
+        auto* dst = reinterpret_cast<FORMAT_R8G8B8A8_UNORM*>(view->m_Data.data());
+        std::fill_n(dst, size, FORMAT_R8G8B8A8_UNORM::to(clearColor));
         break;
+    }
     default:
         throw("undefined");
         break;
