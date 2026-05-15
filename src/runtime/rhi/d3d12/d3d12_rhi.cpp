@@ -11,6 +11,12 @@ BufferHandle CreateBuffer_D3D12(const BufferDesc& desc)
     return BufferHandle();
 }
 
+RHITextureResource CreateTexture_D3D12(const TextureDesc& desc)
+{
+    // TODO placeholder for now
+    return RHITextureResource();
+}
+
 RHICommandList CreateCommandList_D3D12()
 {
     std::cout << "D3D12 CreateCommandList called" << std::endl;
@@ -37,6 +43,10 @@ void ClearColor_D3D12(RHICommandList& cmdlist, RHITextureResource& resource, con
     //pCmdlist->ClearColorImpl()
 }
 
+void ClearDepth_D3D12(RHICommandList& cmdlist, RHITextureResource& resource, float clearDepth)
+{
+}
+
 void DrawIndexedInstanced_D3D12(RHICommandList& cmdList, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
 {
     // TODO
@@ -46,9 +56,11 @@ void DrawIndexedInstanced_D3D12(RHICommandList& cmdList, U32 indexCount, U32 ins
 RHIFunctionTable D3D12Table =
 {
     CreateBuffer_D3D12,
+    CreateTexture_D3D12,
     CreateCommandList_D3D12,
     SetVertexBuffers_D3D12,
     ClearColor_D3D12,
+    ClearDepth_D3D12,
     DrawIndexedInstanced_D3D12
 };
 

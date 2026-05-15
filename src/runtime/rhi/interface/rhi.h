@@ -39,35 +39,19 @@ struct RHITextureResource
     void* pNativeTextureResource;
 };
 
-class CPUTextureResource
-{
-public:
-    CPUTextureResource() = delete;
-    CPUTextureResource(const TextureDesc& desc)
-    : m_Width(desc.width), m_Height(desc.height), m_Format(desc.format)
-    {
-        auto byteSize = ConvertFormatToByteSize(desc.format);
-        m_Data.resize(m_Width * m_Height * byteSize);
-    }
-
-    U32 m_Width, m_Height;
-    ImageFormat m_Format;
-    std::vector<U8> m_Data;
-};
-
-
 struct RHIFunctionTable
 {
     // Resource creation
     BufferHandle (*CreateBuffer)(const BufferDesc&);
+    RHITextureResource (*CreateTexture)(const TextureDesc&);
     RHICommandList (*CreateCommandList)();
-
     // Binding cmds
     void (*SetVertexBuffers)(RHICommandList& cmdlist, U32 numViews, BufferHandle[]);
 
     // Draw cmds
-    // TODO refactor imageview for RHI
     void (*ClearColor)(RHICommandList& cmdlist, RHITextureResource& resource, const vec4f& color);
+    void (*ClearDepth)(RHICommandList& cmdlist, RHITextureResource& resource, float clearDepth);
+
     void (*DrawIndexedInstanced)(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation);
 
     void (*DispatchRays)(RHICommandList& cmdlist, U32 width, U32 height, U32 depth);
@@ -79,6 +63,12 @@ inline BufferHandle CreateBuffer(const BufferDesc& desc)
 {
     GR_TRACE_START(SYS_RENDERING);
     return g_RHI->CreateBuffer(desc);
+}
+
+inline RHITextureResource CreateTexture(const TextureDesc& desc)
+{
+    GR_TRACE_START(SYS_RENDERING);
+    return g_RHI->CreateTexture(desc);
 }
 
 inline RHICommandList CreateCommandList()
@@ -97,6 +87,12 @@ inline void ClearColor(RHICommandList& cmdlist, RHITextureResource& resource, co
 {
     GR_TRACE_START(SYS_RENDERING);
     g_RHI->ClearColor(cmdlist, resource, color);
+}
+
+inline void ClearDepth(RHICommandList& cmdlist, RHITextureResource& resource, float clearDepth)
+{
+    GR_TRACE_START(SYS_RENDERING);
+    g_RHI->ClearDepth(cmdlist, resource, clearDepth);
 }
 
 inline void DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
