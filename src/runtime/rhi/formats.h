@@ -80,6 +80,21 @@ enum class ImageFormat : uint32_t
     COUNT
 };
 
+
+inline U32 ConvertFormatToByteSize(ImageFormat format)
+{
+    switch (format)
+    {
+    case ImageFormat::D32_SFLOAT:
+    case ImageFormat::R8G8B8A8_UNORM:
+        return 4;
+    default:
+        break;
+    }
+
+    throw std::exception("Undefined format");
+}
+
 } // gr::rhi
 
 } // namespace gr
