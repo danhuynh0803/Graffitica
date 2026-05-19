@@ -21,11 +21,11 @@ struct ConvertToKey
     }
 };
 
-class D3D12Pipeline final : public IPipeline
+class D3D12GraphicsPipeline
 {
 public:
-    D3D12Pipeline(const D3D12PipelineKey& key);
-    ~D3D12Pipeline() = default;
+    D3D12GraphicsPipeline(const D3D12PipelineKey& key);
+    ~D3D12GraphicsPipeline() = default;
     
     CD3DX12_ROOT_SIGNATURE_DESC m_RootSignatureDesc;
     D3D12_INPUT_ELEMENT_DESC m_InputElementDesc;

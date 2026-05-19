@@ -34,6 +34,7 @@ enum class DEPTH_WRITE_MASK
     DEPTH_WRITE_MASK_ALL = 1
 };
 
+// TODO remove/rename to DepthStencilState
 struct DepthStencilDesc
 {
     bool                    depthEnable;
@@ -46,6 +47,16 @@ struct DepthStencilDesc
     // TODO StencilOp Desc
     // most likely never gonna be used by CPU case,
     // but reminder that those fields are missing
+};
+
+struct DepthStencilState
+{
+    bool                    depthEnable;
+    DEPTH_WRITE_MASK        depthWriteMask;
+    DEPTH_COMPARISON_FUNC   depthFunc;
+    bool                    stencilEnable;
+    U8                      stencilReadMask;
+    U8                      stencilWriteMask;
 };
 
 struct RasterizerState

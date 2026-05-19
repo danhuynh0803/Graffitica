@@ -4,13 +4,16 @@
 #include "rhi/rasterizer_state.h"
 #include "rhi/shader.h"
 #include "rhi/interface/rhi.h"
+#include "cpu_pipeline.h"
 
 namespace gr::rhi
 {
 
-class CPUCommandList final : public ICommandList<CPUCommandList>
+class CPUCommandList
 {
 public:
+    //CPUCommandList() = default;
+
     void ClearColorImpl(RHITextureResource& view, const vec4f& clearColor);
 
     void ClearDepthImpl(RHITextureResource& rhiView, float clearDepth);
@@ -22,12 +25,11 @@ public:
     //void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset);
 
 private:
-    Framebuffer* framebuffer;
-    // TODO encapsulate into a CPUPipeline struct?
-    RasterizerState* rasterizerState;
-    //gr::rhi::TestShader* shaderModule;
-    gr::rhi::ShaderModule* shaderModule;
-    mat44 mvp;
+    // TODO: store command list state here, e.g. current framebuffer, pipeline state, shader resources, etc
+    //Framebuffer* framebuffer;
+    //ShaderModule* m_ShaderModule;
+    //CPUGraphicsPipeline m_GraphicsPipeline;
+    //CPUComputePipeline m_ComputePipeline;
 };
 
 }

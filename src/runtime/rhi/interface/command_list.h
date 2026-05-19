@@ -11,30 +11,24 @@ class RHITextureResource;
 class RHICommandList
 {
 public:
-    //void ClearColor(ImageView<FORMAT>& view, const vec4f& clearColor)
-    //{
-    //    static_cast<TRHI*>(this)->ClearColorImpl(view, clearColor);
-    //}
-    //
-    //void ClearDepth(ImageView<FORMAT>& view, float clearDepth)
-    //{
-    //    static_cast<TRHI*>(this)->ClearDepthImpl(view, clearDepth);
-    //}
-    //
-    //void DrawIndexed()
-    //{
-    //
-    //}
+    RHICommandList Create() {
+
+    }
 
     // contains the real backend commandlist/commandbuffer object,
     // e.g. ID3D12GraphicsCommandList for D3D12, VkCommandBuffer for Vulkan, or a custom CPU command list implementation
     void* pNativeCmdList;
+
+private:
+    // TODO consider using variant of RHI
+    // or just have typed pointers for each RHI?
 };
 
 // Old command list interface - remove later
 template <typename RHI>
 class ICommandList
 {
+public:
     void ClearColorImpl(RHITextureResource& view, const vec4f& clearColor);
 
     //template <typename FORMAT>

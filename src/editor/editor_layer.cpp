@@ -51,9 +51,10 @@ namespace
 
     CameraController gCameraController(&gCamera);
 
-    gr::rhi::RHICommandList gCmdlist;
-    gr::rhi::RHITextureResource gBackbufferResource;
-    gr::rhi::RHITextureResource gDepthBuffer;
+    rhi::RHICommandList gCmdlist;
+    rhi::RHITextureResource gBackbufferResource;
+    rhi::RHITextureResource gDepthBuffer;
+    rhi::BufferHandle gVertexBuffer;
 }
 
 EditorLayer::EditorLayer(const std::string& name)
@@ -86,8 +87,11 @@ void EditorLayer::OnUpdate(double dt)
  
     gBackbufferResource.pNativeTextureResource = &(pSwapchain->GetCurrentFrameResource());
 
-    gr::rhi::ClearColor(gCmdlist, gBackbufferResource, { .4, .5, .7, 1.0 });
-    gr::rhi::ClearDepth(gCmdlist, gDepthBuffer, 1.0f);
+    rhi::ClearColor(gCmdlist, gBackbufferResource, { .4, .5, .7, 1.0 });
+    rhi::ClearDepth(gCmdlist, gDepthBuffer, 1.0f);
+    rhi::SetVertexBuffers(gCmdlist, 1, &gVertexBuffer);
+
+    //gr::rhi::DrawIndexedInstanced(gCmdlist, )
 }
 
 void EditorLayer::OnEvent(Event& event)

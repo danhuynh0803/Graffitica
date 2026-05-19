@@ -31,6 +31,14 @@ struct VertexRHI
     vec4f aColor;
 };
 
+class VertexBuffer
+{
+public:
+
+private:
+
+};
+
 struct Buffer
 {
     std::shared_ptr<Mesh> m_MeshData = nullptr;

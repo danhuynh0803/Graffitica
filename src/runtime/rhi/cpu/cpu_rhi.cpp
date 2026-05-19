@@ -1,6 +1,7 @@
 #include "rhi/cpu/cpu_rhi.h"
 #include "developer/profiler/profiler.h"
 #include "rhi/cpu/cpu_command_list.h"
+#include "rhi/cpu/cpu_pipeline.h"
 
 namespace gr::rhi
 {
@@ -18,6 +19,22 @@ RHITextureResource CreateTexture_CPU(const TextureDesc& desc)
     RHITextureResource res;
     res.pNativeTextureResource = new CPUTextureResource(desc);
     return res;
+}
+
+RHIGraphicsPipeline CreateGraphicsPipeline_CPU(const GraphicsPipelineDesc& desc)
+{
+    GR_TRACE_START(SYS_RENDERING); 
+    RHIGraphicsPipeline handle;
+    handle.pNativePipeline = new CPUGraphicsPipeline(desc);
+    return handle;
+}
+
+RHIComputePipeline CreateComputePipeline_CPU(const ComputePipelineDesc& desc)
+{
+    GR_TRACE_START(SYS_RENDERING);
+    RHIComputePipeline handle;
+    handle.pNativePipeline = new CPUComputePipeline(desc);
+    return handle;
 }
 
 RHICommandList CreateCommandList_CPU()
@@ -69,6 +86,8 @@ void DispatchRays_CPU(RHICommandList& cmdlist, U32 width, U32 height, U32 depth)
 RHIFunctionTable CPUTable = {
     CreateBuffer_CPU,
     CreateTexture_CPU,
+    CreateGraphicsPipeline_CPU,
+    CreateComputePipeline_CPU,
     CreateCommandList_CPU,
     SetVertexBuffers_CPU,
     ClearColor_CPU,
