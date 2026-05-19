@@ -2,25 +2,10 @@
 
 #include "rhi/interface/graphics_rhi.h"
 #include "rhi/interface/rhi.h"
+#include "rhi/interface/pipeline.h"
 
-namespace gr::renderer::rhi
-{
 
-// Old interface - remove later
-class CpuRHI final : public IGraphicsRHI
-{
-public:
-    virtual void Clear(const ImageView& view, const vec4f& clearColor) override;
-    virtual void Clear(const ImageView& view, const float clearDepth) override;
-
-    virtual void DrawIndexed(const CommandBuffer& cmd,
-                             const Buffer& vb,
-                             U32 indexCount,
-                             U32 firstIndex,
-                             int vertexOffset) override;
-};
-
-}
+//class RHIGraphicsPipelineHandle;
 
 namespace gr::rhi
 {
@@ -44,6 +29,10 @@ public:
 
 BufferHandle CreateBuffer_CPU(const BufferDesc& desc);
 RHITextureResource CreateTexture_CPU(const TextureDesc& desc);
+
+RHIGraphicsPipeline CreateGraphicsPipeline_CPU(const GraphicsPipelineDesc& desc);
+RHIComputePipeline  CreateComputePipeline_CPU(const ComputePipelineDesc& desc);
+
 RHICommandList CreateCommandList_CPU();
 void SetVertexBuffers_CPU(RHICommandList& cmdlist, U32 numViews, BufferHandle views[]);
 void ClearColor_CPU(RHICommandList& cmdlist, RHITextureResource& resource, const vec4f& color);

@@ -7,6 +7,7 @@
 #include "rhi/resource.h"
 #include "developer/profiler/profiler.h"
 #include "util/math/vector.h"
+#include "rhi/interface/pipeline.h"
 
 enum class RHI_BACKEND : uint8_t
 {
@@ -18,6 +19,9 @@ enum class RHI_BACKEND : uint8_t
 namespace gr::rhi
 {
 
+/*
+RHI Buffer Handles
+*/
 struct BufferHandle { U32 index; };
 struct BufferDesc
 {
@@ -26,6 +30,9 @@ struct BufferDesc
 
 };
 
+/*
+RHI Texture Handles
+*/
 struct TextureHandle { U32 index; };
 struct TextureDesc
 {
@@ -43,7 +50,12 @@ struct RHIFunctionTable
 {
     // Resource creation
     BufferHandle (*CreateBuffer)(const BufferDesc&);
+    // TODO switch to returning texture handle
+    // Right now use RHI resource directly for rendering to swapchain
+    // from CPU RHI side
     RHITextureResource (*CreateTexture)(const TextureDesc&);
+    RHIGraphicsPipeline (*CreateGraphicsPipeline)(const GraphicsPipelineDesc&);
+    RHIComputePipeline  (*CreateComputePipeline)(const ComputePipelineDesc&);
     RHICommandList (*CreateCommandList)();
     // Binding cmds
     void (*SetVertexBuffers)(RHICommandList& cmdlist, U32 numViews, BufferHandle[]);
@@ -52,7 +64,7 @@ struct RHIFunctionTable
     void (*ClearColor)(RHICommandList& cmdlist, RHITextureResource& resource, const vec4f& color);
     void (*ClearDepth)(RHICommandList& cmdlist, RHITextureResource& resource, float clearDepth);
 
-    void (*DrawIndexedInstanced)(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation);
+    void (*DrawIndexedInstanced)(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInststanceLocation);
 
     void (*DispatchRays)(RHICommandList& cmdlist, U32 width, U32 height, U32 depth);
 };
@@ -69,6 +81,18 @@ inline RHITextureResource CreateTexture(const TextureDesc& desc)
 {
     GR_TRACE_START(SYS_RENDERING);
     return g_RHI->CreateTexture(desc);
+}
+
+inline RHIGraphicsPipeline CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
+{
+    GR_TRACE_START(SYS_RENDERING);
+    return g_RHI->CreateGraphicsPipeline(desc);
+}
+
+inline RHIComputePipeline CreateComputePipeline(const ComputePipelineDesc& desc)
+{
+    GR_TRACE_START(SYS_RENDERING);
+    return g_RHI->CreateComputePipeline(desc);
 }
 
 inline RHICommandList CreateCommandList()

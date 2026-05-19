@@ -27,6 +27,16 @@ RHICommandList CreateCommandList_D3D12()
     return cmdList;
 }
 
+RHIGraphicsPipeline CreateGraphicsPipeline_D3D12(const GraphicsPipelineDesc& desc)
+{
+    return RHIGraphicsPipeline();
+}
+
+RHIComputePipeline CreateComputePipeline_D3D12(const ComputePipelineDesc& desc)
+{
+    return RHIComputePipeline();
+}
+
 void SetVertexBuffers_D3D12(RHICommandList& cmdList, U32 numViews, BufferHandle views[])
 {
     std::cout << "D3D12 SetVertexBuffers called with numViews: " << numViews << std::endl;
@@ -57,6 +67,8 @@ RHIFunctionTable D3D12Table =
 {
     CreateBuffer_D3D12,
     CreateTexture_D3D12,
+    CreateGraphicsPipeline_D3D12,
+    CreateComputePipeline_D3D12,
     CreateCommandList_D3D12,
     SetVertexBuffers_D3D12,
     ClearColor_D3D12,
