@@ -77,10 +77,13 @@ if (MSVC)
 endif()
 
 # TODO split to different cmake?
-find_package(Vulkan COMPONENTS glslc
-                               shaderc_combined
-                               dxc
+find_package(Vulkan COMPONENTS  glslc
+                                shaderc_combined
+                                dxc
 )
+
+# Point to your Vulkan SDK installation
+#set(VULKAN_SDK $ENV{VULKAN_SDK})
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
@@ -90,14 +93,27 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     Tracy::TracyClient
 )
 
-
 find_package(directx-headers CONFIG REQUIRED)
 find_package(directx12-agility CONFIG REQUIRED)
+
+# Vulkan SDK root
+set(VULKAN_SDK $ENV{VULKAN_SDK})
+
+# Slang paths inside Vulkan SDK
+set(VULKAN_INCLUDE_DIR "${VULKAN_SDK}/Include/")
+set(VULKAN_LIB_DIR  "${VULKAN_SDK}/Lib")
+
+target_include_directories(graffitica PRIVATE ${VULKAN_INCLUDE_DIR})
+target_link_directories(graffitica PRIVATE ${VULKAN_LIB_DIR})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     SDL3::SDL3
     Vulkan::Vulkan
     Vulkan::shaderc_combined
+
+    slang
+    slang-glslang
+    slang-compiler
 
     d3d12
     dxgi
