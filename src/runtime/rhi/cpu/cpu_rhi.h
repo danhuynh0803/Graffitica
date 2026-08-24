@@ -37,6 +37,7 @@ RHICommandList CreateCommandList_CPU();
 void SetVertexBuffers_CPU(RHICommandList& cmdlist, U32 numViews, BufferHandle views[]);
 void ClearColor_CPU(RHICommandList& cmdlist, RHITextureResource& resource, const vec4f& color);
 void DrawIndexedInstanced_CPU(RHICommandList&, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation);
+void Dispatch_CPU(RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ);
 void DispatchRays_CPU(RHICommandList&, U32 width, U32 height, U32 depth);
 
 extern RHIFunctionTable CPUTable;

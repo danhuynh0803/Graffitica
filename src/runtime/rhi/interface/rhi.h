@@ -65,7 +65,7 @@ struct RHIFunctionTable
     void (*ClearDepth)(RHICommandList& cmdlist, RHITextureResource& resource, float clearDepth);
 
     void (*DrawIndexedInstanced)(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInststanceLocation);
-
+    void (*Dispatch)(RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ);
     void (*DispatchRays)(RHICommandList& cmdlist, U32 width, U32 height, U32 depth);
 };
 extern RHIFunctionTable* g_RHI;
@@ -125,6 +125,14 @@ inline void DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 in
     g_RHI->DrawIndexedInstanced(cmdlist, indexCount, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
 }
 
+inline void Dispatch(RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ)
+{
+    GR_TRACE_START(SYS_RENDERING);
+    g_RHI->Dispatch(cmdlist, groupCountX, groupCountY, groupCountZ);
+}
+
+// TODO - update function signature to have SBT refs to each RT stage
+// separate CPU RT stages to separate function ptrs
 inline void DispatchRays(RHICommandList& cmdlist, U32 width, U32 height, U32 depth)
 {
     GR_TRACE_START(SYS_RENDERING);

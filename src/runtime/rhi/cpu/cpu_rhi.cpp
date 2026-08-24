@@ -75,10 +75,29 @@ void DrawIndexedInstanced_CPU(RHICommandList& cmdlist, U32 indexCount, U32 insta
         << ", startInstanceLocation: " << startInstanceLocation << std::endl;
 }
 
-void DispatchRays_CPU(RHICommandList& cmdlist, U32 width, U32 height, U32 depth)
+void Dispatch_CPU(RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ)
 {
     GR_TRACE_START(SYS_RENDERING);
-    std::cout << "DispatchRays_CPU\n";
+    std::cout << "CPU Dispatch called with groupCountX: " << groupCountX << ", groupCountY: " << groupCountY << ", groupCountZ: " << groupCountZ << std::endl;
+}
+
+void DispatchRays_CPU(RHICommandList& cmdlist, U32 width, U32 height, U32 depth = 1)
+{
+    GR_TRACE_START(SYS_RENDERING);
+
+    // RayGen function invoked for each pixel in the dispatch dimensions
+    for (U32 z = 0; z < depth; ++z)
+    {
+        for (U32 y = 0; y < height; ++y)
+        {
+            for (U32 x = 0; x < width; ++x)
+            {
+                // TODO invoke ray generation shader function here
+                // e.g. pCmdlist->shaderModule->raygen({x, y, z});
+            }
+        }
+    }
+
 }
 
 
@@ -93,6 +112,7 @@ RHIFunctionTable CPUTable = {
     ClearColor_CPU,
     ClearDepth_CPU,
     DrawIndexedInstanced_CPU,
+    Dispatch_CPU,
     DispatchRays_CPU,
 };
 

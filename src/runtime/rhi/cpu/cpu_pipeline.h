@@ -20,6 +20,7 @@ public:
     CPUComputePipeline(const ComputePipelineDesc& desc);
 
 private:
+    ComputePipelineDesc m_Desc;
 };
 
 } // namespace gr::rhi

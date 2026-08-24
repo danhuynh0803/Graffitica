@@ -50,4 +50,9 @@ void CPUCommandList::ClearDepthImpl(RHITextureResource& rhiView, float clearDept
     }
 }
 
+void CPUCommandList::Dispatch(RHITextureResource& output, U32 groupCountX, U32 groupCountY, U32 groupCountZ)
+{
+    //assert(m_ComputePipeline != NULL);
+}
+
 } // namespace gr::rhi::cpu

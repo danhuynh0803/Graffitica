@@ -95,7 +95,8 @@ void EditorLayer::OnUpdate(double dt)
     rhi::ClearDepth(gCmdlist, gDepthBuffer, 1.0f);
     rhi::SetVertexBuffers(gCmdlist, 1, &gVertexBuffer);
 
-    //gr::rhi::DrawIndexedInstanced(gCmdlist, )
+    rhi::DispatchRays(gCmdlist, pSwapchain->GetWidth(), pSwapchain->GetHeight(), 1);
+    
 }
 
 void EditorLayer::OnEvent(Event& event)

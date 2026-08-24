@@ -12,7 +12,7 @@ namespace gr::rhi
 class CPUCommandList
 {
 public:
-    //CPUCommandList() = default;
+    CPUCommandList() = default;
 
     void ClearColorImpl(RHITextureResource& view, const vec4f& clearColor);
 
@@ -24,12 +24,13 @@ public:
 
     //void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset);
 
+    void Dispatch(RHITextureResource& output, U32 groupCountX, U32 groupCountY, U32 groupCountZ);
+
 private:
     // TODO: store command list state here, e.g. current framebuffer, pipeline state, shader resources, etc
     //Framebuffer* framebuffer;
-    //ShaderModule* m_ShaderModule;
-    //CPUGraphicsPipeline m_GraphicsPipeline;
-    //CPUComputePipeline m_ComputePipeline;
+    CPUGraphicsPipeline* m_GraphicsPipeline;
+    CPUComputePipeline* m_ComputePipeline;
 };
 
 }
