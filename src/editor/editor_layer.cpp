@@ -27,6 +27,8 @@
 #include "rhi/interface/command_list.h"
 #include "rhi/d3d12/d3d12_command_list.h"
 
+#include "modules/ShaderCompilerModule.h"
+
 #include <DirectXMath.h>
 
 namespace gr
@@ -78,6 +80,8 @@ namespace
         vec3f normal;
         vec2f uv;
     };
+
+    ShaderCompilerModule gShaderCompilerModule {};
 }
 
 EditorLayer::EditorLayer(const std::string& name)
@@ -127,9 +131,11 @@ EditorLayer::EditorLayer(const std::string& name)
         UINT vertexShaderSize = 0;
         UINT pixelShaderSize = 0;
 
-        std::wstring shaderDir = L"shaders/";
-        rhi::d3d12::ThrowIfFailed(rhi::d3d12::ReadDataFromFile((shaderDir + L"triangle_vs.cso").c_str(), &pVertexShaderBytecode, &vertexShaderSize));
-        rhi::d3d12::ThrowIfFailed(rhi::d3d12::ReadDataFromFile((shaderDir + L"triangle_ps.cso").c_str(), &pPixelShaderBytecode, &pixelShaderSize));
+        std::string shaderDir = "shaders/";
+        //rhi::d3d12::ThrowIfFailed(rhi::d3d12::ReadDataFromFile((shaderDir + L"triangle_vs.cso").c_str(), &pVertexShaderBytecode, &vertexShaderSize));
+        //rhi::d3d12::ThrowIfFailed(rhi::d3d12::ReadDataFromFile((shaderDir + L"triangle_ps.cso").c_str(), &pPixelShaderBytecode, &pixelShaderSize));
+
+        auto compiledOutputs = gShaderCompilerModule.CompileSlangToBlob((shaderDir + "default.slang").c_str(), "VSMain");
 
         // vertex input layout
         D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
@@ -143,8 +149,11 @@ EditorLayer::EditorLayer(const std::string& name)
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
         psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
         psoDesc.pRootSignature = rootSignature.Get();
-        psoDesc.VS = { pVertexShaderBytecode, vertexShaderSize };
-        psoDesc.PS = { pPixelShaderBytecode, pixelShaderSize };
+        psoDesc.VS = { compiledOutputs.VS->getBufferPointer(), compiledOutputs.VS->getBufferSize() };
+        psoDesc.PS = { compiledOutputs.PS->getBufferPointer(), compiledOutputs.PS->getBufferSize() };
+
+        //psoDesc.VS = { pVertexShaderBytecode, vertexShaderSize };
+        //psoDesc.PS = { pPixelShaderBytecode, pixelShaderSize };
         psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
         psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
         psoDesc.DepthStencilState.DepthEnable = FALSE;

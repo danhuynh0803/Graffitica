@@ -1,17 +1,14 @@
-#include "SlangModule.h"
-
+#include "ShaderCompilerModule.h"
 #include <slang/slang-com-ptr.h>
 #include <slang/slang-com-helper.h>
+#include <stdexcept>
+#include <vector>
 
 namespace gr
 {
 
-enum class VERSION
-{
-    
-};
 
-slang::TargetDesc SlangModule::GetSlangTargetDesc(SlangCompileTarget targetFormat, const char* profileName)
+slang::TargetDesc ShaderCompilerModule::GetSlangTargetDesc(SlangCompileTarget targetFormat, const char* profileName)
 {
     slang::TargetDesc targetDesc {};
     targetDesc.format = targetFormat;
@@ -19,7 +16,15 @@ slang::TargetDesc SlangModule::GetSlangTargetDesc(SlangCompileTarget targetForma
     return targetDesc;
 }
 
-SlangModule::SlangModule()
+void DiagnoseIfNeeded(slang::IBlob* diagnosticsBlob)
+{
+    if (diagnosticsBlob != nullptr)
+    {
+        printf("%s", (const char*)diagnosticsBlob->getBufferPointer());
+    }
+}
+
+ShaderCompilerModule::ShaderCompilerModule()
 {
     slang::createGlobalSession(mGlobalSession.writeRef());
 
@@ -34,14 +39,119 @@ SlangModule::SlangModule()
     sessionDesc.targets = &targetDesc;
     sessionDesc.targetCount = 1;
 
-    Slang::ComPtr<slang::ISession> session;
-    mGlobalSession->createSession(sessionDesc, session.writeRef());
+    mGlobalSession->createSession(sessionDesc, mSession.writeRef());
 }
 
-std::unique_ptr<slang::IBlob> SlangModule::CompileSlangToBlob(const char* filePath, const char* entryPoint)
+ShaderOutputs ShaderCompilerModule::CompileSlangToBlob(const char* filePath, const char* entryPointName)
 {
     assert(mGlobalSession != nullptr);
-    return std::unique_ptr<slang::IBlob>();
+    assert(mSession != nullptr);
+    Slang::ComPtr<slang::IBlob> diagnosticsBlob;
+
+    // Load the shader code and compile it, unless it exists in memory from the session
+    // Note: this method requires tagging entry point functions with [shader("<shaderType>"] attribute
+    // e.g. [shader("compute")], "vertex", "fragment", etc
+    Slang::ComPtr<slang::IModule> module;
+    {
+        const char* moduleName = "default";
+        module = mSession->loadModule(filePath, diagnosticsBlob.writeRef());
+        DiagnoseIfNeeded(diagnosticsBlob);
+        if (!module)
+        {
+            // throw for now TODO
+            throw std::runtime_error("Failed to load Slang module");
+        }
+    }
+
+    // Finding entry points
+    Slang::ComPtr<slang::IEntryPoint> vsEntryPoint;
+    module->findEntryPointByName("VSMain", vsEntryPoint.writeRef());
+    if (!vsEntryPoint) {
+        throw std::runtime_error("Failed to load vs entrypoint");
+        return {};
+    }
+
+    Slang::ComPtr<slang::IEntryPoint> psEntryPoint;
+    module->findEntryPointByName("PSMain", psEntryPoint.writeRef());
+    if (!psEntryPoint) {
+        throw std::runtime_error("Failed to load fs entrypoint");
+        return {};
+    }
+
+    std::vector<slang::IComponentType*> componentTypes;
+    componentTypes.push_back(module);
+
+    // Later on when we go to extract compiled kernel code for our vertex
+    // and fragment shaders, we will need to make use of their order within
+    // the composition, so we will record the relative ordering of the entry
+    // points here as we add them.
+    int entryPointCount = 0;
+    int vertexEntryPointIndex = entryPointCount++;
+    componentTypes.push_back(vsEntryPoint);
+
+    int fragmentEntryPointIndex = entryPointCount++;
+    componentTypes.push_back(psEntryPoint);
+
+    // Actually creating the composite component type is a single operation
+    // on the Slang session, but the operation could potentially fail if
+    // something about the composite was invalid (e.g., you are trying to
+    // combine multiple copies of the same module), so we need to deal
+    // with the possibility of diagnostic output.
+    //
+    Slang::ComPtr<slang::IComponentType> composedProgram;
+    {
+        Slang::ComPtr<slang::IBlob> diagnosticsBlob;
+        SlangResult result = mSession->createCompositeComponentType(
+            componentTypes.data(),
+            componentTypes.size(),
+            composedProgram.writeRef(),
+            diagnosticsBlob.writeRef());
+        DiagnoseIfNeeded(diagnosticsBlob);
+        //SLANG_RETURN_ON_FAIL(result);
+    }
+
+    Slang::ComPtr<slang::IComponentType> linkedProgram;
+    {
+        Slang::ComPtr<slang::IBlob> diagnosticsBlob;
+        SlangResult result = composedProgram->link(
+            linkedProgram.writeRef(),
+            diagnosticsBlob.writeRef());
+        DiagnoseIfNeeded(diagnosticsBlob);
+        //SLANG_RETURN_ON_FAIL(result);
+    }
+
+    // TODO what is targetIndex for? Very little documentation found
+    SlangInt targetIndex = 0; //SLANG_DXIL;
+
+    Slang::ComPtr<slang::IBlob> vsBlob;
+    {
+        Slang::ComPtr<slang::IBlob> diagnosticsBlob;
+        SlangResult result = linkedProgram->getEntryPointCode(
+            vertexEntryPointIndex,
+            targetIndex,
+            vsBlob.writeRef(),
+            diagnosticsBlob.writeRef());
+        DiagnoseIfNeeded(diagnosticsBlob);
+        //SLANG_RETURN_ON_FAIL(result);
+    }
+
+    Slang::ComPtr<slang::IBlob> psBlob;
+    {
+        Slang::ComPtr<slang::IBlob> diagnosticsBlob;
+        SlangResult result = linkedProgram->getEntryPointCode(
+            fragmentEntryPointIndex,
+            targetIndex,
+            psBlob.writeRef(),
+            diagnosticsBlob.writeRef());
+        DiagnoseIfNeeded(diagnosticsBlob);
+        //SLANG_RETURN_ON_FAIL(result);
+    }
+
+    ShaderOutputs shaderOutputs {};
+    shaderOutputs.VS = vsBlob;
+    shaderOutputs.PS = psBlob;
+
+    return shaderOutputs;
 }
 
 }
