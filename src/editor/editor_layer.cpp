@@ -52,7 +52,6 @@ namespace
     std::vector<rhi::Framebuffer> gPresentFrameBuffers;
 
     CameraController gCameraController(&gCamera);
-    CameraController cameraController(&camera);
     ShaderCompilerModule gShaderCompilerModule {};
 
     rhi::RHICommandList gCmdlist;

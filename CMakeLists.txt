@@ -93,8 +93,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     Tracy::TracyClient
 )
 
-find_package(directx-headers CONFIG REQUIRED)
-find_package(directx12-agility CONFIG REQUIRED)
+#find_package(directx-headers CONFIG REQUIRED)
+#find_package(directx12-agility CONFIG REQUIRED)
 
 # Vulkan SDK root
 set(VULKAN_SDK $ENV{VULKAN_SDK})
