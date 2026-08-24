@@ -112,7 +112,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Vulkan::shaderc_combined
 
     slang
-    slang-glslang
     slang-compiler
 
     d3d12
