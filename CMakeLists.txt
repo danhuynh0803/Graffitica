@@ -106,6 +106,9 @@ set(VULKAN_LIB_DIR  "${VULKAN_SDK}/Lib")
 target_include_directories(graffitica PRIVATE ${VULKAN_INCLUDE_DIR})
 target_link_directories(graffitica PRIVATE ${VULKAN_LIB_DIR})
 
+#find_package(directx-headers CONFIG REQUIRED)
+#find_package(directx12-agility CONFIG REQUIRED)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE
     SDL3::SDL3
     Vulkan::Vulkan

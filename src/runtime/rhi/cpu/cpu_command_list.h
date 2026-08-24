@@ -31,6 +31,7 @@ private:
     //Framebuffer* framebuffer;
     CPUGraphicsPipeline* m_GraphicsPipeline;
     CPUComputePipeline* m_ComputePipeline;
+    //ShaderModule* m_ShaderModule;
 };
 
 }

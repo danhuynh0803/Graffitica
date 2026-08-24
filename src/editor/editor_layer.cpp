@@ -27,7 +27,6 @@
 #include "rhi/interface/command_list.h"
 #include "rhi/d3d12/d3d12_command_list.h"
 #include "rhi/interface/rhi.h"
-
 #include "modules/ShaderCompilerModule.h"
 
 #include <DirectXMath.h>
@@ -95,7 +94,7 @@ void EditorLayer::OnUpdate(double dt)
     rhi::SetVertexBuffers(gCmdlist, 1, &gVertexBuffer);
 
     rhi::DispatchRays(gCmdlist, pSwapchain->GetWidth(), pSwapchain->GetHeight(), 1);
-    
+    //gr::rhi::DrawIndexedInstanced(gCmdlist, )
 }
 
 void EditorLayer::OnEvent(Event& event)

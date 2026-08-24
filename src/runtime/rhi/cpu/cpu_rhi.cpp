@@ -98,6 +98,7 @@ void DispatchRays_CPU(RHICommandList& cmdlist, U32 width, U32 height, U32 depth 
         }
     }
 
+    std::cout << "DispatchRays_CPU\n";
 }
 
 
