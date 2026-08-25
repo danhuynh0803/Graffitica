@@ -26,12 +26,23 @@ public:
 
     void Dispatch(RHITextureResource& output, U32 groupCountX, U32 groupCountY, U32 groupCountZ);
 
+public:
+    // TODO old impl - replace with RHI equivalents or
+    // maybe tie to renderpass state to prepare for RG
+    Framebuffer* framebuffer;
+    RasterizerState* rasterizerState;
+    //gr::rhi::TestShader* shaderModule;
+    ShaderModule* shaderModule;
+    //Pipeline *pipeline;
+    mat44 mvp;
+
 private:
     // TODO: store command list state here, e.g. current framebuffer, pipeline state, shader resources, etc
     //Framebuffer* framebuffer;
     CPUGraphicsPipeline* m_GraphicsPipeline;
     CPUComputePipeline* m_ComputePipeline;
     //ShaderModule* m_ShaderModule;
+
 };
 
 }

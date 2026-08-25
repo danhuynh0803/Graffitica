@@ -57,6 +57,8 @@ namespace
     rhi::RHITextureResource gBackbufferResource;
     rhi::RHITextureResource gDepthBuffer;
     rhi::BufferHandle gVertexBuffer;
+
+    rhi::CPU_RHI gRHI;
 }
 
 EditorLayer::EditorLayer(const std::string& name)
@@ -71,7 +73,7 @@ EditorLayer::EditorLayer(const std::string& name)
 
     pGfxContext = rhi::CPUGraphicsContext::GetInstance();
     pSwapchain = pGfxContext->GetSwapchain();
-    gCmdlist = gr::rhi::CreateCommandList();
+    gCmdlist = gRHI.CreateCommandList();
 
     rhi::TextureDesc depthDesc {
         .width = pSwapchain->GetWidth(),
@@ -89,12 +91,12 @@ void EditorLayer::OnUpdate(double dt)
 
     gBackbufferResource.pNativeTextureResource = &(pSwapchain->GetCurrentFrameResource());
 
-    rhi::ClearColor(gCmdlist, gBackbufferResource, { .4, .5, .7, 1.0 });
-    rhi::ClearDepth(gCmdlist, gDepthBuffer, 1.0f);
-    rhi::SetVertexBuffers(gCmdlist, 1, &gVertexBuffer);
+    gRHI.ClearColor(gCmdlist, gBackbufferResource, { .4, .5, .7, 1.0 });
+    gRHI.ClearDepth(gCmdlist, gDepthBuffer, 1.0f);
+    gRHI.SetVertexBuffers(gCmdlist, 1, &gVertexBuffer);
 
-    rhi::DispatchRays(gCmdlist, pSwapchain->GetWidth(), pSwapchain->GetHeight(), 1);
-    //gr::rhi::DrawIndexedInstanced(gCmdlist, )
+    //rhi::DispatchRays(gCmdlist, pSwapchain->GetWidth(), pSwapchain->GetHeight(), 1);
+    //rhi::DrawIndexedInstanced(gCmdlist, )
 }
 
 void EditorLayer::OnEvent(Event& event)

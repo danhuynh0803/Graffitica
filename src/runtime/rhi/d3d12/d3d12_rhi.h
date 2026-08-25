@@ -22,6 +22,7 @@ namespace gr::rhi::d3d12
     RHIGraphicsPipeline CreateGraphicsPipeline_D3D12(const GraphicsPipelineDesc& desc);
     RHIComputePipeline CreateComputePipeline_D3D12(const ComputePipelineDesc& desc);
     void SetVertexBuffers_D3D12(RHICommandList& cmdList, U32 numViews, BufferHandle views[]);
+    void SetRenderTargets_D3D12(RHICommandList& cmdList, U32 numViews, RHITextureResource views[]);
     void ClearColor_D3D12(RHICommandList& cmdlist, RHITextureResource& resource, const vec4f& color);
     void DrawIndexedInstanced_D3D12(RHICommandList& cmdList, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation);
 

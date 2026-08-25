@@ -46,6 +46,15 @@ void SetVertexBuffers_D3D12(RHICommandList& cmdList, U32 numViews, BufferHandle 
     }
 }
 
+void SetRenderTargets_D3D12(RHICommandList& cmdList, U32 numViews, RHITextureResource views[])
+{
+    std::cout << "D3D12 SetRenderTargets called with numViews: " << numViews << std::endl;
+    for (U32 i = 0; i < numViews; ++i)
+    {
+        //std::cout << "RHITextureResource pointer: " << views[i].pNativeTextureResource << std::endl;
+    }
+}
+
 void ClearColor_D3D12(RHICommandList& cmdlist, RHITextureResource& resource, const vec4f& color)
 {
     //CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
@@ -71,6 +80,7 @@ RHIFunctionTable D3D12Table =
     CreateComputePipeline_D3D12,
     CreateCommandList_D3D12,
     SetVertexBuffers_D3D12,
+    SetRenderTargets_D3D12,
     ClearColor_D3D12,
     ClearDepth_D3D12,
     DrawIndexedInstanced_D3D12
