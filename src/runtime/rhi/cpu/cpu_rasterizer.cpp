@@ -712,8 +712,9 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
 
 }
 
-void DrawIndexedCPUImpl(const CPUCommandList& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
+void DrawIndexedCPUImpl(const CPUCommandList& cmd, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
 {
+/*
     GR_TRACE_START(SYS_RENDERING);
 
     // TODO Log this to profiler and not output to console
@@ -878,9 +879,10 @@ void DrawIndexedCPUImpl(const CPUCommandList& cmd, const Buffer& vb, U32 indexCo
             }
         }
     }
+*/
 }
 
-void DrawIndexedTiledCPUImpl(const CPUCommandList& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
+void DrawIndexedTiledCPUImpl(const CPUCommandList& cmd, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
 {
 }
 

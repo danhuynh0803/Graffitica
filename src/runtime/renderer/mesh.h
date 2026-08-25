@@ -26,6 +26,7 @@ public :
     // TODO Data can be passed as singular strided buffer or with multiple streams
     // Allow cpu renderer access to attributes directly for testing
     const std::vector<vec3f>& GetVertices() const { return m_Verts; }
+    const std::vector<U16>& GetIndices() const { return m_Indices; }
     const std::vector<vec3f>& GetNormals() const { return m_Normals; }
     const std::vector<vec2f>& GetTexCoords() const { return m_TexCoords; }
     const std::vector<VertexAttributes>& GetVertexAttributes() const { return m_VertexAttributes; }
@@ -37,6 +38,7 @@ public :
 private:
     std::vector<VertexAttributes> m_VertexAttributes;
     std::vector<vec3f> m_Verts;
+    std::vector<U16> m_Indices;
     std::vector<vec3f> m_Normals;
     std::vector<vec2f> m_TexCoords;
     std::vector<std::vector<int>> m_Faces;

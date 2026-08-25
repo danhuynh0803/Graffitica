@@ -169,6 +169,7 @@ Mesh::Mesh(const SimpleMesh& mesh)
     for (int i = 0; i < m_Verts.size(); i += 3)
     {
         std::vector<int> indices = {i, i+1, i+2};
+        m_Indices.append_range(indices);
         m_Faces.emplace_back(indices);
     }
 }

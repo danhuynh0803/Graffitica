@@ -22,13 +22,16 @@ public:
     virtual void UpdateBackBuffer(SDL_Surface* surfaceToUpdate) override;
 
     CPUSwapchain* GetSwapchain() const { return m_Swapchain.get(); }
+    CPU_RHI* GetRHIInstance() { return s_CPURHIInstance.get(); }
 
 public:
     CPUGraphicsContext(SDL_Window* window);
 
 private:
     inline static std::unique_ptr<CPUGraphicsContext> s_CPUGraphicsContextInstance;
+    inline static std::unique_ptr<CPU_RHI> s_CPURHIInstance;
     std::unique_ptr<CPUSwapchain> m_Swapchain;
+
 };
 
 }

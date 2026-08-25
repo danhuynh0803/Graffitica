@@ -13,7 +13,7 @@ namespace gr::rhi
 class CPUSwapchain final : public ISwapchain
 {
 public:
-    CPUSwapchain(const SwapchainProperties& props);
+    CPUSwapchain(const SwapchainProperties& props, CPU_RHI* rhiInstance);
     ~CPUSwapchain() = default;
     ImageFormat GetSurfaceFormat() const { return m_SwapchainFormat; }
 
@@ -24,12 +24,12 @@ public:
     U32 GetCurrentBackBufferIndex() const { return m_CurrentFrameIndex; }
     U32 GetImageCount() const { return m_ImageCount; }
 
-    CPUTextureResource& GetCurrentFrameResource() {
-        return m_PresentResources.at(m_CurrentFrameIndex);
+    TextureHandle GetCurrentFrameResourceHandle() {
+        return m_PresentResourceHandles.at(m_CurrentFrameIndex);
     }
 
-    CPUTextureResource& GetFrameResource(int i) {
-        return m_PresentResources.at(i);
+    TextureHandle GetFrameResourceHandle(int i) {
+        return m_PresentResourceHandles.at(i);
     }
 
     //template <typename TFormat>
@@ -47,12 +47,9 @@ private:
     U32 m_ImageCount;
     U32 m_CurrentFrameIndex;
     ImageFormat m_SwapchainFormat;
-    //ImageView<R8G8B8A8_UNORM> m_BackBuffer;
-    //std::vector<Image<FORMAT_R8G8B8A8_UNORM>> m_PresentImages;
-    //std::vector<ImageView<FORMAT_R8G8B8A8_UNORM>> m_PresentImageViews;
-    std::vector<CPUTextureResource> m_PresentResources;
-
+    std::vector<TextureHandle> m_PresentResourceHandles;
     SDL_Surface* m_PresentSurface;
+    CPU_RHI* m_RHIInstance;
 };
 
 }

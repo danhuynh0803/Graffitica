@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <SDL3/SDL.h>
+#include "rhi/interface/rhi.h"
 
 namespace gr::rhi
 {

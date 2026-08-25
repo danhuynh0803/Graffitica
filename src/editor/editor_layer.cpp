@@ -53,12 +53,10 @@ namespace
     CameraController gCameraController(&gCamera);
     ShaderCompilerModule gShaderCompilerModule {};
 
+    rhi::CPU_RHI* pRHI;
     rhi::RHICommandList gCmdlist;
-    rhi::RHITextureResource gBackbufferResource;
-    rhi::RHITextureResource gDepthBuffer;
+    rhi::TextureHandle gDepthBufferHndl;
     rhi::BufferHandle gVertexBuffer;
-
-    rhi::CPU_RHI gRHI;
 }
 
 EditorLayer::EditorLayer(const std::string& name)
@@ -72,15 +70,16 @@ EditorLayer::EditorLayer(const std::string& name)
     std::uniform_real_distribution<float> dis(0.0f, 1.0f);
 
     pGfxContext = rhi::CPUGraphicsContext::GetInstance();
+    pRHI = pGfxContext->GetRHIInstance();
     pSwapchain = pGfxContext->GetSwapchain();
-    gCmdlist = gRHI.CreateCommandList();
+    gCmdlist = pRHI->CreateCommandList();
 
-    rhi::TextureDesc depthDesc {
+    rhi::TextureDesc targetDesc {
         .width = pSwapchain->GetWidth(),
         .height = pSwapchain->GetHeight(),
         .format = rhi::ImageFormat::D32_SFLOAT
     };
-    gDepthBuffer = gr::rhi::CreateTexture(depthDesc);
+    gDepthBufferHndl = pRHI->CreateTexture(targetDesc);
 }
 
 void EditorLayer::OnUpdate(double dt)
@@ -89,14 +88,14 @@ void EditorLayer::OnUpdate(double dt)
 
     gCameraController.OnUpdate(static_cast<float>(dt));
 
-    gBackbufferResource.pNativeTextureResource = &(pSwapchain->GetCurrentFrameResource());
-
-    gRHI.ClearColor(gCmdlist, gBackbufferResource, { .4, .5, .7, 1.0 });
-    gRHI.ClearDepth(gCmdlist, gDepthBuffer, 1.0f);
-    gRHI.SetVertexBuffers(gCmdlist, 1, &gVertexBuffer);
+    auto backBufferHndl = pSwapchain->GetCurrentFrameResourceHandle();
+    
+    pRHI->ClearColor(gCmdlist, backBufferHndl, { .4, .5, .7, 1.0 });
+    pRHI->ClearDepth(gCmdlist, gDepthBufferHndl, 1.0f);
+    pRHI->SetVertexBuffers(gCmdlist, 1, &gVertexBuffer);
 
     //rhi::DispatchRays(gCmdlist, pSwapchain->GetWidth(), pSwapchain->GetHeight(), 1);
-    //rhi::DrawIndexedInstanced(gCmdlist, )
+    //pRHI.DrawIndexedInstanced(gCmdlist, model.m_MeshData->GetIndices().size(), 1, 0, 0, 0);
 }
 
 void EditorLayer::OnEvent(Event& event)

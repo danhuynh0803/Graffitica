@@ -22,18 +22,19 @@ namespace gr::rhi
 /*
 RHI Buffer Handles
 */
-struct BufferHandle { U32 index; };
+typedef U32 BufferHandle;
+
 struct BufferDesc
 {
     U32 size;
     U32 usageFlags;
-
 };
 
 /*
 RHI Texture Handles
 */
-struct TextureHandle { U32 index; };
+typedef U32 TextureHandle;
+
 struct TextureDesc
 {
     U32 width;
@@ -154,8 +155,9 @@ namespace gr::rhi
 {
 
 template <typename RHI>
-struct T_RHI
+class T_RHI
 {
+public:
     BufferHandle CreateBuffer(const BufferDesc& desc)
     {
         return static_cast<RHI*>(this)->CreateBuffer(desc);

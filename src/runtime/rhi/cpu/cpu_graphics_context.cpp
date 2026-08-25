@@ -3,9 +3,6 @@
 
 namespace gr::rhi
 {
-
-//std::shared_ptr<CPUGraphicsContext> CPUGraphicsContext::s_CPUGraphicsContextInstance = nullptr;
-
 CPUGraphicsContext* CPUGraphicsContext::CreateInstance(SDL_Window* window)
 {
     s_CPUGraphicsContextInstance = std::make_unique<CPUGraphicsContext>(window);
@@ -22,7 +19,8 @@ CPUGraphicsContext::CPUGraphicsContext(SDL_Window* window)
         .format = gr::rhi::ImageFormat::R8G8B8A8_UNORM
     };
 
-    m_Swapchain = std::make_unique<CPUSwapchain>(props);
+    s_CPURHIInstance = std::make_unique<CPU_RHI>();
+    m_Swapchain = std::make_unique<CPUSwapchain>(props, s_CPURHIInstance.get());
 }
 
 void CPUGraphicsContext::UpdateBackBuffer(SDL_Surface* surfaceToUpdate)

@@ -9,7 +9,7 @@ RHIFunctionTable* g_RHI = nullptr;
 
 extern RHIFunctionTable d3d12::D3D12Table;
 //extern RHIFunctionTable VulkanTable; // TODO on vk branch
-extern RHIFunctionTable CPUTable;
+//extern RHIFunctionTable CPUTable;
 
 void InitRHI(RHI_BACKEND backend)
 {
@@ -22,7 +22,7 @@ void InitRHI(RHI_BACKEND backend)
         //g_RHI = &VulkanTable;
         break;
     case RHI_BACKEND::CPU:
-        g_RHI = &CPUTable;
+        //g_RHI = &CPUTable;
         break;
     default:
         throw std::runtime_error("Unsupported RHI backend");
