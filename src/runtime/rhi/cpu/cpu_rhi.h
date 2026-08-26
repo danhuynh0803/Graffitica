@@ -5,6 +5,8 @@
 #include "rhi/interface/pipeline.h"
 #include "util/resource_pool.h"
 #include "cpu_command_list.h"
+#include "cpu_command.h"
+#include "cpu_pipeline.h"
 
 //class RHIGraphicsPipelineHandle;
 
@@ -100,6 +102,8 @@ public:
 class CPU_RHI : public T_RHI<CPU_RHI>
 {
 public:
+    CPU_RHI() = default;
+
     [[nodiscard]] BufferHandle CreateBuffer(const BufferDesc& desc)
     {
         GR_TRACE_START(SYS_RENDERING);
@@ -141,6 +145,39 @@ public:
         RHICommandList cmdList;
         cmdList.pNativeCmdList = new CPUCommandList();
         return cmdList;
+    }
+
+    void ExecuteCommandList(const RHICommandList& cmdlist)
+    {
+        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
+
+        for (const auto& cmd : pCmdlist->m_Commands)
+        {
+            switch (cmd.type) {
+            case CommandType::ClearColor:
+            {
+                const auto& ctx = cmd.clearColor;
+                auto& resource = m_TexturePool.Get(ctx.target);
+                pCmdlist->ClearColorImpl(resource, ctx.color);
+                break;
+            }
+            case CommandType::ClearDepth:
+            {
+                const auto& ctx = cmd.clearDepth;
+                auto& resource = m_TexturePool.Get(ctx.target);
+                pCmdlist->ClearDepthImpl(resource, ctx.depth);
+                break;
+            }
+            case CommandType::DrawIndexedInstanced:
+                break;
+            case CommandType::Dispatch:
+                break;
+            default:
+                throw std::runtime_error("CPU_RHI: Invalid CommandType");
+                break;
+            }
+        
+        }
     }
     
     void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])

@@ -12,14 +12,12 @@ namespace gr
 // For testing function table dispatch
 gr::rhi::IGraphicsContext* CreateRHI(RHI_BACKEND backend, SDL_Window* window)
 {
-    rhi::InitRHI(backend);
-
     switch (backend)
     {
     case RHI_BACKEND::D3D12:
         return rhi::IGraphicsContext::Create<rhi::d3d12::D3D12GraphicsContext>(window);
     case RHI_BACKEND::VULKAN:
-        // TODO
+        //return rhi::IGraphicsContext::Create<rhi::d3d12::VulkanGraphicsContext>(window);
         break;
     case RHI_BACKEND::CPU:
         return rhi::IGraphicsContext::Create<rhi::CPUGraphicsContext>(window);

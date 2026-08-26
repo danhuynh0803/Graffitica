@@ -31,6 +31,7 @@ public:
 
     virtual void SwapBackBuffers() override {};
     virtual void UpdateBackBuffer(SDL_Surface* surfaceToUpdate) override;
+    virtual IRHIRuntime* GetRHIRuntime() override { return s_RHIRuntime.get(); }
 
 public:
     D3D12GraphicsContext(SDL_Window* window);
@@ -39,6 +40,8 @@ private:
     FeatureSupportData m_FeatureSupportData;
 
     inline static std::unique_ptr<D3D12GraphicsContext> s_GraphicsContextInstance;
+    inline static std::unique_ptr<IRHIRuntime> s_RHIRuntime;
+
     std::unique_ptr<D3D12Swapchain> m_Swapchain;
 
     ComPtr<ID3D12Device> m_Device;

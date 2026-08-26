@@ -10,6 +10,7 @@ namespace gr::rhi
 {
 
 class CPUTextureResource;
+class Command;
 
 class CPUCommandList
 {
@@ -45,6 +46,8 @@ public:
     mat44 mvp;
 
 private:
+    std::vector<Command> m_Commands;
+    
     // TODO: store command list state here, e.g. current framebuffer, pipeline state, shader resources, etc
     //Framebuffer* framebuffer;
     // Hardcode to max 8 streams for now and max 8 color targets
@@ -56,7 +59,6 @@ private:
     CPUGraphicsPipeline* m_GraphicsPipeline;
     CPUComputePipeline* m_ComputePipeline;
     //ShaderModule* m_ShaderModule;
-
 };
 
 } // namespace gr::rhi

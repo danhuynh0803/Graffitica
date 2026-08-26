@@ -20,18 +20,19 @@ public:
 
     virtual void SwapBackBuffers() override {};
     virtual void UpdateBackBuffer(SDL_Surface* surfaceToUpdate) override;
+    virtual IRHIRuntime* GetRHIRuntime() override { return m_RHIRuntime.get(); }
 
     CPUSwapchain* GetSwapchain() const { return m_Swapchain.get(); }
-    CPU_RHI* GetRHIInstance() { return s_CPURHIInstance.get(); }
+    //CPU_RHI* GetRHIInstance() { return m_CPURHIInstance.get(); }
 
 public:
     CPUGraphicsContext(SDL_Window* window);
 
 private:
     inline static std::unique_ptr<CPUGraphicsContext> s_CPUGraphicsContextInstance;
-    inline static std::unique_ptr<CPU_RHI> s_CPURHIInstance;
+    std::unique_ptr<CPU_RHI> m_CPURHIInstance;
+    std::unique_ptr<IRHIRuntime> m_RHIRuntime;
     std::unique_ptr<CPUSwapchain> m_Swapchain;
-
 };
 
 }

@@ -154,76 +154,170 @@ void InitRHI(RHI_BACKEND backend);
 namespace gr::rhi
 {
 
-template <typename RHI>
-class T_RHI
+// Runtime-Wrapper for switching RHI contexts
+class IRHIRuntime
 {
 public:
-    BufferHandle CreateBuffer(const BufferDesc& desc)
+    virtual ~IRHIRuntime() = default;
+    virtual BufferHandle CreateBuffer(const BufferDesc&) = 0;
+    virtual TextureHandle CreateTexture(const TextureDesc&) = 0;
+    virtual RHICommandList CreateCommandList() = 0;
+};
+
+template<typename TRHIBackend>
+class RHIWrapper : IRHIRuntime
+{
+public:
+    RHIWrapper() = default;
+
+    virtual BufferHandle CreateBuffer(const BufferDesc& desc) override
     {
-        return static_cast<RHI*>(this)->CreateBuffer(desc);
+        return backend.CreateBuffer(desc);
     }
 
-    RHITextureResource CreateTexture(const TextureDesc& desc)
+    virtual TextureHandle CreateTexture(const TextureDesc& desc) override
     {
-        return static_cast<RHI*>(this)->CreateTexture(desc);
+        return backend.CreateTexture(desc);
     }
 
-    RHIGraphicsPipeline CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
-    {
-        return static_cast<RHI*>(this)->CreateGraphicsPipeline(desc);
-    }
+    //RHIGraphicsPipeline CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
+    //{
+    //    return static_cast<TRHIBackend*>(this)->CreateGraphicsPipeline(desc);
+    //}
+    //
+    //RHIComputePipeline CreateComputePipeline(const ComputePipelineDesc& desc)
+    //{
+    //    return static_cast<TRHIBackend*>(this)->CreateComputePipeline(desc);
+    //}
 
-    RHIComputePipeline CreateComputePipeline(const ComputePipelineDesc& desc)
-    {
-        return static_cast<RHI*>(this)->CreateComputePipeline(desc);
-    }
-
-    RHICommandList CreateCommandList()
+    virtual RHICommandList CreateCommandList() override
     {
         GR_TRACE_START(SYS_RENDERING);
-        return static_cast<RHI*>(this)->CreateCommandList();
+        return backend.CreateCommandList();
     }
 
-    void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])
-    {
-        GR_TRACE_START(SYS_RENDERING);
-        static_cast<RHI*>(this)->SetVertexBuffers(cmdlist, numViews, views);
-    }
-
-    void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, RHITextureResource views[])
-    {
-        GR_TRACE_START(SYS_RENDERING);
-        static_cast<RHI*>(this)->SetRenderTargets(cmdlist, numViews, views);
-    }
+    //void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])
+    //{
+    //    GR_TRACE_START(SYS_RENDERING);
+    //    static_cast<TRHIBackend*>(this)->SetVertexBuffers(cmdlist, numViews, views);
+    //}
+    //
+    //void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, RHITextureResource views[])
+    //{
+    //    GR_TRACE_START(SYS_RENDERING);
+    //    static_cast<TRHIBackend*>(this)->SetRenderTargets(cmdlist, numViews, views);
+    //}
 
     void ClearColor(RHICommandList& cmdlist, RHITextureResource& resource, const vec4f& color)
     {
         GR_TRACE_START(SYS_RENDERING)
-        static_cast<RHI*>(this)->ClearColor(cmdlist, resource, color);
+        backend.ClearColor(cmdlist, resource, color);
     }
 
     void ClearDepth(RHICommandList& cmdlist, RHITextureResource& resource, float clearDepth)
     {
         GR_TRACE_START(SYS_RENDERING);
-        static_cast<RHI*>(this)->ClearDepth(cmdlist, resource, clearDepth);
+        backend.ClearDepth(cmdlist, resource, clearDepth);
+    }
+
+    //void DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
+    //{
+    //    GR_TRACE_START(SYS_RENDERING);
+    //    static_cast<TRHIBackend*>(this)->DrawIndexedInstanced(cmdlist, indexCount, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
+    //}
+    //
+    //void Dispatch(RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ)
+    //{
+    //    GR_TRACE_START(SYS_RENDERING);
+    //    static_cast<TRHIBackend*>(this)->Dispatch(cmdlist, groupCountX, groupCountY, groupCountZ);
+    //}
+    //
+    //void DispatchRays(RHICommandList& cmdlist, U32 width, U32 height, U32 depth)
+    //{
+    //    GR_TRACE_START(SYS_RENDERING);
+    //    static_cast<TRHIBackend*>(this)->DispatchRays(cmdlist, width, height, depth);
+    //}
+
+private:
+    TRHIBackend backend;
+};
+
+template <typename TRHIBackend>
+class T_RHI
+{
+public:
+    BufferHandle CreateBuffer(const BufferDesc& desc)
+    {
+        return static_cast<TRHIBackend*>(this)->CreateBuffer(desc);
+    }
+
+    RHITextureResource CreateTexture(const TextureDesc& desc)
+    {
+        return static_cast<TRHIBackend*>(this)->CreateTexture(desc);
+    }
+
+    RHIGraphicsPipeline CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
+    {
+        return static_cast<TRHIBackend*>(this)->CreateGraphicsPipeline(desc);
+    }
+
+    RHIComputePipeline CreateComputePipeline(const ComputePipelineDesc& desc)
+    {
+        return static_cast<TRHIBackend*>(this)->CreateComputePipeline(desc);
+    }
+
+    RHICommandList CreateCommandList()
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        return static_cast<TRHIBackend*>(this)->CreateCommandList();
+    }
+
+    void ExecuteCommandList(const RHICommandList& cmdlist)
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        return static_cast<TRHIBackend*>(this)->ExecuteCommandList();
+    }
+
+    void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        static_cast<TRHIBackend*>(this)->SetVertexBuffers(cmdlist, numViews, views);
+    }
+
+    void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, RHITextureResource views[])
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        static_cast<TRHIBackend*>(this)->SetRenderTargets(cmdlist, numViews, views);
+    }
+
+    void ClearColor(RHICommandList& cmdlist, RHITextureResource& resource, const vec4f& color)
+    {
+        GR_TRACE_START(SYS_RENDERING)
+        static_cast<TRHIBackend*>(this)->ClearColor(cmdlist, resource, color);
+    }
+
+    void ClearDepth(RHICommandList& cmdlist, RHITextureResource& resource, float clearDepth)
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        static_cast<TRHIBackend*>(this)->ClearDepth(cmdlist, resource, clearDepth);
     }
 
     void DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
     {
         GR_TRACE_START(SYS_RENDERING);
-        static_cast<RHI*>(this)->DrawIndexedInstanced(cmdlist, indexCount, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
+        static_cast<TRHIBackend*>(this)->DrawIndexedInstanced(cmdlist, indexCount, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
     }
 
     void Dispatch(RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ)
     {
         GR_TRACE_START(SYS_RENDERING);
-        static_cast<RHI*>(this)->Dispatch(cmdlist, groupCountX, groupCountY, groupCountZ);
+        static_cast<TRHIBackend*>(this)->Dispatch(cmdlist, groupCountX, groupCountY, groupCountZ);
     }
 
     void DispatchRays(RHICommandList& cmdlist, U32 width, U32 height, U32 depth)
     {
         GR_TRACE_START(SYS_RENDERING);
-        static_cast<RHI*>(this)->DispatchRays(cmdlist, width, height, depth);
+        static_cast<TRHIBackend*>(this)->DispatchRays(cmdlist, width, height, depth);
     }
 };
 

@@ -1,5 +1,6 @@
 #include "cpu_command_list.h"
 #include "cpu_rhi.h"
+#include "cpu_command.h"
 
 namespace gr::rhi
 {

@@ -19,8 +19,9 @@ CPUGraphicsContext::CPUGraphicsContext(SDL_Window* window)
         .format = gr::rhi::ImageFormat::R8G8B8A8_UNORM
     };
 
-    s_CPURHIInstance = std::make_unique<CPU_RHI>();
-    m_Swapchain = std::make_unique<CPUSwapchain>(props, s_CPURHIInstance.get());
+    m_CPURHIInstance = std::make_unique<CPU_RHI>();
+    //m_RHIRuntime = std::make_unique<RHIWrapper<CPU_RHI>>();
+    m_Swapchain = std::make_unique<CPUSwapchain>(props, m_CPURHIInstance.get());
 }
 
 void CPUGraphicsContext::UpdateBackBuffer(SDL_Surface* surfaceToUpdate)
