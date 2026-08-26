@@ -11,7 +11,8 @@ rhi::TextureHandle RenderGraphBuilder::CreateTexture(const rhi::TextureDesc& des
 
 rhi::BufferHandle  RenderGraphBuilder::CreateBuffer(const rhi::BufferDesc& desc, const char* debugName)
 {
-    return m_RHI->CreateBuffer(desc);
+    //return m_RHI->CreateBuffer(desc);
+    return {};
 }
 
 

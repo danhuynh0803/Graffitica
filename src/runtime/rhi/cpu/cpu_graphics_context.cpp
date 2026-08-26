@@ -20,7 +20,8 @@ CPUGraphicsContext::CPUGraphicsContext(SDL_Window* window)
     };
 
     m_CPURHIInstance = std::make_unique<CPU_RHI>();
-    //m_RHIRuntime = std::make_unique<RHIWrapper<CPU_RHI>>();
+    m_RHIContext = std::make_unique<RHIContext>();
+    m_RHIContext->InitRHI<CPU_RHI>(m_CPURHIInstance.get());
     m_Swapchain = std::make_unique<CPUSwapchain>(props, m_CPURHIInstance.get());
 }
 

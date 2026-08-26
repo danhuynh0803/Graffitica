@@ -5,6 +5,7 @@
 namespace gr::rhi::d3d12
 {
 
+/*
 BufferHandle CreateBuffer_D3D12(const BufferDesc& desc)
 {
     std::cout << "D3D12 CreateBuffer called with size: " << desc.size << " and usageFlags: " << desc.usageFlags << std::endl;
@@ -85,5 +86,7 @@ RHIFunctionTable D3D12Table =
     ClearDepth_D3D12,
     DrawIndexedInstanced_D3D12
 };
+
+*/
 
 } // namespace gr::rhi::d3d12

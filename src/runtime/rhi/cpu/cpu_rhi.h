@@ -99,7 +99,7 @@ public:
     }
 };
 
-class CPU_RHI : public T_RHI<CPU_RHI>
+class CPU_RHI
 {
 public:
     CPU_RHI() = default;
@@ -248,8 +248,8 @@ public:
     }
 
     // TODO: Expose for quick testing
-    CPUBufferResourcePool& GetBufferPool() { return m_BufferPool; }
-    CPUTextureResourcePool& GetTexturePool() { return m_TexturePool; }
+    //CPUBufferResourcePool& GetBufferPool() { return m_BufferPool; }
+    //CPUTextureResourcePool& GetTexturePool() { return m_TexturePool; }
 
 private:
     CPUBufferResourcePool  m_BufferPool;

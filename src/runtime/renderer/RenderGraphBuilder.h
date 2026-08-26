@@ -19,7 +19,7 @@ public:
 
 private:
     std::vector<RenderGraphPass> m_RenderPasses;
-    rhi::RHIFunctionTable* m_RHI;
+    //rhi::RHIFunctionTable* m_RHI;
 };
 
 } // namespace gr

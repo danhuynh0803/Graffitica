@@ -24,8 +24,7 @@ public:
     }
 
     //static ISwapchain* GetSwapchain() { return GetInstance()->GetSwapchain(); }
-
-    virtual IRHIRuntime* GetRHIRuntime() = 0;
+    virtual RHIContext* GetRHIContext() = 0;
 
 protected:
 };

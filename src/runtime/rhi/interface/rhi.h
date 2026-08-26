@@ -47,201 +47,167 @@ struct RHITextureResource
     void* pNativeTextureResource;
 };
 
-struct RHIFunctionTable
+// Settling on the following design:
+// Prefered the function ptr table approach over using inheritance
+struct RHIContext
 {
     // Resource creation
-    BufferHandle (*CreateBuffer)(const BufferDesc&);
+    BufferHandle (*pfnCreateBuffer)(void*, const BufferDesc&);
     // TODO switch to returning texture handle
     // Right now use RHI resource directly for rendering to swapchain
     // from CPU RHI side
-    RHITextureResource (*CreateTexture)(const TextureDesc&);
-    RHIGraphicsPipeline (*CreateGraphicsPipeline)(const GraphicsPipelineDesc&);
-    RHIComputePipeline  (*CreateComputePipeline)(const ComputePipelineDesc&);
-    RHICommandList (*CreateCommandList)();
+    TextureHandle (*pfnCreateTexture)(void*, const TextureDesc&);
+    RHIGraphicsPipeline (*pfnCreateGraphicsPipeline)(void*, const GraphicsPipelineDesc&);
+    RHIComputePipeline  (*pfnCreateComputePipeline)(void*, const ComputePipelineDesc&);
+    RHICommandList (*pfnCreateCommandList)(void*);
     // Binding cmds
-    void (*SetVertexBuffers)(RHICommandList& cmdlist, U32 numViews, BufferHandle[]);
-    void (*SetRenderTargets)(RHICommandList& cmdlist, U32 numViews, RHITextureResource[]);
+    void (*pfnSetVertexBuffers)(void*, RHICommandList& cmdlist, U32 numViews, BufferHandle[]);
+    void (*pfnSetRenderTargets)(void*, RHICommandList& cmdlist, U32 numViews, TextureHandle[]);
 
     // Draw cmds
-    void (*ClearColor)(RHICommandList& cmdlist, RHITextureResource& resource, const vec4f& color);
-    void (*ClearDepth)(RHICommandList& cmdlist, RHITextureResource& resource, float clearDepth);
-
-    void (*DrawIndexedInstanced)(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInststanceLocation);
-    void (*Dispatch)(RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ);
-    void (*DispatchRays)(RHICommandList& cmdlist, U32 width, U32 height, U32 depth);
-};
-extern RHIFunctionTable* g_RHI;
+    void (*pfnClearColor)(void*, RHICommandList& cmdlist, TextureHandle& resource, const vec4f& color);
+    void (*pfnClearDepth)(void*, RHICommandList& cmdlist, TextureHandle& resource, float clearDepth);
+    void (*pfnDrawIndexedInstanced)(void*, RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInststanceLocation);
+    void (*pfnDispatch)(void*, RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ);
+    void (*pfnDispatchRays)(void*, RHICommandList& cmdlist, U32 width, U32 height, U32 depth);
 
 
-inline BufferHandle CreateBuffer(const BufferDesc& desc)
-{
-    GR_TRACE_START(SYS_RENDERING);
-    return g_RHI->CreateBuffer(desc);
-}
-
-inline RHITextureResource CreateTexture(const TextureDesc& desc)
-{
-    GR_TRACE_START(SYS_RENDERING);
-    return g_RHI->CreateTexture(desc);
-}
-
-inline RHIGraphicsPipeline CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
-{
-    GR_TRACE_START(SYS_RENDERING);
-    return g_RHI->CreateGraphicsPipeline(desc);
-}
-
-inline RHIComputePipeline CreateComputePipeline(const ComputePipelineDesc& desc)
-{
-    GR_TRACE_START(SYS_RENDERING);
-    return g_RHI->CreateComputePipeline(desc);
-}
-
-inline RHICommandList CreateCommandList()
-{
-    GR_TRACE_START(SYS_RENDERING);
-    return g_RHI->CreateCommandList();
-}
-
-inline void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])
-{
-    GR_TRACE_START(SYS_RENDERING);
-    g_RHI->SetVertexBuffers(cmdlist, numViews, views);
-}
-
-inline void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, RHITextureResource views[])
-{
-    GR_TRACE_START(SYS_RENDERING);
-    g_RHI->SetRenderTargets(cmdlist, numViews, views);
-}
-
-inline void ClearColor(RHICommandList& cmdlist, RHITextureResource& resource, const vec4f& color)
-{
-    GR_TRACE_START(SYS_RENDERING);
-    g_RHI->ClearColor(cmdlist, resource, color);
-}
-
-inline void ClearDepth(RHICommandList& cmdlist, RHITextureResource& resource, float clearDepth)
-{
-    GR_TRACE_START(SYS_RENDERING);
-    g_RHI->ClearDepth(cmdlist, resource, clearDepth);
-}
-
-inline void DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
-{
-    GR_TRACE_START(SYS_RENDERING);
-    g_RHI->DrawIndexedInstanced(cmdlist, indexCount, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
-}
-
-inline void Dispatch(RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ)
-{
-    GR_TRACE_START(SYS_RENDERING);
-    g_RHI->Dispatch(cmdlist, groupCountX, groupCountY, groupCountZ);
-}
-
-// TODO - update function signature to have SBT refs to each RT stage
-// separate CPU RT stages to separate function ptrs
-inline void DispatchRays(RHICommandList& cmdlist, U32 width, U32 height, U32 depth)
-{
-    GR_TRACE_START(SYS_RENDERING);
-    g_RHI->DispatchRays(cmdlist, width, height, depth);
-}
-
-void InitRHI(RHI_BACKEND backend);
-
-} // namespace gr::rhi
-
-namespace gr::rhi
-{
-
-// Runtime-Wrapper for switching RHI contexts
-class IRHIRuntime
-{
-public:
-    virtual ~IRHIRuntime() = default;
-    virtual BufferHandle CreateBuffer(const BufferDesc&) = 0;
-    virtual TextureHandle CreateTexture(const TextureDesc&) = 0;
-    virtual RHICommandList CreateCommandList() = 0;
-};
-
-template<typename TRHIBackend>
-class RHIWrapper : IRHIRuntime
-{
-public:
-    RHIWrapper() = default;
-
-    virtual BufferHandle CreateBuffer(const BufferDesc& desc) override
-    {
-        return backend.CreateBuffer(desc);
+    // Sets the function table to the appropriate backend implementation
+    void* pInstance = nullptr;
+    bool IsValid() { 
+        return pInstance != nullptr; 
     }
 
-    virtual TextureHandle CreateTexture(const TextureDesc& desc) override
+    template <typename TRHIBackend>
+    void InitRHI(TRHIBackend* instance)
     {
-        return backend.CreateTexture(desc);
+        pInstance = instance;
+
+        pfnCreateBuffer = [](void* p, const BufferDesc& desc) -> BufferHandle {
+            return static_cast<TRHIBackend*>(p)->CreateBuffer(desc);
+        };
+
+        pfnCreateTexture = [](void* p, const TextureDesc& desc) -> TextureHandle {
+            return static_cast<TRHIBackend*>(p)->CreateTexture(desc);
+        };
+
+        pfnCreateGraphicsPipeline = [](void* p, const GraphicsPipelineDesc& desc) -> RHIGraphicsPipeline {
+            return static_cast<TRHIBackend*>(p)->CreateGraphicsPipeline(desc);
+        };
+
+        pfnCreateComputePipeline = [](void* p, const ComputePipelineDesc& desc) -> RHIComputePipeline {
+            return static_cast<TRHIBackend*>(p)->CreateComputePipeline(desc);
+        };
+
+        pfnCreateCommandList = [](void* p) -> RHICommandList {
+            return static_cast<TRHIBackend*>(p)->CreateCommandList();
+        };
+
+        pfnSetVertexBuffers = [](void* p, RHICommandList& cmdlist, U32 numViews, BufferHandle views[]) {
+            static_cast<TRHIBackend*>(p)->SetVertexBuffers(cmdlist, numViews, views);
+        };
+
+        pfnSetRenderTargets = [](void* p, RHICommandList& cmdlist, U32 numViews, TextureHandle views[]) {
+            static_cast<TRHIBackend*>(p)->SetRenderTargets(cmdlist, numViews, views);
+        };
+
+        pfnClearColor = [](void* p, RHICommandList& cmdlist, TextureHandle& resource, const vec4f& color) {
+            static_cast<TRHIBackend*>(p)->ClearColor(cmdlist, resource, color);
+        };
+
+        pfnClearDepth = [](void* p, RHICommandList& cmdlist, TextureHandle& resource, float clearDepth) {
+            static_cast<TRHIBackend*>(p)->ClearDepth(cmdlist, resource, clearDepth);
+        };
+
+        pfnDrawIndexedInstanced = [](void* p, RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation) {
+            static_cast<TRHIBackend*>(p)->DrawIndexedInstanced(cmdlist, indexCount, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
+        };
+
+        pfnDispatch = [](void* p, RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ) {
+            static_cast<TRHIBackend*>(p)->Dispatch(cmdlist, groupCountX, groupCountY, groupCountZ);
+        };
+
+        pfnDispatchRays = [](void* p, RHICommandList& cmdlist, U32 width, U32 height, U32 depth) {
+            static_cast<TRHIBackend*>(p)->DispatchRays(cmdlist, width, height, depth);
+        };
     }
 
-    //RHIGraphicsPipeline CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
-    //{
-    //    return static_cast<TRHIBackend*>(this)->CreateGraphicsPipeline(desc);
-    //}
-    //
-    //RHIComputePipeline CreateComputePipeline(const ComputePipelineDesc& desc)
-    //{
-    //    return static_cast<TRHIBackend*>(this)->CreateComputePipeline(desc);
-    //}
-
-    virtual RHICommandList CreateCommandList() override
+    [[nodiscard]] BufferHandle CreateBuffer(const BufferDesc& desc)
     {
         GR_TRACE_START(SYS_RENDERING);
-        return backend.CreateCommandList();
+        return pfnCreateBuffer(pInstance, desc);
     }
 
-    //void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])
-    //{
-    //    GR_TRACE_START(SYS_RENDERING);
-    //    static_cast<TRHIBackend*>(this)->SetVertexBuffers(cmdlist, numViews, views);
-    //}
-    //
-    //void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, RHITextureResource views[])
-    //{
-    //    GR_TRACE_START(SYS_RENDERING);
-    //    static_cast<TRHIBackend*>(this)->SetRenderTargets(cmdlist, numViews, views);
-    //}
-
-    void ClearColor(RHICommandList& cmdlist, RHITextureResource& resource, const vec4f& color)
-    {
-        GR_TRACE_START(SYS_RENDERING)
-        backend.ClearColor(cmdlist, resource, color);
-    }
-
-    void ClearDepth(RHICommandList& cmdlist, RHITextureResource& resource, float clearDepth)
+    [[nodiscard]] TextureHandle CreateTexture(const TextureDesc& desc)
     {
         GR_TRACE_START(SYS_RENDERING);
-        backend.ClearDepth(cmdlist, resource, clearDepth);
+        return pfnCreateTexture(pInstance, desc);
     }
 
-    //void DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
-    //{
-    //    GR_TRACE_START(SYS_RENDERING);
-    //    static_cast<TRHIBackend*>(this)->DrawIndexedInstanced(cmdlist, indexCount, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
-    //}
-    //
-    //void Dispatch(RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ)
-    //{
-    //    GR_TRACE_START(SYS_RENDERING);
-    //    static_cast<TRHIBackend*>(this)->Dispatch(cmdlist, groupCountX, groupCountY, groupCountZ);
-    //}
-    //
-    //void DispatchRays(RHICommandList& cmdlist, U32 width, U32 height, U32 depth)
-    //{
-    //    GR_TRACE_START(SYS_RENDERING);
-    //    static_cast<TRHIBackend*>(this)->DispatchRays(cmdlist, width, height, depth);
-    //}
+    [[nodiscard]] RHIGraphicsPipeline CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        return pfnCreateGraphicsPipeline(pInstance, desc);
+    }
 
-private:
-    TRHIBackend backend;
+    [[nodiscard]] RHIComputePipeline CreateComputePipeline(const ComputePipelineDesc& desc)
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        return pfnCreateComputePipeline(pInstance, desc);
+    }
+
+    [[nodiscard]] RHICommandList CreateCommandList()
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        return pfnCreateCommandList(pInstance);
+    }
+
+    inline void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        pfnSetVertexBuffers(pInstance, cmdlist, numViews, views);
+    }
+
+    inline void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[])
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        pfnSetRenderTargets(pInstance, cmdlist, numViews, views);
+    }
+
+    inline void ClearColor(RHICommandList& cmdlist, TextureHandle resource, const vec4f& color)
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        pfnClearColor(pInstance, cmdlist, resource, color);
+    }
+
+    inline void ClearDepth(RHICommandList& cmdlist, TextureHandle resource, float clearDepth)
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        pfnClearDepth(pInstance, cmdlist, resource, clearDepth);
+    }
+
+    inline void DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        pfnDrawIndexedInstanced(pInstance, cmdlist, indexCount, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
+    }
+
+    inline void Dispatch(RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ)
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        pfnDispatch(pInstance, cmdlist, groupCountX, groupCountY, groupCountZ);
+    }
+
+    // TODO - update function signature to have SBT refs to each RT stage
+    // separate CPU RT stages to separate function ptrs
+    inline void DispatchRays(RHICommandList& cmdlist, U32 width, U32 height, U32 depth)
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        pfnDispatchRays(pInstance, cmdlist, width, height, depth);
+    }
 };
 
+/*
 template <typename TRHIBackend>
 class T_RHI
 {
@@ -320,5 +286,6 @@ public:
         static_cast<TRHIBackend*>(this)->DispatchRays(cmdlist, width, height, depth);
     }
 };
+*/
 
 }
