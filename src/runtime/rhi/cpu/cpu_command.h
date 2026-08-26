@@ -36,10 +36,21 @@ struct Command
 {
     CommandType type;
     union {
-        ClearColorCmd clearColor;
-        ClearDepthCmd clearDepth;
-        DrawIndexedInstancedCmd drawIndexedInstanced;
+        ClearColorCmd clearColorCmd;
+        ClearDepthCmd clearDepthCmd;
+        DrawIndexedInstancedCmd drawIndexedInstancedCmd;
     };
+
+    Command(const ClearColorCmd& c) : type(CommandType::ClearColor), clearColorCmd(c)
+    {
+        //new (&clearColorCmd) ClearColorCmd(c);
+    }
+
+    Command(const ClearDepthCmd& c) : type(CommandType::ClearDepth), clearDepthCmd(c)
+    {
+        //new (&clearDepthCmd) ClearDepthCmd(c);
+    }
+
 };
 
 }

@@ -156,14 +156,14 @@ public:
             switch (cmd.type) {
             case CommandType::ClearColor:
             {
-                const auto& ctx = cmd.clearColor;
+                const auto& ctx = cmd.clearColorCmd;
                 auto& resource = m_TexturePool.Get(ctx.target);
                 pCmdlist->ClearColorImpl(resource, ctx.color);
                 break;
             }
             case CommandType::ClearDepth:
             {
-                const auto& ctx = cmd.clearDepth;
+                const auto& ctx = cmd.clearDepthCmd;
                 auto& resource = m_TexturePool.Get(ctx.target);
                 pCmdlist->ClearDepthImpl(resource, ctx.depth);
                 break;
@@ -200,6 +200,8 @@ public:
         CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
         auto& resource = m_TexturePool.Get(handle);
         pCmdlist->ClearColorImpl(resource, color);
+
+        pCmdlist->m_Commands.emplace_back(ClearColorCmd{ handle, color });
     }
 
     void ClearDepth(RHICommandList& cmdlist, TextureHandle& handle, float clearDepth)
@@ -208,6 +210,8 @@ public:
         CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
         auto& resource = m_TexturePool.Get(handle);
         pCmdlist->ClearDepthImpl(resource, clearDepth);
+
+        pCmdlist->m_Commands.emplace_back(ClearDepthCmd{ handle, clearDepth });
     }
 
     void DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
