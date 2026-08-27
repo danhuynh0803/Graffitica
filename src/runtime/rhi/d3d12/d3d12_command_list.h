@@ -9,10 +9,10 @@ namespace gr::rhi::d3d12
 
 using Microsoft::WRL::ComPtr;
 
-class D3D12CommandList final : public ICommandList<D3D12CommandList>
+class D3D12CommandList final : public ICommandList
 {
 public:
-    D3D12CommandList();
+    D3D12CommandList(CommandListType type);
 
 public:
     ID3D12CommandList* GetRawCommandList() { return m_pCommandList.Get(); }
@@ -21,7 +21,7 @@ public:
     void EndRecording() { }
 
 private:
-    ComPtr<ID3D12CommandList> m_pCommandList = nullptr;
+    ComPtr<ID3D12GraphicsCommandList> m_pCommandList = nullptr;
     ComPtr<ID3D12Device> m_pDevice = nullptr;
     ComPtr<ID3D12CommandAllocator> m_pCommandAllocator;
 };

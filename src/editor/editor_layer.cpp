@@ -57,6 +57,23 @@ namespace
     rhi::RHICommandList gCmdlist;
     rhi::TextureHandle gDepthBufferHndl;
     rhi::BufferHandle gVertexBuffer;
+
+    struct Vertex
+    {
+        vec3f position;
+        // TODO: vec4 simd 16byte alignment causing increase struct size
+        vec4f color;
+        vec3f normal;
+        vec2f uv;
+    };
+
+    Vertex triangleVertices[] =
+    {
+        { { -0.5f,  0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
+        { {  0.5f, -0.5f, 0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f } },
+        { { -0.5f, -0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f } },
+        { {  0.5f,  0.5f, 0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f } },
+    };
 }
 
 EditorLayer::EditorLayer(const std::string& name)
@@ -73,7 +90,7 @@ EditorLayer::EditorLayer(const std::string& name)
     pSwapchain = pGfxContext->GetSwapchain();
     
     pRHI = pGfxContext->GetRHIContext();
-    gCmdlist = pRHI->CreateCommandList();
+    gCmdlist = pRHI->CreateCommandList(rhi::CommandListType::GRAPHICS);
 
     rhi::TextureDesc targetDesc {
         .width = pSwapchain->GetWidth(),

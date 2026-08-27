@@ -5,7 +5,25 @@
 namespace gr::rhi::d3d12
 {
 
-D3D12CommandList::D3D12CommandList()
+D3D12_COMMAND_LIST_TYPE MapTypeToD3D12Type(CommandListType type)
+{
+    switch (type)
+    {
+        case CommandListType::GRAPHICS:
+            return D3D12_COMMAND_LIST_TYPE_DIRECT;
+        case CommandListType::BUNDLE:
+            return D3D12_COMMAND_LIST_TYPE_BUNDLE;
+        case CommandListType::COMPUTE:
+            return D3D12_COMMAND_LIST_TYPE_COMPUTE;
+        case CommandListType::COPY:
+            return D3D12_COMMAND_LIST_TYPE_COPY;
+        default:
+            throw std::runtime_error("No valid CommandListType provided");
+    }
+}
+
+
+D3D12CommandList::D3D12CommandList(CommandListType type)
 {
     // Set ptrs for D12 objects needed for commandlists
     auto ctx = D3D12GraphicsContext::GetInstance();
@@ -21,6 +39,8 @@ D3D12CommandList::D3D12CommandList()
             IID_PPV_ARGS(&m_pCommandList)
         )
     );
+
+    m_pCommandList->Close();
 }
 
 

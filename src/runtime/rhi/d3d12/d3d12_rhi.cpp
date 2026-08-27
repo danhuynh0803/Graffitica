@@ -150,13 +150,12 @@ RHIComputePipeline D3D12_RHI::CreateComputePipeline(const ComputePipelineDesc& d
     return {};
 }
 
-RHICommandList D3D12_RHI::CreateCommandList()
+RHICommandList D3D12_RHI::CreateCommandList(CommandListType type)
 {
     GR_TRACE_START(SYS_RENDERING);
-    std::cout << "D3D12 CreateCommandList called" << std::endl;
-    RHICommandList cmdList;
-    cmdList.pNativeCmdList = new D3D12CommandList();
-    return cmdList;
+    RHICommandList cmdlist;
+    cmdlist.pNativeCmdList = std::make_unique<D3D12CommandList>(type);
+    return cmdlist;
 }
 
 void D3D12_RHI::BeginRecording(RHICommandList& cmdlist)
@@ -178,21 +177,21 @@ void D3D12_RHI::EndRenderPass(RHICommandList& cmdlist)
 
 void D3D12_RHI::ExecuteCommandList(const RHICommandList& cmdlist)
 {
-    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList);
+    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
     auto rawCmdList = pCmdlist->GetRawCommandList();
 }
 
 void D3D12_RHI::SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])
 {
     GR_TRACE_START(SYS_RENDERING);
-    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList);
+    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
     std::cout << "D3D12 SetVertexBuffers called with numViews: " << numViews << std::endl;
 }
 
 void D3D12_RHI::SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer)
 {
     GR_TRACE_START(SYS_RENDERING);
-    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList);
+    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
     // TODO: Implement index buffer binding using indexBuffer
 }
 
@@ -206,7 +205,7 @@ void D3D12_RHI::SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureH
 void D3D12_RHI::ClearColor(RHICommandList& cmdlist, TextureHandle& handle, const vec4f& color)
 {
     GR_TRACE_START(SYS_RENDERING);
-    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList);
+    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
     auto& resource = m_TexturePool.Get(handle);
     //pCmdlist->ClearColorImpl(resource, color);
 }
@@ -214,14 +213,14 @@ void D3D12_RHI::ClearColor(RHICommandList& cmdlist, TextureHandle& handle, const
 void D3D12_RHI::ClearDepth(RHICommandList& cmdlist, TextureHandle& handle, float clearDepth)
 {
     GR_TRACE_START(SYS_RENDERING);
-    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList);
+    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
     auto& resource = m_TexturePool.Get(handle);
 }
 
 void D3D12_RHI::DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
 {
     GR_TRACE_START(SYS_RENDERING);
-    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList);
+    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
 }
 
 void D3D12_RHI::Dispatch(RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ)

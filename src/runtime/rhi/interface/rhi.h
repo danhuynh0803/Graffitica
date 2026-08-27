@@ -68,7 +68,7 @@ struct RHIContext
     RHIComputePipeline  (*pfnCreateComputePipeline)(void*, const ComputePipelineDesc&);
     
     // Command Recording
-    RHICommandList (*pfnCreateCommandList)(void*);
+    RHICommandList (*pfnCreateCommandList)(void*, CommandListType);
     void (*pfnBeginRecording)(void*, RHICommandList&);
     void (*pfnEndRecording)(void*, RHICommandList&);
     void (*pfnExecuteCommandList)(void*, const RHICommandList&);
@@ -121,8 +121,8 @@ struct RHIContext
         //    return static_cast<TRHIBackend*>(p)->CreateComputePipeline(desc);
         //};
 
-        pfnCreateCommandList = [](void* p) -> RHICommandList {
-            return static_cast<TRHIBackend*>(p)->CreateCommandList();
+        pfnCreateCommandList = [](void* p, CommandListType type) -> RHICommandList {
+            return static_cast<TRHIBackend*>(p)->CreateCommandList(type);
         };
 
         pfnBeginRecording = [](void* p, RHICommandList& cmdlist) {
@@ -198,10 +198,10 @@ struct RHIContext
         return pfnCreateComputePipeline(pInstance, desc);
     }
 
-    [[nodiscard]] RHICommandList CreateCommandList()
+    [[nodiscard]] RHICommandList CreateCommandList(CommandListType type)
     {
         GR_TRACE_START(SYS_RENDERING);
-        return pfnCreateCommandList(pInstance);
+        return pfnCreateCommandList(pInstance, type);
     }
 
     inline void BeginRecording(RHICommandList& cmdlist)

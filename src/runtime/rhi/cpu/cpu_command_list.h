@@ -12,7 +12,7 @@ namespace gr::rhi
 class CPUTextureResource;
 class Command;
 
-class CPUCommandList
+class CPUCommandList : public ICommandList
 {
 public:
     CPUCommandList() = default;

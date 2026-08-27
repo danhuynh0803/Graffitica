@@ -60,11 +60,12 @@ public:
     [[nodiscard]] BufferHandle CreateBuffer(const BufferDesc& desc);
     [[nodiscard]] TextureHandle CreateTexture(const TextureDesc& desc);
     [[nodiscard]] D3D12TextureResource& GetTexture(TextureHandle handle);
-    RHICommandList CreateCommandList();
+    [[nodiscard]] RHICommandList CreateCommandList(CommandListType type);
 
-    RHIGraphicsPipeline CreateGraphicsPipeline(const GraphicsPipelineDesc& desc);
-    RHIComputePipeline CreateComputePipeline(const ComputePipelineDesc& desc);
+    [[nodiscard]] RHIGraphicsPipeline CreateGraphicsPipeline(const GraphicsPipelineDesc& desc);
+    [[nodiscard]] RHIComputePipeline CreateComputePipeline(const ComputePipelineDesc& desc);
 
+    // TODO replace with a RESULT return later?
     void BeginRecording(RHICommandList& cmdlist);
     void EndRecording(RHICommandList& cmdlist);
     void BeginRenderPass(RHICommandList& cmdlist, RenderPassDesc desc);

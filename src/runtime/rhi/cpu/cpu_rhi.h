@@ -88,14 +88,14 @@ public:
     void BeginRecording(RHICommandList& cmdlist)
     {
         GR_TRACE_START(SYS_RENDERING);
-        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
+        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
         pCmdlist->BeginRecording();
     }
 
     void EndRecording(RHICommandList& cmdlist)
     {
         GR_TRACE_START(SYS_RENDERING);
-        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
+        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
         pCmdlist->EndRecording();
     }
     
@@ -115,18 +115,18 @@ public:
         return handle;
     }
     
-    RHICommandList CreateCommandList()
+    RHICommandList CreateCommandList([[maybe_unused]] CommandListType type)
     {
         GR_TRACE_START(SYS_RENDERING);
         std::cout << "CPU CreateCommandList called" << std::endl;
         RHICommandList cmdList;
-        cmdList.pNativeCmdList = new CPUCommandList();
+        cmdList.pNativeCmdList = std::make_unique<CPUCommandList>();
         return cmdList;
     }
 
     void ExecuteCommandList(const RHICommandList& cmdlist)
     {
-        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
+        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
 
         for (const auto& cmd : pCmdlist->m_Commands)
         {
@@ -160,26 +160,26 @@ public:
     void BeginRenderPass(RHICommandList& cmdlist, const RenderPassDesc& desc)
     {
         GR_TRACE_START(SYS_RENDERING);
-        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
+        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
     }
 
     void EndRenderPass(RHICommandList& cmdlist)
     {
         GR_TRACE_START(SYS_RENDERING);
-        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
+        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
     }
 
     void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])
     {
         GR_TRACE_START(SYS_RENDERING);
-        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
+        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
         std::cout << "CPU SetVertexBuffers called with numViews: " << numViews << std::endl;
     }
 
     void SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer)
     {
         GR_TRACE_START(SYS_RENDERING);
-        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
+        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
         std::cout << "CPU SetIndexBuffer called" << std::endl;
     }
 
@@ -193,7 +193,7 @@ public:
     void ClearColor(RHICommandList& cmdlist, TextureHandle& handle, const vec4f& color)
     {
         //GR_TRACE_START(SYS_RENDERING);
-        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
+        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
         //auto& resource = m_TexturePool.Get(handle);
         //pCmdlist->ClearColorImpl(resource, color);
         pCmdlist->m_Commands.emplace_back(ClearColorCmd{ handle, color });
@@ -202,7 +202,7 @@ public:
     void ClearDepth(RHICommandList& cmdlist, TextureHandle& handle, float clearDepth)
     {
         GR_TRACE_START(SYS_RENDERING);
-        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
+        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
         //auto& resource = m_TexturePool.Get(handle);
         //pCmdlist->ClearDepthImpl(resource, clearDepth);
 
@@ -212,7 +212,7 @@ public:
     void DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
     {
         GR_TRACE_START(SYS_RENDERING);
-        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
+        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
         //DrawIndexedCPUImpl(*pCmdlist, indexCount, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
     }
 
