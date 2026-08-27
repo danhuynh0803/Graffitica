@@ -6,8 +6,8 @@ namespace gr::rhi::d3d12
 
 D3D12GraphicsPipeline::D3D12GraphicsPipeline(const GraphicsPipelineDesc& desc)
 {
-    auto gfxContext = D3D12GraphicsContext::GetInstance();
-    auto device = gfxContext->GetDevice();
+    auto ctx = D3D12GraphicsContext::GetInstance();
+    auto device = ctx->GetRHIContext()->CastRHI<D3D12_RHI>()->GetDevice();
 
     UINT8* pVertexShaderBytecode = nullptr;
     UINT8* pPixelShaderBytecode = nullptr;

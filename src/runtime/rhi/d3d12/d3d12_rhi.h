@@ -26,6 +26,11 @@
 namespace gr::rhi::d3d12
 {
 
+struct FeatureSupportData
+{
+    bool supportsRaytracing;
+};
+
 struct D3D12BufferResource
 {
     D3D12BufferResource() = delete;
@@ -49,7 +54,13 @@ struct D3D12TextureResource
 class D3D12_RHI
 {
 public:
-    D3D12_RHI() = default;
+    D3D12_RHI();
+
+    [[nodiscard]] ComPtr<ID3D12Device> GetDevice() const { return m_Device; }
+    [[nodiscard]] ComPtr<ID3D12CommandQueue> GetCommandQueue() const { return m_CommandQueue; }
+    [[nodiscard]] ComPtr<ID3D12CommandAllocator> GetGraphicsCommandAllocator() const { return m_GraphicsCommandAllocator; }
+    [[nodiscard]] ComPtr<ID3D12DescriptorHeap> GetRTVDescriptorHeap() const { return m_RTVDescriptorHeap; }
+    [[nodiscard]] const FeatureSupportData& GetFeatureSupportData() const { return m_FeatureSupportData; }
 
     [[nodiscard]] BufferHandle CreateBuffer(const BufferDesc& desc);
     [[nodiscard]] TextureHandle CreateTexture(const TextureDesc& desc);
@@ -59,8 +70,13 @@ public:
     RHIGraphicsPipeline CreateGraphicsPipeline(const GraphicsPipelineDesc& desc);
     RHIComputePipeline CreateComputePipeline(const ComputePipelineDesc& desc);
 
+    void BeginRecording(RHICommandList& cmdlist);
+    void EndRecording(RHICommandList& cmdlist);
+    void BeginRenderPass(RHICommandList& cmdlist, RenderPassDesc desc);
+    void EndRenderPass(RHICommandList& cmdlist);
     void ExecuteCommandList(const RHICommandList& cmdlist);
     void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[]);
+    void SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer);
     void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[]);
     void ClearColor(RHICommandList& cmdlist, TextureHandle& handle, const vec4f& color);
     void ClearDepth(RHICommandList& cmdlist, TextureHandle& handle, float clearDepth);
@@ -88,6 +104,12 @@ public:
     //}
 
 private:
+    FeatureSupportData m_FeatureSupportData;
+    ComPtr<ID3D12Device> m_Device;
+    ComPtr<ID3D12CommandQueue> m_CommandQueue;
+    ComPtr<ID3D12CommandAllocator> m_GraphicsCommandAllocator;
+    ComPtr<ID3D12DescriptorHeap> m_RTVDescriptorHeap;
+
     BufferResourcePool<D3D12BufferResource>  m_BufferPool;
     TextureResourcePool<D3D12TextureResource> m_TexturePool;
 };

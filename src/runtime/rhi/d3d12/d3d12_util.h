@@ -1,7 +1,8 @@
 #pragma once
 
-#include <exception>
+#include <stdexcept>
 #include <wrl/wrappers/corewrappers.h>
+#include <string>
 
 namespace gr::rhi::d3d12
 {

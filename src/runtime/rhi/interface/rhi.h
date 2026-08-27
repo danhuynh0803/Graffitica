@@ -95,7 +95,7 @@ struct RHIContext
     }
 
     template <typename TRHIBackend>
-    TRHIBackend* GetRHI()
+    TRHIBackend* CastRHI()
     {
         return static_cast<TRHIBackend*>(pInstance);
     }
