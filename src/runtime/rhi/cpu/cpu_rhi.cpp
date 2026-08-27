@@ -6,7 +6,5 @@
 
 namespace gr::rhi
 {
-    CPUBufferResource::CPUBufferResource(const BufferDesc& desc)
-    {
-    }
+
 } // namespace gr::rhi::cpu

@@ -47,19 +47,36 @@ struct RHITextureResource
     void* pNativeTextureResource;
 };
 
+struct RenderPassDesc
+{
+    U32 numColorAttachments;
+    TextureHandle colorAttachments[8];
+    TextureHandle depthAttachment;
+    //vec4f clearColor;
+    //float clearDepth;
+};
+
 // Settling on the following design:
 // Prefered the function ptr table approach over using inheritance
 struct RHIContext
 {
     // Resource creation
     BufferHandle (*pfnCreateBuffer)(void*, const BufferDesc&);
-    // TODO switch to returning texture handle
-    // Right now use RHI resource directly for rendering to swapchain
-    // from CPU RHI side
     TextureHandle (*pfnCreateTexture)(void*, const TextureDesc&);
+    // TODO replace with PipelineHandle or PipelineID or something similar, instead of returning the actual pipeline object
     RHIGraphicsPipeline (*pfnCreateGraphicsPipeline)(void*, const GraphicsPipelineDesc&);
     RHIComputePipeline  (*pfnCreateComputePipeline)(void*, const ComputePipelineDesc&);
+    
+    // Command Recording
     RHICommandList (*pfnCreateCommandList)(void*);
+    void (*pfnBeginRecording)(void*, RHICommandList&);
+    void (*pfnEndRecording)(void*, RHICommandList&);
+    void (*pfnExecuteCommandList)(void*, const RHICommandList&);
+
+    // RenderPass cmds
+    void (*pfnBeginRenderPass)(void*, RHICommandList& cmdlist, RenderPassDesc);
+    void (*pfnEndRenderPass)(void*, RHICommandList& cmdlist);
+
     // Binding cmds
     void (*pfnSetVertexBuffers)(void*, RHICommandList& cmdlist, U32 numViews, BufferHandle[]);
     void (*pfnSetRenderTargets)(void*, RHICommandList& cmdlist, U32 numViews, TextureHandle[]);
@@ -71,11 +88,16 @@ struct RHIContext
     void (*pfnDispatch)(void*, RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ);
     void (*pfnDispatchRays)(void*, RHICommandList& cmdlist, U32 width, U32 height, U32 depth);
 
-
     // Sets the function table to the appropriate backend implementation
     void* pInstance = nullptr;
     bool IsValid() { 
         return pInstance != nullptr; 
+    }
+
+    template <typename TRHIBackend>
+    TRHIBackend* GetRHI()
+    {
+        return static_cast<TRHIBackend*>(pInstance);
     }
 
     template <typename TRHIBackend>
@@ -95,9 +117,9 @@ struct RHIContext
             return static_cast<TRHIBackend*>(p)->CreateGraphicsPipeline(desc);
         };
 
-        pfnCreateComputePipeline = [](void* p, const ComputePipelineDesc& desc) -> RHIComputePipeline {
-            return static_cast<TRHIBackend*>(p)->CreateComputePipeline(desc);
-        };
+        //pfnCreateComputePipeline = [](void* p, const ComputePipelineDesc& desc) -> RHIComputePipeline {
+        //    return static_cast<TRHIBackend*>(p)->CreateComputePipeline(desc);
+        //};
 
         pfnCreateCommandList = [](void* p) -> RHICommandList {
             return static_cast<TRHIBackend*>(p)->CreateCommandList();
@@ -107,9 +129,9 @@ struct RHIContext
             static_cast<TRHIBackend*>(p)->SetVertexBuffers(cmdlist, numViews, views);
         };
 
-        pfnSetRenderTargets = [](void* p, RHICommandList& cmdlist, U32 numViews, TextureHandle views[]) {
-            static_cast<TRHIBackend*>(p)->SetRenderTargets(cmdlist, numViews, views);
-        };
+        //pfnSetRenderTargets = [](void* p, RHICommandList& cmdlist, U32 numViews, TextureHandle views[]) {
+        //    static_cast<TRHIBackend*>(p)->SetRenderTargets(cmdlist, numViews, views);
+        //};
 
         pfnClearColor = [](void* p, RHICommandList& cmdlist, TextureHandle& resource, const vec4f& color) {
             static_cast<TRHIBackend*>(p)->ClearColor(cmdlist, resource, color);
@@ -123,13 +145,13 @@ struct RHIContext
             static_cast<TRHIBackend*>(p)->DrawIndexedInstanced(cmdlist, indexCount, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
         };
 
-        pfnDispatch = [](void* p, RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ) {
-            static_cast<TRHIBackend*>(p)->Dispatch(cmdlist, groupCountX, groupCountY, groupCountZ);
-        };
-
-        pfnDispatchRays = [](void* p, RHICommandList& cmdlist, U32 width, U32 height, U32 depth) {
-            static_cast<TRHIBackend*>(p)->DispatchRays(cmdlist, width, height, depth);
-        };
+        //pfnDispatch = [](void* p, RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ) {
+        //    static_cast<TRHIBackend*>(p)->Dispatch(cmdlist, groupCountX, groupCountY, groupCountZ);
+        //};
+        //
+        //pfnDispatchRays = [](void* p, RHICommandList& cmdlist, U32 width, U32 height, U32 depth) {
+        //    static_cast<TRHIBackend*>(p)->DispatchRays(cmdlist, width, height, depth);
+        //};
     }
 
     [[nodiscard]] BufferHandle CreateBuffer(const BufferDesc& desc)
