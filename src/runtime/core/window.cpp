@@ -115,7 +115,7 @@ void Window::PollEvents()
 
 void Window::OnUpdate()
 {
-    GR_TRACE_START(SYS_RENDERING);
+    GR_TRACE_START(SYS_RHI);
 
     // Probably better to abstract to swapchain interface
     // Update OnResize for Swapchain

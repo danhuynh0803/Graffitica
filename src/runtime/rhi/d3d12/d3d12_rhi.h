@@ -81,7 +81,7 @@ public:
 
     //void DispatchRays(RHICommandList& cmdlist, U32 width, U32 height, U32 depth)
     //{
-    //    GR_TRACE_START(SYS_RENDERING);
+    //    GR_TRACE_START(SYS_RHI);
     //
     //    // RayGen function invoked for each pixel in the dispatch dimensions
     //    for (U32 z = 0; z < depth; ++z)

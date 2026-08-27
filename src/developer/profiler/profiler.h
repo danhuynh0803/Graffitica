@@ -15,10 +15,10 @@ namespace gr
 enum ProfilerSubSystems : uint16_t
 {
     SYS_GAME        = BIT(0), // Runtime game logic
-    SYS_RENDERING   = BIT(1), // Rendering + RHI work
+    SYS_RHI         = BIT(1), // RHI calls
     SYS_IO          = BIT(2), // Input/Output + Events
 
-    // High profiler overhead when enabled
+    // High profiler overhead when enabled (cpu-gfx ops only)
     SYS_PER_VERTEX  = BIT(3), // Instrument at Per-Vertex granularity (e.g. vertex shader, binning)
     SYS_PER_PIXEL   = BIT(4), // Instrument at Per-pixel granularity (e.g. rasterization, shading, etc)
     
@@ -31,17 +31,17 @@ enum ProfilerSubSystems : uint16_t
 };
 
 #define SYS_GAME        gr::ProfilerSubSystems::SYS_GAME
-#define SYS_RENDERING   gr::ProfilerSubSystems::SYS_RENDERING
+#define SYS_RHI         gr::ProfilerSubSystems::SYS_RHI
 #define SYS_IO          gr::ProfilerSubSystems::SYS_IO
 #define SYS_UTIL        gr::ProfilerSubSystems::SYS_UTIL
-#define SYS_PER_VERTEX  gr::ProfilerSubSystems::SYS_PER_VERTEX
-#define SYS_PER_PIXEL   gr::ProfilerSubSystems::SYS_PER_PIXEL
+#define SYS_PER_VERTEX  gr::ProfilerSubSystems::SYS_PER_VERTEX // only cpu
+#define SYS_PER_PIXEL   gr::ProfilerSubSystems::SYS_PER_PIXEL  // only cpu
 #define SYS_MEMORY      gr::ProfilerSubSystems::SYS_MEMORY
 
 // Modify to enable/disable profiling for specific subsystems
 // However, this doesn't affect the SCOPED instrumentation calls.
 // TODO - check if scoped calls can be filtered by subsystem as well
-#define PROFILER_SUBSYSTEMS (SYS_GAME | SYS_RENDERING | SYS_IO | SYS_MEMORY) //| (SYS_PER_VERTEX | SYS_PER_PIXEL)
+#define PROFILER_SUBSYSTEMS (SYS_GAME | SYS_RHI | SYS_IO | SYS_MEMORY) //| (SYS_PER_VERTEX | SYS_PER_PIXEL)
 
 //#define GR_TRACE_START(VarName, Category) ZoneNamed(Name, PROFILER_SUBSYSTEMS & Category);
 

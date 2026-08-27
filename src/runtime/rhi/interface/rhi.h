@@ -176,97 +176,97 @@ struct RHIContext
 
     [[nodiscard]] BufferHandle CreateBuffer(const BufferDesc& desc)
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         return pfnCreateBuffer(pInstance, desc);
     }
 
     [[nodiscard]] TextureHandle CreateTexture(const TextureDesc& desc)
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         return pfnCreateTexture(pInstance, desc);
     }
 
     [[nodiscard]] RHIGraphicsPipeline CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         return pfnCreateGraphicsPipeline(pInstance, desc);
     }
 
     [[nodiscard]] RHIComputePipeline CreateComputePipeline(const ComputePipelineDesc& desc)
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         return pfnCreateComputePipeline(pInstance, desc);
     }
 
     [[nodiscard]] RHICommandList CreateCommandList(CommandListType type)
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         return pfnCreateCommandList(pInstance, type);
     }
 
     inline void BeginRecording(RHICommandList& cmdlist)
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         pfnBeginRecording(pInstance, cmdlist);
     }
 
     inline void EndRecording(RHICommandList& cmdlist)
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         pfnEndRecording(pInstance, cmdlist);
     }
 
     inline void BeginRenderPass(RHICommandList& cmdlist, RenderPassDesc desc)
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         pfnBeginRenderPass(pInstance, cmdlist, desc);
     }
 
     inline void EndRenderPass(RHICommandList& cmdlist)
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         pfnEndRenderPass(pInstance, cmdlist);
     }
 
     inline void SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer)
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         pfnSetIndexBuffer(pInstance, cmdlist, indexBuffer);
     }
 
     inline void ExecuteCommandList(const RHICommandList& cmdlist)
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         pfnExecuteCommandList(pInstance, cmdlist);
     }
 
     inline void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         pfnSetVertexBuffers(pInstance, cmdlist, numViews, views);
     }
 
     inline void ClearColor(RHICommandList& cmdlist, TextureHandle resource, const vec4f& color)
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         pfnClearColor(pInstance, cmdlist, resource, color);
     }
 
     inline void ClearDepth(RHICommandList& cmdlist, TextureHandle resource, float clearDepth)
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         pfnClearDepth(pInstance, cmdlist, resource, clearDepth);
     }
 
     inline void DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         pfnDrawIndexedInstanced(pInstance, cmdlist, indexCount, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
     }
 
     inline void Dispatch(RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ)
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         pfnDispatch(pInstance, cmdlist, groupCountX, groupCountY, groupCountZ);
     }
 
@@ -274,7 +274,7 @@ struct RHIContext
     // separate CPU RT stages to separate function ptrs
     inline void DispatchRays(RHICommandList& cmdlist, U32 width, U32 height, U32 depth)
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         pfnDispatchRays(pInstance, cmdlist, width, height, depth);
     }
 };
@@ -306,55 +306,55 @@ public:
 
     RHICommandList CreateCommandList()
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         return static_cast<TRHIBackend*>(this)->CreateCommandList();
     }
 
     void ExecuteCommandList(const RHICommandList& cmdlist)
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         return static_cast<TRHIBackend*>(this)->ExecuteCommandList();
     }
 
     void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         static_cast<TRHIBackend*>(this)->SetVertexBuffers(cmdlist, numViews, views);
     }
 
     void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, RHITextureResource views[])
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         static_cast<TRHIBackend*>(this)->SetRenderTargets(cmdlist, numViews, views);
     }
 
     void ClearColor(RHICommandList& cmdlist, RHITextureResource& resource, const vec4f& color)
     {
-        GR_TRACE_START(SYS_RENDERING)
+        GR_TRACE_START(SYS_RHI)
         static_cast<TRHIBackend*>(this)->ClearColor(cmdlist, resource, color);
     }
 
     void ClearDepth(RHICommandList& cmdlist, RHITextureResource& resource, float clearDepth)
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         static_cast<TRHIBackend*>(this)->ClearDepth(cmdlist, resource, clearDepth);
     }
 
     void DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         static_cast<TRHIBackend*>(this)->DrawIndexedInstanced(cmdlist, indexCount, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
     }
 
     void Dispatch(RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ)
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         static_cast<TRHIBackend*>(this)->Dispatch(cmdlist, groupCountX, groupCountY, groupCountZ);
     }
 
     void DispatchRays(RHICommandList& cmdlist, U32 width, U32 height, U32 depth)
     {
-        GR_TRACE_START(SYS_RENDERING);
+        GR_TRACE_START(SYS_RHI);
         static_cast<TRHIBackend*>(this)->DispatchRays(cmdlist, width, height, depth);
     }
 };

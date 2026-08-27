@@ -282,7 +282,7 @@ auto NDCToViewport = [](const vec4f& p, int width, int height)
 
 void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
 {
-    GR_TRACE_START(SYS_RENDERING);
+    GR_TRACE_START(SYS_RHI);
 
     // TODO Log this to profiler and not output to console
     //SCOPED_TIMER
@@ -451,7 +451,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
 // Draw that includes binning step
 void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
 {
-    GR_TRACE_START(SYS_RENDERING);
+    GR_TRACE_START(SYS_RHI);
 
     const auto& fb = cmd.framebuffer;
     auto& colorView = fb->colorView;
@@ -692,7 +692,7 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
                                 // Apply barycentric weights for all varying attributes
 
                                 gr::rhi::Varyings fragInput{
-                                    //GR_TRACE_SCOPED("FragmentInputInterpolation", SYS_RENDERING);
+                                    //GR_TRACE_SCOPED("FragmentInputInterpolation", SYS_RHI);
                                     .position = u * primitive.position[0] + v * primitive.position[1] + w * primitive.position[2],
                                     .color = u * primitive.color[0] + v * primitive.color[1] + w * primitive.color[2],
                                     .normal = u * primitive.normal[0] + v * primitive.normal[1] + w * primitive.normal[2],
@@ -715,7 +715,7 @@ void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount
 void DrawIndexedCPUImpl(const CPUCommandList& cmd, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
 {
 /*
-    GR_TRACE_START(SYS_RENDERING);
+    GR_TRACE_START(SYS_RHI);
 
     // TODO Log this to profiler and not output to console
     //SCOPED_TIMER

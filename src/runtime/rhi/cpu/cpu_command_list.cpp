@@ -7,7 +7,7 @@ namespace gr::rhi
 
 void CPUCommandList::ClearColorImpl(CPUTextureResource& view, const vec4f& clearColor)
 {
-    GR_TRACE_START(SYS_RENDERING);
+    GR_TRACE_START(SYS_RHI);
     
     assert("FORMAT must inherit from a COLOR FORMAT", std::is_base_of<ColorFormat, view->m_Format>::value);
 
@@ -29,7 +29,7 @@ void CPUCommandList::ClearColorImpl(CPUTextureResource& view, const vec4f& clear
 
 void CPUCommandList::ClearDepthImpl(CPUTextureResource& view, float clearDepth)
 {
-    GR_TRACE_START(SYS_RENDERING);
+    GR_TRACE_START(SYS_RHI);
 
     assert("FORMAT must inherit from a DEPTH FORMAT", std::is_base_of<DepthFormat, FORMAT>::value);
 

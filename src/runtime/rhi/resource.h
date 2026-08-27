@@ -122,13 +122,13 @@ struct ImageView : BaseImageView
 
     inline void Store(U32 x, U32 y, const vec4f& color)
     {
-        //GR_TRACE_START(SYS_RENDERING);
+        //GR_TRACE_START(SYS_RHI);
         colorData[x + y*width] = color;
     }
 
     inline FORMAT& at(U32 x, U32 y) const
     {
-        //GR_TRACE_START(SYS_RENDERING);
+        //GR_TRACE_START(SYS_RHI);
         return data[x + y * width];
     }
 };

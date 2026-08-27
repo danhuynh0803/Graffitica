@@ -57,7 +57,7 @@ CPUSwapchain::CPUSwapchain(const SwapchainProperties& props, CPU_RHI* rhiInstanc
 
 void CPUSwapchain::UpdateBackBuffer(SDL_Surface* surfaceToUpdate)
 {
-    GR_TRACE_START(SYS_RENDERING);
+    GR_TRACE_START(SYS_RHI);
 
     auto currBackBufferHandle = m_PresentResourceHandles.at(m_CurrentFrameIndex);
     m_CurrentFrameIndex = (m_CurrentFrameIndex + 1) % m_ImageCount;
