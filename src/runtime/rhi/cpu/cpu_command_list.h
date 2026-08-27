@@ -17,6 +17,10 @@ class CPUCommandList
 public:
     CPUCommandList() = default;
 
+    void BeginRecording() { m_Commands.clear(); }
+
+    void EndRecording() { /* No-op for CPU RHI */ }
+
     void ClearColorImpl(CPUTextureResource& view, const vec4f& clearColor);
 
     void ClearDepthImpl(CPUTextureResource& view, float clearDepth);

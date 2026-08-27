@@ -91,10 +91,15 @@ void EditorLayer::OnUpdate(double dt)
 
     auto backBufferHndl = pSwapchain->GetCurrentFrameResourceHandle();
     
-    pRHI->ClearColor(gCmdlist, backBufferHndl, { .4, .5, .7, 1.0 });
-    pRHI->ClearDepth(gCmdlist, gDepthBufferHndl, 1.0f);
-    pRHI->SetVertexBuffers(gCmdlist, 1, &gVertexBuffer);
-
+    // TODO later replace with RenderGraph/RenderPass
+    pRHI->BeginRecording(gCmdlist);
+        pRHI->ClearColor(gCmdlist, backBufferHndl, { .4, .5, .7, 1.0 });
+        pRHI->ClearDepth(gCmdlist, gDepthBufferHndl, 1.0f);
+        pRHI->SetVertexBuffers(gCmdlist, 1, &gVertexBuffer);
+    pRHI->EndRecording(gCmdlist);
+    
+    pRHI->ExecuteCommandList(gCmdlist);
+    
     //rhi::DispatchRays(gCmdlist, pSwapchain->GetWidth(), pSwapchain->GetHeight(), 1);
     //pRHI->DrawIndexedInstanced(gCmdlist, model.m_MeshData->GetIndices().size(), 1, 0, 0, 0);
 }

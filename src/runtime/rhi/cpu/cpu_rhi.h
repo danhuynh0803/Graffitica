@@ -84,6 +84,20 @@ public:
         GR_TRACE_START(SYS_RENDERING);
         return m_TexturePool.Get(handle);
     }
+
+    void BeginRecording(RHICommandList& cmdlist)
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
+        pCmdlist->BeginRecording();
+    }
+
+    void EndRecording(RHICommandList& cmdlist)
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
+        pCmdlist->EndRecording();
+    }
     
     RHIGraphicsPipeline CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
     {
@@ -143,11 +157,30 @@ public:
         }
     }
     
+    void BeginRenderPass(RHICommandList& cmdlist, const RenderPassDesc& desc)
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
+    }
+
+    void EndRenderPass(RHICommandList& cmdlist)
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
+    }
+
     void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])
     {
         GR_TRACE_START(SYS_RENDERING);
         CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
         std::cout << "CPU SetVertexBuffers called with numViews: " << numViews << std::endl;
+    }
+
+    void SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer)
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
+        std::cout << "CPU SetIndexBuffer called" << std::endl;
     }
 
     void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[])
@@ -159,11 +192,10 @@ public:
     
     void ClearColor(RHICommandList& cmdlist, TextureHandle& handle, const vec4f& color)
     {
-        GR_TRACE_START(SYS_RENDERING);
+        //GR_TRACE_START(SYS_RENDERING);
         CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
-        auto& resource = m_TexturePool.Get(handle);
-        pCmdlist->ClearColorImpl(resource, color);
-
+        //auto& resource = m_TexturePool.Get(handle);
+        //pCmdlist->ClearColorImpl(resource, color);
         pCmdlist->m_Commands.emplace_back(ClearColorCmd{ handle, color });
     }
 
@@ -171,8 +203,8 @@ public:
     {
         GR_TRACE_START(SYS_RENDERING);
         CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
-        auto& resource = m_TexturePool.Get(handle);
-        pCmdlist->ClearDepthImpl(resource, clearDepth);
+        //auto& resource = m_TexturePool.Get(handle);
+        //pCmdlist->ClearDepthImpl(resource, clearDepth);
 
         pCmdlist->m_Commands.emplace_back(ClearDepthCmd{ handle, clearDepth });
     }

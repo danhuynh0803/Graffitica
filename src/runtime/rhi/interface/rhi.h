@@ -79,7 +79,7 @@ struct RHIContext
 
     // Binding cmds
     void (*pfnSetVertexBuffers)(void*, RHICommandList& cmdlist, U32 numViews, BufferHandle[]);
-    void (*pfnSetRenderTargets)(void*, RHICommandList& cmdlist, U32 numViews, TextureHandle[]);
+    void (*pfnSetIndexBuffer)(void*, RHICommandList& cmdlist, BufferHandle);
 
     // Draw cmds
     void (*pfnClearColor)(void*, RHICommandList& cmdlist, TextureHandle& resource, const vec4f& color);
@@ -125,13 +125,33 @@ struct RHIContext
             return static_cast<TRHIBackend*>(p)->CreateCommandList();
         };
 
+        pfnBeginRecording = [](void* p, RHICommandList& cmdlist) {
+            static_cast<TRHIBackend*>(p)->BeginRecording(cmdlist);
+        };
+
+        pfnEndRecording = [](void* p, RHICommandList& cmdlist) {
+            static_cast<TRHIBackend*>(p)->EndRecording(cmdlist);
+        };
+
+        pfnExecuteCommandList = [](void* p, const RHICommandList& cmdlist) {
+            static_cast<TRHIBackend*>(p)->ExecuteCommandList(cmdlist);
+        };
+
+        pfnBeginRenderPass = [](void* p, RHICommandList& cmdlist, RenderPassDesc desc) {
+            static_cast<TRHIBackend*>(p)->BeginRenderPass(cmdlist, desc);
+        };
+
+        pfnEndRenderPass = [](void* p, RHICommandList& cmdlist) {
+            static_cast<TRHIBackend*>(p)->EndRenderPass(cmdlist);
+        };
+
         pfnSetVertexBuffers = [](void* p, RHICommandList& cmdlist, U32 numViews, BufferHandle views[]) {
             static_cast<TRHIBackend*>(p)->SetVertexBuffers(cmdlist, numViews, views);
         };
 
-        //pfnSetRenderTargets = [](void* p, RHICommandList& cmdlist, U32 numViews, TextureHandle views[]) {
-        //    static_cast<TRHIBackend*>(p)->SetRenderTargets(cmdlist, numViews, views);
-        //};
+        pfnSetIndexBuffer = [](void* p, RHICommandList& cmdlist, BufferHandle indexBuffer) {
+            static_cast<TRHIBackend*>(p)->SetIndexBuffer(cmdlist, indexBuffer);
+        };
 
         pfnClearColor = [](void* p, RHICommandList& cmdlist, TextureHandle& resource, const vec4f& color) {
             static_cast<TRHIBackend*>(p)->ClearColor(cmdlist, resource, color);
@@ -184,16 +204,46 @@ struct RHIContext
         return pfnCreateCommandList(pInstance);
     }
 
+    inline void BeginRecording(RHICommandList& cmdlist)
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        pfnBeginRecording(pInstance, cmdlist);
+    }
+
+    inline void EndRecording(RHICommandList& cmdlist)
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        pfnEndRecording(pInstance, cmdlist);
+    }
+
+    inline void BeginRenderPass(RHICommandList& cmdlist, RenderPassDesc desc)
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        pfnBeginRenderPass(pInstance, cmdlist, desc);
+    }
+
+    inline void EndRenderPass(RHICommandList& cmdlist)
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        pfnEndRenderPass(pInstance, cmdlist);
+    }
+
+    inline void SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer)
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        pfnSetIndexBuffer(pInstance, cmdlist, indexBuffer);
+    }
+
+    inline void ExecuteCommandList(const RHICommandList& cmdlist)
+    {
+        GR_TRACE_START(SYS_RENDERING);
+        pfnExecuteCommandList(pInstance, cmdlist);
+    }
+
     inline void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])
     {
         GR_TRACE_START(SYS_RENDERING);
         pfnSetVertexBuffers(pInstance, cmdlist, numViews, views);
-    }
-
-    inline void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[])
-    {
-        GR_TRACE_START(SYS_RENDERING);
-        pfnSetRenderTargets(pInstance, cmdlist, numViews, views);
     }
 
     inline void ClearColor(RHICommandList& cmdlist, TextureHandle resource, const vec4f& color)
