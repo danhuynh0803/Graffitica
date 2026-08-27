@@ -1,9 +1,8 @@
 #pragma once
 
-#include "rhi/interface/graphics_rhi.h"
 #include "rhi/interface/rhi.h"
 #include "rhi/interface/pipeline.h"
-#include "util/resource_pool.h"
+#include "rhi/resource_pool.h"
 #include "cpu_command_list.h"
 #include "cpu_command.h"
 #include "cpu_pipeline.h"
@@ -24,7 +23,11 @@ class CPUBufferResource
 {
 public:
     CPUBufferResource() = delete;
-    CPUBufferResource(const BufferDesc& desc);
+    CPUBufferResource(const BufferDesc& desc)
+        : m_SizeInBytes(desc.size), m_StrideInBytes(0)
+    {
+        m_Data.resize(m_SizeInBytes);
+    }
     CPUBufferResource(void* data, U32 size, U32 stride)
         : m_SizeInBytes(size), m_StrideInBytes(stride)
     {
@@ -32,7 +35,13 @@ public:
         memcpy(m_Data.data(), data, size);
     }
 
+    void* Map() { return m_Data.data(); }
+    void Unmap() { /* No-op for CPU RHI */ }
+
 private:
+    // TODO combine or have buffer view and buffer resource separate?
+    // keep combined cause lets make things easier to manage for now
+    // and would I even need that flexibility?
     U32 m_SizeInBytes;
     U32 m_StrideInBytes;
     std::vector<U8> m_Data;
@@ -51,52 +60,6 @@ struct CPUTextureResource
     U32 m_Width, m_Height;
     ImageFormat m_Format;
     std::vector<U8> m_Data;
-};
-
-class CPUBufferResourcePool : public ResourcePool<CPUBufferResource>
-{
-public:
-    U32 Allocate(BufferDesc desc)
-    {
-        CPUBufferResource&& resource(desc);
-
-        U32 handle;
-        if (!m_FreeList.empty())
-        {
-            handle = m_FreeList.back();
-            m_FreeList.pop_back();
-            m_Cache[handle] = resource;
-        }
-        else
-        {
-            handle = m_Cache.size();
-            m_Cache.push_back(resource);
-        }
-        return handle;
-    }
-};
-
-class CPUTextureResourcePool : public ResourcePool<CPUTextureResource>
-{
-public:
-    U32 Allocate(TextureDesc desc)
-    {
-        CPUTextureResource&& resource(desc);
-
-        U32 handle;
-        if (!m_FreeList.empty())
-        {
-            handle = m_FreeList.back();
-            m_FreeList.pop_back();
-            m_Cache[handle] = resource;
-        }
-        else
-        {
-            handle = m_Cache.size();
-            m_Cache.push_back(resource);
-        }
-        return handle;
-    }
 };
 
 class CPU_RHI
@@ -252,8 +215,8 @@ public:
     //CPUTextureResourcePool& GetTexturePool() { return m_TexturePool; }
 
 private:
-    CPUBufferResourcePool  m_BufferPool;
-    CPUTextureResourcePool m_TexturePool;
+    BufferResourcePool<CPUBufferResource>   m_BufferPool;
+    TextureResourcePool<CPUTextureResource> m_TexturePool;
 };
 
 } // namespace gr::rhi

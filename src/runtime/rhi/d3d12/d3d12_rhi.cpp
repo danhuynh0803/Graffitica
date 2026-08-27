@@ -5,88 +5,115 @@
 namespace gr::rhi::d3d12
 {
 
-/*
-BufferHandle CreateBuffer_D3D12(const BufferDesc& desc)
+[[nodiscard]] BufferHandle D3D12_RHI::CreateBuffer(const BufferDesc& desc)
 {
-    std::cout << "D3D12 CreateBuffer called with size: " << desc.size << " and usageFlags: " << desc.usageFlags << std::endl;
-    return BufferHandle();
+    GR_TRACE_START(SYS_RENDERING);
+    return m_BufferPool.Allocate(desc);
 }
 
-RHITextureResource CreateTexture_D3D12(const TextureDesc& desc)
+[[nodiscard]] TextureHandle D3D12_RHI::CreateTexture(const TextureDesc& desc)
 {
-    // TODO placeholder for now
-    return RHITextureResource();
+    GR_TRACE_START(SYS_RENDERING);
+    return m_TexturePool.Allocate(desc);
 }
 
-RHICommandList CreateCommandList_D3D12()
+[[nodiscard]] D3D12TextureResource& D3D12_RHI::GetTexture(TextureHandle handle)
 {
+    GR_TRACE_START(SYS_RENDERING);
+    return m_TexturePool.Get(handle);
+}
+
+RHIGraphicsPipeline D3D12_RHI::CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
+{
+    GR_TRACE_START(SYS_RENDERING);
+    RHIGraphicsPipeline handle;
+    handle.pNativePipeline = new D3D12GraphicsPipeline(desc);
+    return handle;
+}
+
+RHIComputePipeline D3D12_RHI::CreateComputePipeline(const ComputePipelineDesc& desc)
+{
+    GR_TRACE_START(SYS_RENDERING);
+    RHIComputePipeline handle;
+    //handle.pNativePipeline = new D3D12ComputePipeline(desc);
+    //return handle;
+    return {};
+}
+
+RHICommandList D3D12_RHI::CreateCommandList()
+{
+    GR_TRACE_START(SYS_RENDERING);
     std::cout << "D3D12 CreateCommandList called" << std::endl;
     RHICommandList cmdList;
-
-    //rhi::d3d12::ThrowIfFailed(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)));
-
+    cmdList.pNativeCmdList = new D3D12CommandList();
     return cmdList;
 }
 
-RHIGraphicsPipeline CreateGraphicsPipeline_D3D12(const GraphicsPipelineDesc& desc)
+void D3D12_RHI::ExecuteCommandList(const RHICommandList& cmdlist)
 {
-    return RHIGraphicsPipeline();
+    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList);
+    auto rawCmdList = pCmdlist->GetRawCommandList();
 }
 
-RHIComputePipeline CreateComputePipeline_D3D12(const ComputePipelineDesc& desc)
+void D3D12_RHI::SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])
 {
-    return RHIComputePipeline();
-}
-
-void SetVertexBuffers_D3D12(RHICommandList& cmdList, U32 numViews, BufferHandle views[])
-{
+    GR_TRACE_START(SYS_RENDERING);
+    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList);
     std::cout << "D3D12 SetVertexBuffers called with numViews: " << numViews << std::endl;
-    for (U32 i = 0; i < numViews; ++i)
-    {
-        //std::cout << "BufferHandle index: " << views[i].index << std::endl;
-    }
 }
 
-void SetRenderTargets_D3D12(RHICommandList& cmdList, U32 numViews, RHITextureResource views[])
+void D3D12_RHI::SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[])
 {
-    std::cout << "D3D12 SetRenderTargets called with numViews: " << numViews << std::endl;
-    for (U32 i = 0; i < numViews; ++i)
-    {
-        //std::cout << "RHITextureResource pointer: " << views[i].pNativeTextureResource << std::endl;
-    }
+    GR_TRACE_START(SYS_RENDERING);
+    // TODO implement SetRenderTargets for CPU RHI
+    //gr::rhi::cpu::SetRenderTargets_CPU(cmdlist, numViews, views);
 }
 
-void ClearColor_D3D12(RHICommandList& cmdlist, RHITextureResource& resource, const vec4f& color)
+void D3D12_RHI::ClearColor(RHICommandList& cmdlist, TextureHandle& handle, const vec4f& color)
 {
-    //CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList);
-
-    //pCmdlist->ClearColorImpl()
+    GR_TRACE_START(SYS_RENDERING);
+    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList);
+    auto& resource = m_TexturePool.Get(handle);
+    //pCmdlist->ClearColorImpl(resource, color);
 }
 
-void ClearDepth_D3D12(RHICommandList& cmdlist, RHITextureResource& resource, float clearDepth)
+void D3D12_RHI::ClearDepth(RHICommandList& cmdlist, TextureHandle& handle, float clearDepth)
 {
+    GR_TRACE_START(SYS_RENDERING);
+    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList);
+    auto& resource = m_TexturePool.Get(handle);
 }
 
-void DrawIndexedInstanced_D3D12(RHICommandList& cmdList, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
+void D3D12_RHI::DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
 {
+    GR_TRACE_START(SYS_RENDERING);
+    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList);
+}
+
+void D3D12_RHI::Dispatch(RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ)
+{
+    GR_TRACE_START(SYS_RENDERING);
     // TODO
-    //cmdList.m_RawCommandList->DrawIndexedInstanced(indexCount, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
 }
 
-RHIFunctionTable D3D12Table =
-{
-    CreateBuffer_D3D12,
-    CreateTexture_D3D12,
-    CreateGraphicsPipeline_D3D12,
-    CreateComputePipeline_D3D12,
-    CreateCommandList_D3D12,
-    SetVertexBuffers_D3D12,
-    SetRenderTargets_D3D12,
-    ClearColor_D3D12,
-    ClearDepth_D3D12,
-    DrawIndexedInstanced_D3D12
-};
-
-*/
+//void DispatchRays(RHICommandList& cmdlist, U32 width, U32 height, U32 depth)
+//{
+//    GR_TRACE_START(SYS_RENDERING);
+//
+//    // RayGen function invoked for each pixel in the dispatch dimensions
+//    for (U32 z = 0; z < depth; ++z)
+//    {
+//        for (U32 y = 0; y < height; ++y)
+//        {
+//            for (U32 x = 0; x < width; ++x)
+//            {
+//                // TODO invoke ray generation shader function here
+//                // e.g. pCmdlist->shaderModule->raygen({x, y, z});
+//            }
+//        }
+//    }
+//
+//    std::cout << "DispatchRays_CPU\n";
+//}
 
 } // namespace gr::rhi::d3d12
