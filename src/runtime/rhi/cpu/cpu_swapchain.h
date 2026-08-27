@@ -15,7 +15,7 @@ class CPUSwapchain final : public ISwapchain
 public:
     CPUSwapchain(const SwapchainProperties& props, CPU_RHI* rhiInstance);
     ~CPUSwapchain() = default;
-    ImageFormat GetSurfaceFormat() const { return m_SwapchainFormat; }
+    GrFormat GetSurfaceFormat() const { return m_SwapchainFormat; }
 
     void UpdateBackBuffer(SDL_Surface* surfaceToUpdate);
 
@@ -46,7 +46,7 @@ private:
     U32 m_Width, m_Height;
     U32 m_ImageCount;
     U32 m_CurrentFrameIndex;
-    ImageFormat m_SwapchainFormat;
+    GrFormat m_SwapchainFormat;
     std::vector<TextureHandle> m_PresentResourceHandles;
     SDL_Surface* m_PresentSurface;
     CPU_RHI* m_RHIInstance;

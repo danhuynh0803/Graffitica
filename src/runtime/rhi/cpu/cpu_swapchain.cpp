@@ -9,23 +9,23 @@ namespace gr::rhi
 
 namespace
 {
-    SDL_PixelFormat ImageFormatToSDL(ImageFormat format)
+    SDL_PixelFormat ImageFormatToSDL(GrFormat format)
     {
         switch (format)
         {
-        case ImageFormat::R8G8B8A8_UNORM:
+        case GrFormat::R8G8B8A8_UNORM:
             return SDL_PIXELFORMAT_RGBA32;
         default:
             throw std::runtime_error("ERROR: No conversion from ImageFormat to SDLFormat for Swapchain");
         }
     }
 
-    ImageFormat SDLToImageFormat(SDL_PixelFormat format)
+    GrFormat SDLToImageFormat(SDL_PixelFormat format)
     {
         switch (format)
         {
         case SDL_PIXELFORMAT_RGBA32:
-            return ImageFormat::R8G8B8A8_UNORM;
+            return GrFormat::R8G8B8A8_UNORM;
         default:
             throw std::runtime_error("ERROR: No conversion from ImageFormat to SDLFormat for Swapchain");
         }

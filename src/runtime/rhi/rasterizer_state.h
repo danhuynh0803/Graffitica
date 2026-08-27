@@ -1,6 +1,11 @@
 #pragma once
 
+#include <string>
 #include "core/types.h"
+#include "formats.h"
+
+namespace gr::rhi
+{
 
 enum class CULL_MODE
 {
@@ -59,6 +64,23 @@ struct DepthStencilState
     U8                      stencilWriteMask;
 };
 
+enum class InputClass
+{
+    PER_VERTEX   = 0,
+    PER_INSTANCE = 1,
+};
+
+struct InputLayoutState
+{
+    std::string semanticName;
+    U32         semanticIndex;
+    GrFormat    format;
+    U32         inputSlot;
+    U32         alignedByteOffset;
+    InputClass  inputSlotClass;
+    U32         instanceDataStepRate;
+};
+
 struct RasterizerState
 {
     FILL_MODE   fillMode = FILL_MODE::FILL_MODE_SOLID;
@@ -69,3 +91,5 @@ struct RasterizerState
     float       slopeScaledDepthBias = 0.f;
     bool        depthClipEnable = true;
 };
+
+} // namespace gr::rhi

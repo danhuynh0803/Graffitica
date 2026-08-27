@@ -37,7 +37,7 @@ public:
             : nullptr;
     }
 
-    gr::rhi::ImageFormat GetSurfaceFormat() const;
+    gr::rhi::GrFormat GetSurfaceFormat() const;
 
     // Event system
     using EventCallbackFn = std::function<void(Event&)>;

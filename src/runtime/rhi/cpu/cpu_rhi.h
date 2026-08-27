@@ -58,7 +58,7 @@ struct CPUTextureResource
     }
 
     U32 m_Width, m_Height;
-    ImageFormat m_Format;
+    GrFormat m_Format;
     std::vector<U8> m_Data;
 };
 

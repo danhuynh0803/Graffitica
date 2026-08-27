@@ -249,4 +249,5 @@ void D3D12_RHI::Dispatch(RHICommandList& cmdlist, U32 groupCountX, U32 groupCoun
 //    std::cout << "DispatchRays_CPU\n";
 //}
 
+
 } // namespace gr::rhi::d3d12

@@ -1,8 +1,22 @@
 #include "d3d12_graphics_context.h"
 #include "d3d12_pipeline.h"
+#include "d3d12_util.h"
 
 namespace gr::rhi::d3d12
 {
+
+inline D3D12_INPUT_CLASSIFICATION ToD3D12InputClassification(InputClass i)
+{
+    switch (i)
+    {
+        case InputClass::PER_VERTEX:
+            return D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+        case InputClass::PER_INSTANCE:
+            return D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA;
+        default:
+            throw std::runtime_error("Invalid InputClassification");
+    }
+}
 
 D3D12GraphicsPipeline::D3D12GraphicsPipeline(const GraphicsPipelineDesc& desc)
 {
@@ -20,15 +34,20 @@ D3D12GraphicsPipeline::D3D12GraphicsPipeline(const GraphicsPipelineDesc& desc)
 
     //auto compiledOutputs = gShaderCompilerModule.CompileSlangToBlob((shaderDir + "default.slang").c_str(), "VSMain");
 
-    // vertex input layout
-    //D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
-    //{
-    //    { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex, position), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
-    //    { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, offsetof(Vertex, color), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
-    //    { "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex, normal), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
-    //    { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, offsetof(Vertex, uv), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
-    //};
-
+    std::vector<D3D12_INPUT_ELEMENT_DESC> inputElementDescs {};
+    inputElementDescs.reserve(desc.inputLayoutStates.size());
+    for (const auto& input : desc.inputLayoutStates)
+    {
+        //inputElementDescs.emplace_back(
+        //    input.semanticName,
+        //    input.semanticIndex,
+        //    ToDXGIFormat(input.format),
+        //    input.inputSlot,
+        //    input.alignedByteOffset,
+        //    ToD3D12InputClassification(input.inputSlotClass),
+        //    input.instanceDataStepRate
+        //);
+    }
     // empty root signature since we are not binding any resources for this test
     {
         D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
@@ -40,7 +59,7 @@ D3D12GraphicsPipeline::D3D12GraphicsPipeline(const GraphicsPipelineDesc& desc)
     }
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-    //psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
+    psoDesc.InputLayout = { inputElementDescs.data(), static_cast<U32>(inputElementDescs.size()) };
     psoDesc.pRootSignature = m_D3D12RootSignature.Get();
     //psoDesc.VS = { compiledOutputs.VS->getBufferPointer(), compiledOutputs.VS->getBufferSize() };
     //psoDesc.PS = { compiledOutputs.PS->getBufferPointer(), compiledOutputs.PS->getBufferSize() };

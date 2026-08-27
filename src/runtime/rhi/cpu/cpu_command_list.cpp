@@ -17,7 +17,7 @@ void CPUCommandList::ClearColorImpl(CPUTextureResource& view, const vec4f& clear
     // Find a better way than a large switch table for every format
     switch (view.m_Format)
     {
-    case ImageFormat::R8G8B8A8_UNORM: {
+    case GrFormat::R8G8B8A8_UNORM: {
         auto* dst = reinterpret_cast<FORMAT_R8G8B8A8_UNORM*>(view.m_Data.data());
         std::fill_n(dst, size, FORMAT_R8G8B8A8_UNORM::to(clearColor));
         break;
@@ -38,7 +38,7 @@ void CPUCommandList::ClearDepthImpl(CPUTextureResource& view, float clearDepth)
     // Reminder to not define any color formats here
     switch (view.m_Format)
     {
-    case ImageFormat::D32_SFLOAT: {
+    case GrFormat::D32_SFLOAT: {
         auto* dst = reinterpret_cast<FORMAT_D32_SFLOAT*>(view.m_Data.data());
         std::fill_n(dst, size, FORMAT_D32_SFLOAT::to(clearDepth));
         break;

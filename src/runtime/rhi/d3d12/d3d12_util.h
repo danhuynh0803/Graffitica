@@ -8,6 +8,30 @@ namespace gr::rhi::d3d12
 {
 
 // various dx12 utility functions
+inline DXGI_FORMAT ToDXGIFormat(GrFormat fmt)
+{
+    switch (fmt)
+    {
+    case GrFormat::R8G8B8A8_UNORM:          return DXGI_FORMAT_R8G8B8A8_UNORM;
+    case GrFormat::R8_UNORM:                return DXGI_FORMAT_R8_UNORM;
+    case GrFormat::R8_SNORM:                return DXGI_FORMAT_R8_SNORM;
+
+    case GrFormat::R32G32B32_UINT:          return DXGI_FORMAT_R32G32B32_UINT;
+    case GrFormat::R32G32B32_SINT:          return DXGI_FORMAT_R32G32B32_SINT;
+    case GrFormat::R32G32B32_SFLOAT:        return DXGI_FORMAT_R32G32B32_FLOAT;
+
+    case GrFormat::R32G32B32A32_UINT:       return DXGI_FORMAT_R32G32B32A32_UINT;
+    case GrFormat::R32G32B32A32_SINT:       return DXGI_FORMAT_R32G32B32A32_SINT;
+    case GrFormat::R32G32B32A32_SFLOAT:     return DXGI_FORMAT_R32G32B32A32_FLOAT;
+
+    case GrFormat::D32_SFLOAT:              return DXGI_FORMAT_D32_FLOAT;
+
+    case GrFormat::UNDEFINED:
+    default:
+        return DXGI_FORMAT_UNKNOWN;
+    }
+}
+
 inline std::string HrToString(HRESULT hr)
 {
     char s_str[64] = {};

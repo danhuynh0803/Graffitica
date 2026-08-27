@@ -69,25 +69,38 @@ struct FORMAT_D24_UNORM_S8_UINT final : DepthFormat
 namespace rhi
 {
 
-enum class ImageFormat : uint32_t
+enum class GrFormat : uint32_t
 {
     UNDEFINED = 0,
     R8G8B8A8_UNORM,
     R8_UNORM,
     R8_SNORM,
+
+    R32G32B32_UINT,
+    R32G32B32_SINT,
+    R32G32B32_SFLOAT,
+
+    R32G32B32A32_UINT,
+    R32G32B32A32_SINT,
+    R32G32B32A32_SFLOAT,
+
     D32_SFLOAT,
 
     COUNT
 };
 
 
-inline U32 ConvertFormatToByteSize(ImageFormat format)
+inline U32 ConvertFormatToByteSize(GrFormat format)
 {
     switch (format)
     {
-    case ImageFormat::D32_SFLOAT:
-    case ImageFormat::R8G8B8A8_UNORM:
+    case GrFormat::R8G8B8A8_UNORM:
+    case GrFormat::D32_SFLOAT:
         return 4;
+    case GrFormat::R32G32B32A32_UINT:
+    case GrFormat::R32G32B32A32_SINT:
+    case GrFormat::R32G32B32A32_SFLOAT:
+        return 128;
     default:
         break;
     }

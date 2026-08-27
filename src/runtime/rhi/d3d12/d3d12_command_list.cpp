@@ -5,7 +5,7 @@
 namespace gr::rhi::d3d12
 {
 
-D3D12_COMMAND_LIST_TYPE MapTypeToD3D12Type(CommandListType type)
+D3D12_COMMAND_LIST_TYPE ToD3D12CommandListType(CommandListType type)
 {
     switch (type)
     {
@@ -22,7 +22,6 @@ D3D12_COMMAND_LIST_TYPE MapTypeToD3D12Type(CommandListType type)
     }
 }
 
-
 D3D12CommandList::D3D12CommandList(CommandListType type)
 {
     // Set ptrs for D12 objects needed for commandlists
@@ -33,7 +32,7 @@ D3D12CommandList::D3D12CommandList(CommandListType type)
     ThrowIfFailed(
         m_pDevice->CreateCommandList(
             0,
-            D3D12_COMMAND_LIST_TYPE_DIRECT,
+            ToD3D12CommandListType(type),
             m_pCommandAllocator.Get(),
             nullptr,
             IID_PPV_ARGS(&m_pCommandList)

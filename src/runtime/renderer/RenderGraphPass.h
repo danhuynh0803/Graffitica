@@ -14,8 +14,8 @@ class RenderGraphPass
 {
 public:
     //void SetShaderState(ShaderHandle handle);
-    void SetDepthStencilState(const DepthStencilDesc& desc);
-    void SetRasterizerState(const RasterizerState& desc);
+    //void SetDepthStencilState(const DepthStencilDesc& desc);
+    //void SetRasterizerState(const RasterizerState& desc);
 
 private:
 

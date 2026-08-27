@@ -20,7 +20,7 @@ public:
                    ComPtr<ID3D12CommandQueue> commandQueue,
                    const SwapchainProperties& props);
     ~D3D12Swapchain() = default;
-    ImageFormat GetSurfaceFormat() const;
+    GrFormat GetSurfaceFormat() const;
 
     void UpdateBackBuffer(SDL_Surface* surfaceToUpdate);
 
@@ -63,7 +63,7 @@ private:
     //U32 m_CurrentFrameIndex;
     U64 m_RTVDescriptorSize;
 
-    ImageFormat m_SwapchainFormat;
+    GrFormat m_SwapchainFormat;
 
     //ImageView<R8G8B8A8_UNORM> m_BackBuffer;
     //std::vector<Image<FORMAT_R8G8B8A8_UNORM>> m_PresentImages;

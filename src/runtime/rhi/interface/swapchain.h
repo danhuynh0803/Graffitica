@@ -10,7 +10,7 @@ struct SwapchainProperties
 {
     uint32_t width, height;
     uint32_t imageCount;
-    ImageFormat format;
+    GrFormat format;
     void* pWindow;
 };
 

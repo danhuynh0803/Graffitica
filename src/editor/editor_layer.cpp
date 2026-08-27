@@ -95,7 +95,7 @@ EditorLayer::EditorLayer(const std::string& name)
     rhi::TextureDesc targetDesc {
         .width = pSwapchain->GetWidth(),
         .height = pSwapchain->GetHeight(),
-        .format = rhi::ImageFormat::D32_SFLOAT
+        .format = rhi::GrFormat::D32_SFLOAT
     };
     gDepthBufferHndl = pRHI->CreateTexture(targetDesc);
 }

@@ -135,12 +135,12 @@ void Window::OnUpdate()
     }
 }
 
-gr::rhi::ImageFormat Window::GetSurfaceFormat() const
+gr::rhi::GrFormat Window::GetSurfaceFormat() const
 {
     switch (m_PresentSurface->format)
     {
     case (SDL_PIXELFORMAT_RGBA32):
-        return gr::rhi::ImageFormat::R8G8B8A8_UNORM;
+        return gr::rhi::GrFormat::R8G8B8A8_UNORM;
     default:
         throw std::runtime_error(
             "Missing SDL_PixelFormat->gr::ImageFormat conversion: " + m_PresentSurface->format

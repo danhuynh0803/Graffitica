@@ -36,7 +36,7 @@ D3D12GraphicsContext::D3D12GraphicsContext(SDL_Window* window)
         .width = static_cast<U32>(surface->w),
         .height = static_cast<U32>(surface->h),
         .imageCount = 3,
-        .format = gr::rhi::ImageFormat::R8G8B8A8_UNORM,
+        .format = gr::rhi::GrFormat::R8G8B8A8_UNORM,
         .pWindow = hwnd
     };
 

@@ -21,8 +21,8 @@ public:
     void EndRecording() { }
 
 private:
-    ComPtr<ID3D12GraphicsCommandList> m_pCommandList = nullptr;
-    ComPtr<ID3D12Device> m_pDevice = nullptr;
+    ComPtr<ID3D12GraphicsCommandList> m_pCommandList;
+    ComPtr<ID3D12Device> m_pDevice;
     ComPtr<ID3D12CommandAllocator> m_pCommandAllocator;
 };
 

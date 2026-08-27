@@ -9,11 +9,11 @@ namespace gr::rhi::d3d12
 
 namespace
 {
-    DXGI_FORMAT ImageFormatToDXGI(ImageFormat format)
+    DXGI_FORMAT ImageFormatToDXGI(GrFormat format)
     {
         switch (format)
         {
-        case ImageFormat::R8G8B8A8_UNORM:
+        case GrFormat::R8G8B8A8_UNORM:
             return DXGI_FORMAT_R8G8B8A8_UNORM;
         default:
             throw std::runtime_error("ERROR: No conversion from ImageFormat to DXGIFormat for Swapchain");

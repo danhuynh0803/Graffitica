@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rhi/rasterizer_state.h"
+#include <vector>
 
 namespace gr::rhi
 {
@@ -21,7 +22,7 @@ struct GraphicsPipelineDesc
 {
     RasterizerState rasterizerState;
     DepthStencilState depthStencilState;
-    //InputLayoutState inputLayoutState;
+    std::vector<InputLayoutState> inputLayoutStates;
     RHIShader vertexShader;
     RHIShader pixelShader;
 };

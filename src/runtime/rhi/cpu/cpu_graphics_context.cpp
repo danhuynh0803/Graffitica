@@ -16,7 +16,7 @@ CPUGraphicsContext::CPUGraphicsContext(SDL_Window* window)
         .width = static_cast<U32>(surface->w),
         .height = static_cast<U32>(surface->h),
         .imageCount = 3,
-        .format = gr::rhi::ImageFormat::R8G8B8A8_UNORM
+        .format = gr::rhi::GrFormat::R8G8B8A8_UNORM
     };
 
     m_CPURHIInstance = std::make_unique<CPU_RHI>();
