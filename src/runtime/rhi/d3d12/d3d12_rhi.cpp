@@ -1,6 +1,7 @@
+#include <directx/d3d12.h>
+#include <dxgi1_6.h>
 #include "d3d12_rhi.h"
 #include "d3d12_util.h"
-#include <directx/d3d12.h>
 #include "developer/profiler/profiler.h"
 #include <iostream>
 
@@ -112,7 +113,6 @@ D3D12_RHI::D3D12_RHI()
 
     ThrowIfFailed(m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_CommandQueue)));
     ThrowIfFailed(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_GraphicsCommandAllocator)));
-
 }
 
     [[nodiscard]] BufferHandle D3D12_RHI::CreateBuffer(const BufferDesc& desc)

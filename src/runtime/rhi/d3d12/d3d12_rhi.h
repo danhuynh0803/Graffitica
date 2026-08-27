@@ -18,11 +18,6 @@
 #include "rhi/interface/rhi.h"
 #include "rhi/resource_pool.h"
 
-//#include "d3d12_buffer_resource_pool.h"
-//#include "d3d12_texture_resource_pool.h"
-//#include "d3d12_graphics_pipeline.h"
-//#include "d3d12_compute_pipeline.h"
-
 namespace gr::rhi::d3d12
 {
 
