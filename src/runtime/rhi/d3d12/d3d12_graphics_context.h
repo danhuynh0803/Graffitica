@@ -20,8 +20,8 @@ public:
 public:
     static D3D12GraphicsContext* CreateInstance(SDL_Window* window);
     [[nodiscard]] static D3D12GraphicsContext* GetInstance() { return s_GraphicsContextInstance.get(); }
-    [[nodiscard]] D3D12Swapchain* GetSwapchain() const { return m_Swapchain.get(); }
-
+    //[[nodiscard]] D3D12Swapchain* GetSwapchain() const { return m_Swapchain.get(); }
+    [[nodiscard]] virtual ISwapchain* GetSwapchain() override { return m_Swapchain.get(); }
     virtual void SwapBackBuffers() override {};
     virtual void UpdateBackBuffer(SDL_Surface* surfaceToUpdate) override;
     virtual RHIContext* GetRHIContext() override { return m_RHIContext.get(); }

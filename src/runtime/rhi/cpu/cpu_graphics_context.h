@@ -22,7 +22,8 @@ public:
     virtual void UpdateBackBuffer(SDL_Surface* surfaceToUpdate) override;
     virtual RHIContext* GetRHIContext() override { return m_RHIContext->IsValid() ? m_RHIContext.get() : nullptr; }
 
-    CPUSwapchain* GetSwapchain() const { return m_Swapchain.get(); }
+    //CPUSwapchain* GetSwapchain() const { return m_Swapchain.get(); }
+    virtual ISwapchain* GetSwapchain() override { return m_Swapchain.get(); }
 
 public:
     CPUGraphicsContext(SDL_Window* window);

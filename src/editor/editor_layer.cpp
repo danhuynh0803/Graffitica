@@ -3,8 +3,6 @@
 #include <random>
 #include <numbers>
 #include <functional>
-// Always keep agility sdk include first to avoid windows.h conflicts with d3d12
-#include <directx/d3dx12.h>
 
 #include "rhi/resource.h"
 #include "rhi/rasterizer_state.h"
@@ -13,9 +11,7 @@
 #include "rhi/interface/graphics_rhi.h"
 #include "rhi/shader.h"
 #include "rhi/command_buffer.h"
-#include "rhi/cpu/cpu_graphics_context.h"
-#include "rhi/d3d12/d3d12_graphics_context.h"
-#include "rhi/d3d12/d3d12_util.h"
+#include "rhi/interface/graphics_context.h"
 
 #include "renderer/camera.h"
 #include "renderer/camera_controller.h"
@@ -25,11 +21,8 @@
 #include "developer/profiler/profiler.h"
 
 #include "rhi/interface/command_list.h"
-#include "rhi/d3d12/d3d12_command_list.h"
 #include "rhi/interface/rhi.h"
 #include "modules/ShaderCompilerModule.h"
-
-#include <DirectXMath.h>
 
 namespace gr
 {
@@ -37,8 +30,10 @@ namespace gr
 namespace
 {
     // DH TODO rhi abstraction - for testing purposes, we can switch between cpu and gpu contexts here
-    rhi::CPUGraphicsContext* pGfxContext = nullptr;
-    rhi::CPUSwapchain* pSwapchain = nullptr;
+    rhi::IGraphicsContext* pGfxContext = nullptr;
+    //rhi::CPUGraphicsContext* pGfxContext = nullptr;
+    rhi::ISwapchain* pSwapchain = nullptr;
+    //rhi::CPUSwapchain* pSwapchain = nullptr;
     //rhi::d3d12::D3D12GraphicsContext* gfxContext = nullptr;
     //rhi::d3d12::D3D12Swapchain* swapchain = nullptr;
 
@@ -86,7 +81,7 @@ EditorLayer::EditorLayer(const std::string& name)
     std::mt19937 gen(rd());
     std::uniform_real_distribution<float> dis(0.0f, 1.0f);
 
-    pGfxContext = rhi::CPUGraphicsContext::GetInstance();
+    pGfxContext = rhi::IGraphicsContext::GetInstance();
     pSwapchain = pGfxContext->GetSwapchain();
     
     pRHI = pGfxContext->GetRHIContext();
@@ -98,6 +93,12 @@ EditorLayer::EditorLayer(const std::string& name)
         .format = rhi::GrFormat::D32_SFLOAT
     };
     gDepthBufferHndl = pRHI->CreateTexture(targetDesc);
+
+    std::string shaderDir = "shaders/";
+    auto compiledOutputs = gShaderCompilerModule.CompileSlangToBlob((shaderDir + "default.slang").c_str(), "VSMain");
+
+    rhi::GraphicsPipelineDesc pipelineDesc{};
+
 }
 
 void EditorLayer::OnUpdate(double dt)
