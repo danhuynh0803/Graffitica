@@ -20,14 +20,14 @@ public:
                    ComPtr<ID3D12CommandQueue> commandQueue,
                    const SwapchainProperties& props);
     ~D3D12Swapchain() = default;
-    GrFormat GetSurfaceFormat() const;
+    //GrFormat GetSurfaceFormat() const;
 
     void UpdateBackBuffer(SDL_Surface* surfaceToUpdate);
 
-    U32 GetWidth()  const { return m_Width; }
-    U32 GetHeight() const { return m_Height; }
-    U32 GetCurrentBackBufferIndex() const { return m_RawSwapchain->GetCurrentBackBufferIndex(); }
-    U32 GetImageCount() const { return m_ImageCount; }
+    //U32 GetWidth()  const { return m_Width; }
+    //U32 GetHeight() const { return m_Height; }
+    //U32 GetCurrentBackBufferIndex() const { return m_RawSwapchain->GetCurrentBackBufferIndex(); }
+    //U32 GetImageCount() const { return m_ImageCount; }
 
     // TODO add to ISwapchainInterface
     void Present()
@@ -58,17 +58,17 @@ public:
     }
 
 private:
-    U32 m_Width, m_Height;
-    U32 m_ImageCount;
+    //U32 m_Width, m_Height;
+    //U32 m_ImageCount;
     //U32 m_CurrentFrameIndex;
     U64 m_RTVDescriptorSize;
 
-    GrFormat m_SwapchainFormat;
+    //GrFormat m_SwapchainFormat;
 
     //ImageView<R8G8B8A8_UNORM> m_BackBuffer;
     //std::vector<Image<FORMAT_R8G8B8A8_UNORM>> m_PresentImages;
     //std::vector<ImageView<FORMAT_R8G8B8A8_UNORM>> m_PresentImageViews;
-    SDL_Surface* m_PresentSurface;
+    //SDL_Surface* m_PresentSurface;
 
     static constexpr int MaxBackBuffers = 3;
     ComPtr<ID3D12Resource> m_BackBuffers[MaxBackBuffers];

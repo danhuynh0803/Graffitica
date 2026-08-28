@@ -11,8 +11,8 @@ namespace gr::rhi
 class CPUGraphicsContext final : public IGraphicsContext
 {
 public:
-    static CPUGraphicsContext* CreateInstance(SDL_Window * window);
-    static CPUGraphicsContext* GetInstance() { return s_CPUGraphicsContextInstance.get(); }
+    [[nodiscard]] static CPUGraphicsContext* CreateInstance(SDL_Window * window);
+    [[nodiscard]] static CPUGraphicsContext* GetInstance() { return s_CPUGraphicsContextInstance.get(); }
 
     CPUGraphicsContext(CPUGraphicsContext&&) = delete;
     CPUGraphicsContext(const CPUGraphicsContext&) = delete;
@@ -20,9 +20,8 @@ public:
 
     virtual void SwapBackBuffers() override {};
     virtual void UpdateBackBuffer(SDL_Surface* surfaceToUpdate) override;
-    virtual RHIContext* GetRHIContext() override { return m_RHIContext->IsValid() ? m_RHIContext.get() : nullptr; }
-
-    CPUSwapchain* GetSwapchain() const { return m_Swapchain.get(); }
+    [[nodiscard]] virtual RHIContext* GetRHIContext() override { return m_RHIContext->IsValid() ? m_RHIContext.get() : nullptr; }
+    [[nodiscard]] virtual ISwapchain* GetSwapchain() override { return m_Swapchain.get(); }
 
 public:
     CPUGraphicsContext(SDL_Window* window);

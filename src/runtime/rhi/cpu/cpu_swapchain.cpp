@@ -34,12 +34,9 @@ namespace
 
 
 CPUSwapchain::CPUSwapchain(const SwapchainProperties& props, CPU_RHI* rhiInstance)
-    : m_Width(props.width), m_Height(props.height),
-      m_ImageCount(props.imageCount),
-      m_CurrentFrameIndex(0),
-      m_SwapchainFormat(props.format),
-      m_RHIInstance(rhiInstance)
+    : ISwapchain(props)
 {
+    m_RHIInstance = rhiInstance;
     const U32 width = props.width;
     const U32 height = props.height;
     const U32 imageCount = props.imageCount;
@@ -51,7 +48,6 @@ CPUSwapchain::CPUSwapchain(const SwapchainProperties& props, CPU_RHI* rhiInstanc
     {
         auto handle = m_RHIInstance->CreateTexture(TextureDesc{ width, height, m_SwapchainFormat });
         m_PresentResourceHandles.emplace_back(handle);
-
     }
 }
 

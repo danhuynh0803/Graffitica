@@ -25,10 +25,7 @@ D3D12Swapchain::D3D12Swapchain(
     ComPtr<ID3D12Device> device,
     ComPtr<ID3D12CommandQueue> commandQueue,
     const SwapchainProperties& props)
-    : m_Width(props.width), m_Height(props.height),
-      m_ImageCount(props.imageCount),
-      //m_CurrentFrameIndex(0),
-      m_SwapchainFormat(props.format)
+    : ISwapchain(props)
 {
     ComPtr<IDXGIFactory4> factory;
     HRESULT res = CreateDXGIFactory1(IID_PPV_ARGS(&factory));

@@ -28,25 +28,19 @@ D3D12GraphicsPipeline::D3D12GraphicsPipeline(const GraphicsPipelineDesc& desc)
     UINT vertexShaderSize = 0;
     UINT pixelShaderSize = 0;
 
-    std::string shaderDir = "shaders/";
-    //rhi::d3d12::ThrowIfFailed(rhi::d3d12::ReadDataFromFile((shaderDir + L"triangle_vs.cso").c_str(), &pVertexShaderBytecode, &vertexShaderSize));
-    //rhi::d3d12::ThrowIfFailed(rhi::d3d12::ReadDataFromFile((shaderDir + L"triangle_ps.cso").c_str(), &pPixelShaderBytecode, &pixelShaderSize));
-
-    //auto compiledOutputs = gShaderCompilerModule.CompileSlangToBlob((shaderDir + "default.slang").c_str(), "VSMain");
-
     std::vector<D3D12_INPUT_ELEMENT_DESC> inputElementDescs {};
     inputElementDescs.reserve(desc.inputLayoutStates.size());
     for (const auto& input : desc.inputLayoutStates)
     {
-        //inputElementDescs.emplace_back(
-        //    input.semanticName,
-        //    input.semanticIndex,
-        //    ToDXGIFormat(input.format),
-        //    input.inputSlot,
-        //    input.alignedByteOffset,
-        //    ToD3D12InputClassification(input.inputSlotClass),
-        //    input.instanceDataStepRate
-        //);
+        inputElementDescs.emplace_back(
+            input.semanticName.c_str(),
+            input.semanticIndex,
+            ToDXGIFormat(input.format),
+            input.inputSlot,
+            input.alignedByteOffset,
+            ToD3D12InputClassification(input.inputSlotClass),
+            input.instanceDataStepRate
+        );
     }
     // empty root signature since we are not binding any resources for this test
     {
