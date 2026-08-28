@@ -4,7 +4,7 @@
 #include "rhi/interface/pipeline.h"
 #include "core/types.h"
 
-namespace gr::rhi::d3d12
+namespace gr::rhi
 {
 using Microsoft::WRL::ComPtr;
 
@@ -39,4 +39,4 @@ private:
     ComPtr<ID3D12RootSignature> m_D3D12RootSignature;
 };
 
-} //namespace gr::rhi::d3d12
+} //namespace gr::rhi

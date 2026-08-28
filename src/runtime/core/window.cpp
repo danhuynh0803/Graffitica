@@ -15,9 +15,9 @@ gr::rhi::IGraphicsContext* CreateRHI(RHI_BACKEND backend, SDL_Window* window)
     switch (backend)
     {
     case RHI_BACKEND::D3D12:
-        return rhi::IGraphicsContext::Create<rhi::d3d12::D3D12GraphicsContext>(window);
+        return rhi::IGraphicsContext::Create<rhi::D3D12GraphicsContext>(window);
     case RHI_BACKEND::VULKAN:
-        //return rhi::IGraphicsContext::Create<rhi::d3d12::VulkanGraphicsContext>(window);
+        //return rhi::IGraphicsContext::Create<rhi::VulkanGraphicsContext>(window);
         break;
     case RHI_BACKEND::CPU:
         return rhi::IGraphicsContext::Create<rhi::CPUGraphicsContext>(window);

@@ -7,7 +7,7 @@
 #include <d3d12.h>
 #include "d3d12_util.h"
 
-namespace gr::rhi::d3d12
+namespace gr::rhi
 {
 
 using Microsoft::WRL::ComPtr;

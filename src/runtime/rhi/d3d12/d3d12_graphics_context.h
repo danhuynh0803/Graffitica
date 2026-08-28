@@ -7,7 +7,7 @@
 #include "d3d12_rhi.h"
 #include "d3d12_swapchain.h"
 
-namespace gr::rhi::d3d12
+namespace gr::rhi
 {
 
 using Microsoft::WRL::ComPtr;

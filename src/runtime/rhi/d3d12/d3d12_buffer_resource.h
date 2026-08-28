@@ -3,7 +3,7 @@
 #include <directx/d3dx12.h>
 #include "rhi/interface/rhi.h"
 
-namespace gr::rhi::d3d12
+namespace gr::rhi
 {
 
 struct D3D12BufferResource

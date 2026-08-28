@@ -4,7 +4,7 @@
 #include "rhi/interface/command_list.h"
 #include <wrl/client.h>
 
-namespace gr::rhi::d3d12
+namespace gr::rhi
 {
 
 using Microsoft::WRL::ComPtr;

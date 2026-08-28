@@ -2,7 +2,7 @@
 #include "util/math/vector.h"
 #include "d3d12_graphics_context.h"
 
-namespace gr::rhi::d3d12
+namespace gr::rhi
 {
 
 D3D12_COMMAND_LIST_TYPE ToD3D12CommandListType(CommandListType type)
@@ -43,4 +43,4 @@ D3D12CommandList::D3D12CommandList(CommandListType type)
 }
 
 
-} // namespace gr::rhi::d3d12
+} // namespace gr::rhi

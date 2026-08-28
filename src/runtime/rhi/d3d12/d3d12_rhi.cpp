@@ -7,7 +7,7 @@
 #include "d3d12_texture_resource.h"
 #include "developer/profiler/profiler.h"
 
-namespace gr::rhi::d3d12
+namespace gr::rhi
 {
 
 void GetHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** ppAdapter)
@@ -286,4 +286,4 @@ void D3D12_RHI::Dispatch(RHICommandList& cmdlist, U32 groupCountX, U32 groupCoun
 //}
 
 
-} // namespace gr::rhi::d3d12
+} // namespace gr::rhi

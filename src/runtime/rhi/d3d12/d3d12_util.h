@@ -4,7 +4,7 @@
 #include <wrl/wrappers/corewrappers.h>
 #include <string>
 
-namespace gr::rhi::d3d12
+namespace gr::rhi
 {
 
 // various dx12 utility functions

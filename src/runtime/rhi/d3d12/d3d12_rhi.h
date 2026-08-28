@@ -20,8 +20,10 @@
 #include "rhi/d3d12/d3d12_buffer_resource.h"
 #include "rhi/d3d12/d3d12_texture_resource.h"
 
-namespace gr::rhi::d3d12
+namespace gr::rhi
 {
+
+using Microsoft::WRL::ComPtr;
 
 struct FeatureSupportData
 {
@@ -77,4 +79,4 @@ private:
     TextureResourcePool<D3D12TextureResource> m_TexturePool;
 };
 
-} // namespace gr::rhi::d3d12
+} // namespace gr::rhi

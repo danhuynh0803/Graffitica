@@ -4,7 +4,7 @@
 #include "d3d12_util.h"
 #include "d3d12_graphics_context.h"
 
-namespace gr::rhi::d3d12
+namespace gr::rhi
 {
 
 
