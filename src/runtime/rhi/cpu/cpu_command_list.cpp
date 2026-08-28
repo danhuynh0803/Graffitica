@@ -9,7 +9,7 @@ void CPUCommandList::ClearColorImpl(CPUTextureResource& view, const vec4f& clear
 {
     GR_TRACE_START(SYS_RHI);
     
-    assert("FORMAT must inherit from a COLOR FORMAT", std::is_base_of<ColorFormat, view->m_Format>::value);
+    //assert("FORMAT must inherit from a COLOR FORMAT", std::is_base_of<ColorFormat, view->m_Format>::value);
 
     auto size = view.m_Width * view.m_Height;
 
@@ -31,7 +31,7 @@ void CPUCommandList::ClearDepthImpl(CPUTextureResource& view, float clearDepth)
 {
     GR_TRACE_START(SYS_RHI);
 
-    assert("FORMAT must inherit from a DEPTH FORMAT", std::is_base_of<DepthFormat, FORMAT>::value);
+    //assert("FORMAT must inherit from a DEPTH FORMAT", std::is_base_of<DepthFormat, FORMAT>::value);
 
     auto size = view.m_Width * view.m_Height;
 

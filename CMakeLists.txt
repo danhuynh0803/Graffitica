@@ -140,6 +140,12 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     NOMINMAX
 )
 
+target_compile_options(${PROJECT_NAME} PRIVATE
+    #$<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
+    $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -Werror>
+    $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Werror>
+)
+
 # OpenMP
 find_package(OpenMP REQUIRED)
 if (OPENMP_FOUND)

@@ -44,7 +44,7 @@ Window::Window(const WindowProperties& props)
                                 SDL_WINDOW_RESIZABLE);
 
     // TODO generate an engine.config file and read in cli arg flags
-    m_GraphicsContext = CreateRHI(RHI_BACKEND::CPU, m_Window);
+    m_GraphicsContext = CreateRHI(RHI_BACKEND::D3D12, m_Window);
 }
 
 Window::~Window()

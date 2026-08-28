@@ -7,19 +7,6 @@
 namespace gr::rhi::d3d12
 {
 
-namespace
-{
-    DXGI_FORMAT ImageFormatToDXGI(GrFormat format)
-    {
-        switch (format)
-        {
-        case GrFormat::R8G8B8A8_UNORM:
-            return DXGI_FORMAT_R8G8B8A8_UNORM;
-        default:
-            throw std::runtime_error("ERROR: No conversion from ImageFormat to DXGIFormat for Swapchain");
-        }
-    }
-}
 
 D3D12Swapchain::D3D12Swapchain(
     ComPtr<ID3D12Device> device,
@@ -29,13 +16,15 @@ D3D12Swapchain::D3D12Swapchain(
 {
     ComPtr<IDXGIFactory4> factory;
     HRESULT res = CreateDXGIFactory1(IID_PPV_ARGS(&factory));
+    if (FAILED(res)) { throw std::runtime_error("Failed to create DXGIFactory"); }
 
     DXGI_SWAP_CHAIN_DESC1 desc {};
     desc.BufferCount = m_ImageCount;
     desc.Width = m_Width;
     desc.Height = m_Height;
-    desc.Format = ImageFormatToDXGI(props.format);
+    desc.Format = ToDXGIFormat(props.format);
     desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    // TODO expose swapeffect in swapchain props later
     desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
     desc.SampleDesc.Count = 1;
 
@@ -50,7 +39,6 @@ D3D12Swapchain::D3D12Swapchain(
     ));
 
     ThrowIfFailed(swapchain1.As(&m_RawSwapchain));
-    //m_CurrentFrameIndex = m_RawSwapchain->GetCurrentBackBufferIndex();
 
     // Descriptor heaps
     D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc{};

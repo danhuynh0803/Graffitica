@@ -15,7 +15,16 @@ class Command;
 class CPUCommandList : public ICommandList
 {
 public:
-    CPUCommandList() = default;
+    CPUCommandList() noexcept
+        : m_Commands()
+        , m_VertexBuffers{}
+        , m_IndexBuffer{}
+        , m_ColorTargets{}
+        , m_DepthTarget{}
+        , m_GraphicsPipeline(nullptr)
+        , m_ComputePipeline(nullptr)
+    {
+    }
 
     void BeginRecording() { m_Commands.clear(); }
 
@@ -42,12 +51,12 @@ public:
 public:
     // TODO old impl - replace with RHI equivalents or
     // maybe tie to renderpass state to prepare for RG
-    Framebuffer* framebuffer;
-    RasterizerState* rasterizerState;
+    //Framebuffer* framebuffer;
+    //RasterizerState* rasterizerState;
     //gr::rhi::TestShader* shaderModule;
-    ShaderModule* shaderModule;
+    //ShaderModule* shaderModule;
     //Pipeline *pipeline;
-    mat44 mvp;
+    //mat44 mvp;
 
 private:
     std::vector<Command> m_Commands;

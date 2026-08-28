@@ -51,9 +51,9 @@ struct CPUTextureResource
 {
     CPUTextureResource() = delete;
     CPUTextureResource(const TextureDesc& desc)
-        : m_Width(desc.width), m_Height(desc.height), m_Format(desc.format)
+        : m_Width(desc.width), m_Height(desc.height), m_Format(desc.eFormat)
     {
-        auto byteSize = ConvertFormatToByteSize(desc.format);
+        auto byteSize = ConvertFormatToByteSize(desc.eFormat);
         m_Data.resize(m_Width * m_Height * byteSize);
     }
 

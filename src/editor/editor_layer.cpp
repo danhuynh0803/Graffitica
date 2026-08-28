@@ -90,15 +90,19 @@ EditorLayer::EditorLayer(const std::string& name)
     rhi::TextureDesc targetDesc {
         .width = pSwapchain->GetWidth(),
         .height = pSwapchain->GetHeight(),
-        .format = rhi::GrFormat::D32_SFLOAT
+        .eFormat = rhi::GrFormat::D32_SFLOAT,
+        .eResourceType = rhi::ResourceType::DepthStencil
     };
     gDepthBufferHndl = pRHI->CreateTexture(targetDesc);
 
     std::string shaderDir = "shaders/";
     auto compiledOutputs = gShaderCompilerModule.CompileSlangToBlob((shaderDir + "default.slang").c_str(), "VSMain");
-
     rhi::GraphicsPipelineDesc pipelineDesc{};
-
+    // TODO create helper to simplify
+    pipelineDesc.vertexShader.pShaderByteCode = compiledOutputs.VS->getBufferPointer();
+    pipelineDesc.vertexShader.byteCodeLength  = compiledOutputs.VS->getBufferSize();
+    pipelineDesc.pixelShader.pShaderByteCode = compiledOutputs.PS->getBufferPointer();
+    pipelineDesc.pixelShader.byteCodeLength = compiledOutputs.PS->getBufferSize();
 }
 
 void EditorLayer::OnUpdate(double dt)
@@ -111,9 +115,19 @@ void EditorLayer::OnUpdate(double dt)
     
     // TODO later replace with RenderGraph/RenderPass
     pRHI->BeginRecording(gCmdlist);
-        pRHI->ClearColor(gCmdlist, backBufferHndl, { .4, .5, .7, 1.0 });
-        pRHI->ClearDepth(gCmdlist, gDepthBufferHndl, 1.0f);
-        pRHI->SetVertexBuffers(gCmdlist, 1, &gVertexBuffer);
+    pRHI->BeginRenderPass(gCmdlist, 
+    {
+        .numColorAttachments = 1,
+        .colorAttachments = {backBufferHndl},
+        .depthAttachment = gDepthBufferHndl
+    });
+
+    pRHI->ClearColor(gCmdlist, backBufferHndl, { .4, .5, .7, 1.0 });
+    pRHI->ClearDepth(gCmdlist, gDepthBufferHndl, 1.0f);
+    pRHI->SetVertexBuffers(gCmdlist, 1, &gVertexBuffer);
+    //pRHI->DrawIndexedInstanced(gCmdList..);
+    
+    pRHI->EndRenderPass(gCmdlist);
     pRHI->EndRecording(gCmdlist);
     
     pRHI->ExecuteCommandList(gCmdlist);

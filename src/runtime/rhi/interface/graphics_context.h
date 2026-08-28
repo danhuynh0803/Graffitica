@@ -14,23 +14,22 @@ public:
     virtual ~IGraphicsContext() = default;
     virtual void SwapBackBuffers() = 0;
     virtual void UpdateBackBuffer(SDL_Surface* surfaceToUpdate) = 0;
-    [[nodiscard]] static IGraphicsContext* GetInstance() { return s_GraphicsContextInstance.get(); }
+    [[nodiscard]] static IGraphicsContext* GetInstance() { return s_GraphicsContextInstance; }
 
     template <typename TGraphicsContext>
     static IGraphicsContext* Create(SDL_Window* window)
     {
         // TODO create gr asserts to include location of error
         static_assert(std::is_base_of<IGraphicsContext, TGraphicsContext>::value, "Type needs to be of IGraphicsContext!");
-        //TGraphicsContext::CreateInstance(window);
-        s_GraphicsContextInstance = std::make_unique<TGraphicsContext>(window);
-        return s_GraphicsContextInstance.get(); //TGraphicsContext::GetInstance();
+        s_GraphicsContextInstance = TGraphicsContext::CreateInstance(window);
+        return  TGraphicsContext::GetInstance();
     }
 
     [[nodiscard]] virtual ISwapchain* GetSwapchain() = 0;
     [[nodiscard]] virtual RHIContext* GetRHIContext() = 0;
 
 protected:
-    inline static std::unique_ptr<IGraphicsContext> s_GraphicsContextInstance;
+    inline static IGraphicsContext* s_GraphicsContextInstance;
 };
 
 }

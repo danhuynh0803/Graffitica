@@ -17,6 +17,8 @@
 #include "d3d12_pipeline.h"
 #include "rhi/interface/rhi.h"
 #include "rhi/resource_pool.h"
+#include "rhi/d3d12/d3d12_buffer_resource.h"
+#include "rhi/d3d12/d3d12_texture_resource.h"
 
 namespace gr::rhi::d3d12
 {
@@ -26,32 +28,12 @@ struct FeatureSupportData
     bool supportsRaytracing;
 };
 
-struct D3D12BufferResource
-{
-    D3D12BufferResource() = delete;
-    D3D12BufferResource(const BufferDesc& desc)
-        //: m_SizeInBytes(desc.size), m_StrideInBytes(0)
-    {
-        // TODO create D3D12 resource here
-    }
-};
-
-struct D3D12TextureResource
-{
-    D3D12TextureResource() = delete;
-    D3D12TextureResource(const TextureDesc& desc)
-        //: m_Width(desc.width), m_Height(desc.height), m_Format(desc.format)
-    {
-        // TODO create D3D12 resource here
-    } 
-};
-
 class D3D12_RHI
 {
 public:
     D3D12_RHI();
 
-    [[nodiscard]] ComPtr<ID3D12Device> GetDevice() const { return m_Device; }
+    [[nodiscard]] ID3D12Device* GetDevice() const { return m_Device.Get(); }
     [[nodiscard]] ComPtr<ID3D12CommandQueue> GetCommandQueue() const { return m_CommandQueue; }
     [[nodiscard]] ComPtr<ID3D12CommandAllocator> GetGraphicsCommandAllocator() const { return m_GraphicsCommandAllocator; }
     [[nodiscard]] ComPtr<ID3D12DescriptorHeap> GetRTVDescriptorHeap() const { return m_RTVDescriptorHeap; }
@@ -79,32 +61,17 @@ public:
     void DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation);
     void Dispatch(RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ);
 
-    //void DispatchRays(RHICommandList& cmdlist, U32 width, U32 height, U32 depth)
-    //{
-    //    GR_TRACE_START(SYS_RHI);
-    //
-    //    // RayGen function invoked for each pixel in the dispatch dimensions
-    //    for (U32 z = 0; z < depth; ++z)
-    //    {
-    //        for (U32 y = 0; y < height; ++y)
-    //        {
-    //            for (U32 x = 0; x < width; ++x)
-    //            {
-    //                // TODO invoke ray generation shader function here
-    //                // e.g. pCmdlist->shaderModule->raygen({x, y, z});
-    //            }
-    //        }
-    //    }
-    //
-    //    std::cout << "DispatchRays_CPU\n";
-    //}
-
 private:
     FeatureSupportData m_FeatureSupportData;
     ComPtr<ID3D12Device> m_Device;
     ComPtr<ID3D12CommandQueue> m_CommandQueue;
     ComPtr<ID3D12CommandAllocator> m_GraphicsCommandAllocator;
+
+    U32 m_MaxHeapSize = 1000; 
+    ComPtr<ID3D12DescriptorHeap> m_CBV_SRV_UAV_DescriptorHeap;
+    ComPtr<ID3D12DescriptorHeap> m_SamplerDescriptorHeap;
     ComPtr<ID3D12DescriptorHeap> m_RTVDescriptorHeap;
+    ComPtr<ID3D12DescriptorHeap> m_DSVDescriptorHeap;
 
     BufferResourcePool<D3D12BufferResource>  m_BufferPool;
     TextureResourcePool<D3D12TextureResource> m_TexturePool;

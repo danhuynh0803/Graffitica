@@ -5,10 +5,6 @@
 namespace gr::rhi
 {
 
-TextureHandle CreateTexture(const TextureDesc& desc)
-{
-    return 0;
-}
 
 
 }

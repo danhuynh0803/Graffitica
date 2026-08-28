@@ -1,9 +1,11 @@
+#include <iostream>
 #include <directx/d3d12.h>
 #include <dxgi1_6.h>
 #include "d3d12_rhi.h"
 #include "d3d12_util.h"
+#include "d3d12_buffer_resource.h"
+#include "d3d12_texture_resource.h"
 #include "developer/profiler/profiler.h"
-#include <iostream>
 
 namespace gr::rhi::d3d12
 {
@@ -113,9 +115,40 @@ D3D12_RHI::D3D12_RHI()
 
     ThrowIfFailed(m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_CommandQueue)));
     ThrowIfFailed(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_GraphicsCommandAllocator)));
+
+    // Allocate one heap for each DescriptorHeap type
+    // cbv,srv,uav
+    {
+        D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+        heapDesc.NumDescriptors = m_MaxHeapSize;
+        heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+        ThrowIfFailed(m_Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_CBV_SRV_UAV_DescriptorHeap)));
+    }
+    { // samplers
+        D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+        heapDesc.NumDescriptors = m_MaxHeapSize;
+        heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+        heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+        ThrowIfFailed(m_Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_SamplerDescriptorHeap)));
+    }
+    { // rtv
+        D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+        heapDesc.NumDescriptors = m_MaxHeapSize;
+        heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+        heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+        ThrowIfFailed(m_Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_RTVDescriptorHeap)));
+    }
+    { // depth-stencil
+        D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+        heapDesc.NumDescriptors = m_MaxHeapSize;
+        heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+        heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+        ThrowIfFailed(m_Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_DSVDescriptorHeap)));
+    }
 }
 
-    [[nodiscard]] BufferHandle D3D12_RHI::CreateBuffer(const BufferDesc& desc)
+[[nodiscard]] BufferHandle D3D12_RHI::CreateBuffer(const BufferDesc& desc)
 {
     GR_TRACE_START(SYS_RHI);
     return m_BufferPool.Allocate(desc);
@@ -207,7 +240,10 @@ void D3D12_RHI::ClearColor(RHICommandList& cmdlist, TextureHandle& handle, const
     GR_TRACE_START(SYS_RHI);
     D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
     auto& resource = m_TexturePool.Get(handle);
-    //pCmdlist->ClearColorImpl(resource, color);
+
+    auto nativeCmdList = pCmdlist->GetRawCommandList();
+    const float clearColor[] = { color.r, color.g, color.b, color.a };
+    nativeCmdList->ClearRenderTargetView(resource.GetCPUDescriptorHandle(), clearColor, 0, nullptr);
 }
 
 void D3D12_RHI::ClearDepth(RHICommandList& cmdlist, TextureHandle& handle, float clearDepth)

@@ -11,7 +11,10 @@ class Camera
 {
 public:
     Camera(const vec3f& from, const vec3f& at)
-        : m_LookFrom(from), m_LookAt(at)
+        : m_LookFrom(from), m_LookAt(at),
+         // TODO
+         m_vfov(0), aspect_ratio(0),
+         m_Near(0), m_Far(0)
     {
        // Camera's local axes
        F = unit_vector(m_LookFrom - m_LookAt);      // +z
@@ -74,7 +77,7 @@ private:
     vec3f m_LookFrom;
     vec3f m_LookAt;
     vec3f R, U, F;
-    float vfov, aspect_ratio;
+    float m_vfov, aspect_ratio;
     float m_Near, m_Far;
 };
 

@@ -1,11 +1,11 @@
 #pragma once
 
 #include <wrl/client.h>
-#include <d3d12.h>
+#include "directx/d3d12.h"
 
 #include "rhi/interface/graphics_context.h"
-#include "d3d12_swapchain.h"
 #include "d3d12_rhi.h"
+#include "d3d12_swapchain.h"
 
 namespace gr::rhi::d3d12
 {
@@ -24,6 +24,7 @@ public:
     virtual void SwapBackBuffers() override {};
     virtual void UpdateBackBuffer(SDL_Surface* surfaceToUpdate) override;
     [[nodiscard]] virtual RHIContext* GetRHIContext() override { return m_RHIContext.get(); }
+    [[nodiscard]] ID3D12Device* GetD3D12Device() const { return m_D3D12RHIInstance->GetDevice(); }
 
 private:
     inline static std::unique_ptr<D3D12GraphicsContext> s_GraphicsContextInstance;

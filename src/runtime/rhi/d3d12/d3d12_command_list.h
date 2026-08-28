@@ -15,13 +15,13 @@ public:
     D3D12CommandList(CommandListType type);
 
 public:
-    ID3D12CommandList* GetRawCommandList() { return m_pCommandList.Get(); }
+    ID3D12GraphicsCommandList1* GetRawCommandList() { return m_pCommandList.Get(); }
 
     void BeginRecording();
     void EndRecording() { }
 
 private:
-    ComPtr<ID3D12GraphicsCommandList> m_pCommandList;
+    ComPtr<ID3D12GraphicsCommandList1> m_pCommandList;
     ComPtr<ID3D12Device> m_pDevice;
     ComPtr<ID3D12CommandAllocator> m_pCommandAllocator;
 };

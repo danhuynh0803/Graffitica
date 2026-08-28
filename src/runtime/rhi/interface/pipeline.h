@@ -9,9 +9,9 @@ namespace gr::rhi
 struct RHIShader
 {
     // On CPU RHI, this will be fn pointer to shader functions
-    void* pShaderFn;
+    const void* pShaderFn;
 
-    void* pShaderByteCode;
+    const void* pShaderByteCode;
     U32 byteCodeLength;
 };
 

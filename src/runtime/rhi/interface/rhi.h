@@ -19,6 +19,17 @@ enum class RHI_BACKEND : uint8_t
 namespace gr::rhi
 {
 
+enum class ResourceType : U8
+{
+    ConstantBuffer = 0,
+    ShaderResource,
+    UnorderedAccess,
+    Sampler,
+    RenderTarget,
+    DepthStencil,
+    COUNT
+};
+
 /*
 RHI Buffer Handles
 */
@@ -28,18 +39,19 @@ struct BufferDesc
 {
     U32 size;
     U32 usageFlags;
+    ResourceType eResourceType;
 };
 
 /*
 RHI Texture Handles
 */
 typedef U32 TextureHandle;
-
 struct TextureDesc
 {
     U32 width;
     U32 height;
-    gr::rhi::GrFormat format;
+    gr::rhi::GrFormat eFormat;
+    ResourceType eResourceType;
 };
 
 struct RHITextureResource
