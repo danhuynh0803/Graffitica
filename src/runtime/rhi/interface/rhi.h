@@ -101,7 +101,7 @@ struct RHIContext
     }
 
     template <typename TRHIBackend>
-    void InitRHI(TRHIBackend* instance)
+    RHIContext(TRHIBackend* instance)
     {
         pInstance = instance;
 

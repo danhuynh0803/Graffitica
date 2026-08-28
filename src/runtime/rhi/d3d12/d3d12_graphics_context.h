@@ -27,7 +27,7 @@ public:
 
 private:
     inline static std::unique_ptr<D3D12GraphicsContext> s_GraphicsContextInstance;
-    std::unique_ptr<D3D12_RHI> m_RHI;
+    std::unique_ptr<D3D12_RHI> m_D3D12RHIInstance;
     std::unique_ptr<RHIContext> m_RHIContext;
     std::unique_ptr<D3D12Swapchain> m_Swapchain;
 };

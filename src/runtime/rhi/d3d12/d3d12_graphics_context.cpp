@@ -25,7 +25,8 @@ D3D12GraphicsContext* D3D12GraphicsContext::CreateInstance(SDL_Window* window)
 
 D3D12GraphicsContext::D3D12GraphicsContext(SDL_Window* window)
 {
-    m_RHIContext->InitRHI(m_RHI.get());
+    m_D3D12RHIInstance = std::make_unique<D3D12_RHI>();
+    m_RHIContext = std::make_unique<RHIContext>(m_D3D12RHIInstance.get());
 
     // Create the swap chain
     SDL_Surface* surface = SDL_GetWindowSurface(window);
@@ -40,8 +41,8 @@ D3D12GraphicsContext::D3D12GraphicsContext(SDL_Window* window)
         .pWindow = hwnd
     };
 
-    auto device = m_RHI->GetDevice();
-    auto commandQueue = m_RHI->GetCommandQueue();
+    auto device = m_D3D12RHIInstance->GetDevice();
+    auto commandQueue = m_D3D12RHIInstance->GetCommandQueue();
     m_Swapchain = std::make_unique<D3D12Swapchain>(device, commandQueue, swapchainProps);
 }
 

@@ -71,9 +71,4 @@ D3D12Swapchain::D3D12Swapchain(
     }
 }
 
-void D3D12Swapchain::UpdateBackBuffer(SDL_Surface* surfaceToUpdate)
-{
-    //m_CurrentFrameIndex = m_RawSwapchain->GetCurrentBackBufferIndex();
-}
-
 }
