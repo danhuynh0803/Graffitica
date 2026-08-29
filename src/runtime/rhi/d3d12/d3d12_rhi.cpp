@@ -7,6 +7,11 @@
 
 namespace gr::rhi
 {
+ID3D12CommandList* GetNativeCommandList(const RHICommandList& cmdlist)
+{
+    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
+    return pCmdlist->GetRawCommandList();
+}
 
 void GetHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** ppAdapter)
 {
@@ -138,9 +143,23 @@ D3D12_RHI::D3D12_RHI()
     // 1. ID3D12Resource is first created and referenced from D3D12TextureResource
     // 2. We need to generate the view on the selected heap
     // 3. Then we reference the view via an index
-    D3D12TextureResource res(desc);
+    
+    D3D12TextureResource res(GetDevice(), desc);
     hndl.Offset(res.rtvIndex, heap.GetDescriptorSize());
-    res.rtvIndex = heap.CreateViewFromHeap(res.pResource.Get());
+    switch (desc.eResourceType)
+    {
+    case ResourceType::ShaderResource:
+        res.srvIndex = heap.CreateViewFromHeap(res.pResource.Get());
+        break;
+    case ResourceType::RenderTarget:
+        res.rtvIndex = heap.CreateViewFromHeap(res.pResource.Get());
+        break;
+    case ResourceType::DepthStencil:
+        res.dsvIndex = heap.CreateViewFromHeap(res.pResource.Get());
+        break;
+    default:
+        throw std::runtime_error("ResourceFormat is not valid");
+    }
     return m_TexturePool.Import(std::move(res));
 }
 
@@ -155,7 +174,7 @@ TextureHandle D3D12_RHI::CreateTexture(ComPtr<ID3D12Resource> extResource, Resou
     // 1. ID3D12Resource is first created and referenced from D3D12TextureResource
     // 2. We need to generate the view on the selected heap
     // 3. Then we reference the view via an index
-    D3D12TextureResource res(extResource);
+    D3D12TextureResource res(GetDevice(), extResource);
     hndl.Offset(res.rtvIndex, heap.GetDescriptorSize());
     // TODO switch resourceType enum to flags
     // since a resource can be allocated to multiple heaps and thus contain multiple heap indices
@@ -202,6 +221,7 @@ RHICommandList D3D12_RHI::CreateCommandList(CommandListType type)
 
 void D3D12_RHI::BeginRecording(RHICommandList& cmdlist)
 {
+    auto native = GetNativeCommandList(cmdlist);
 
 }
 void D3D12_RHI::EndRecording(RHICommandList& cmdlist)
@@ -219,15 +239,27 @@ void D3D12_RHI::EndRenderPass(RHICommandList& cmdlist)
 
 void D3D12_RHI::ExecuteCommandList(const RHICommandList& cmdlist)
 {
-    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
-    auto rawCmdList = pCmdlist->GetRawCommandList();
+    //auto rawCmdList = GetNativeCommandList(cmdlist);
+    //m_CommandQueue->ExecuteCommandLists(1, &rawCmdList);
+}
+
+void D3D12_RHI::ExecuteCommandLists(const RHICommandList rhiCommandLists[], U32 numCommandLists)
+{
+    std::vector<ID3D12CommandList> nativeCmds;
+    nativeCmds.reserve(numCommandLists);
+    //for (int i = 0; i < numCommandLists; ++i)
+    //    nativeCmds.push_back()
+    //auto rawCmdList = GetNativeCommandList(cmdlist);
+    //ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
+
+    //m_CommandQueue->ExecuteCommandLists(_countof(rawCmdList), ppCommandLists);
 }
 
 void D3D12_RHI::SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])
 {
     GR_TRACE_START(SYS_RHI);
     D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
-    std::cout << "D3D12 SetVertexBuffers called with numViews: " << numViews << std::endl;
+    //std::cout << "D3D12 SetVertexBuffers called with numViews: " << numViews << std::endl;
 }
 
 void D3D12_RHI::SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer)
@@ -253,9 +285,9 @@ void D3D12_RHI::ClearColor(RHICommandList& cmdlist, TextureHandle& handle, const
     auto nativeCmdList = pCmdlist->GetRawCommandList();
     const float clearColor[] = { color.r, color.g, color.b, color.a };
 
-    auto rtvHeap = GetDescriptorHeap(ResourceType::RenderTarget);
+    auto& rtvHeap = GetDescriptorHeap(ResourceType::RenderTarget);
     CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(
-        rtvHeap.GetNative()->GetCPUDescriptorHandleForHeapStart(),
+        rtvHeap.GetStartHandle(),
         resource.rtvIndex,
         rtvHeap.GetDescriptorSize()
     );
@@ -279,6 +311,10 @@ void D3D12_RHI::Dispatch(RHICommandList& cmdlist, U32 groupCountX, U32 groupCoun
 {
     GR_TRACE_START(SYS_RHI);
     // TODO
+}
+
+void D3D12_RHI::Present(D3D12Swapchain* pSwapchain)
+{
 }
 
 //void DispatchRays(RHICommandList& cmdlist, U32 width, U32 height, U32 depth)

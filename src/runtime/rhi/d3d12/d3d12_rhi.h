@@ -43,7 +43,7 @@ struct D3D12TextureResource
 {
 public:
     D3D12TextureResource() = delete;
-    D3D12TextureResource(ComPtr<ID3D12Resource> resource)
+    D3D12TextureResource(ID3D12Device* pDevice, ComPtr<ID3D12Resource> resource)
       : pResource(resource)
     {
         const auto& desc = resource->GetDesc();
@@ -51,59 +51,55 @@ public:
         m_Height = desc.Height;
         //m_Format = desc.Format;
     }
-    D3D12TextureResource(const TextureDesc& desc)
+    D3D12TextureResource(ID3D12Device* pDevice, /*ID3D12CommandList* cmdlist,*/ const TextureDesc& desc)
       : m_Width(desc.width), m_Height(desc.height), m_Format(desc.eFormat),
         pResource(nullptr)
     {
-        // TODO no implementation on constructor
-        // Maybe just do this at RHI level and then override
-        // the resource?
-        /*
-        // Create the texture.
-        {
-            // Describe and create a Texture2D.
-            D3D12_RESOURCE_DESC textureDesc = {};
-            textureDesc.MipLevels = 1;
-            textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-            textureDesc.Width = desc.width;
-            textureDesc.Height = desc.height;
-            textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-            textureDesc.DepthOrArraySize = 1;
-            textureDesc.SampleDesc.Count = 1;
-            textureDesc.SampleDesc.Quality = 0;
-            textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+        // Describe and create a Texture2D.
+        D3D12_RESOURCE_DESC textureDesc = {};
+        textureDesc.MipLevels = 1;
+        textureDesc.Format = ToDXGIFormat(desc.eFormat);
+        textureDesc.Width = desc.width;
+        textureDesc.Height = desc.height;
+        textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+        // TODO expose to TextureDesc
+        textureDesc.DepthOrArraySize = 1;
+        textureDesc.SampleDesc.Count = 1;
+        textureDesc.SampleDesc.Quality = 0;
+        textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 
-            ThrowIfFailed(m_device->CreateCommittedResource(
-                &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-                D3D12_HEAP_FLAG_NONE,
-                &textureDesc,
-                D3D12_RESOURCE_STATE_COPY_DEST,
-                nullptr,
-                IID_PPV_ARGS(&m_texture)));
+        const CD3DX12_HEAP_PROPERTIES heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
-            const UINT64 uploadBufferSize = GetRequiredIntermediateSize(m_texture.Get(), 0, 1);
+        ThrowIfFailed(pDevice->CreateCommittedResource(
+            &heap,//&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+            D3D12_HEAP_FLAG_NONE,
+            &textureDesc,
+            D3D12_RESOURCE_STATE_COMMON,
+            nullptr,
+            IID_PPV_ARGS(&pResource)));
 
-            // Create the GPU upload buffer.
-            ThrowIfFailed(m_device->CreateCommittedResource(
-                &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-                D3D12_HEAP_FLAG_NONE,
-                &CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),
-                D3D12_RESOURCE_STATE_GENERIC_READ,
-                nullptr,
-                IID_PPV_ARGS(&textureUploadHeap)));
+        //const UINT64 uploadBufferSize = GetRequiredIntermediateSize(m_texture.Get(), 0, 1);
+        //
+        //// Create the GPU upload buffer.
+        //ThrowIfFailed(m_device->CreateCommittedResource(
+        //    &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+        //    D3D12_HEAP_FLAG_NONE,
+        //    &CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),
+        //    D3D12_RESOURCE_STATE_GENERIC_READ,
+        //    nullptr,
+        //    IID_PPV_ARGS(&pResource)));
 
-            // Copy data to the intermediate upload heap and then schedule a copy 
-            // from the upload heap to the Texture2D.
-            std::vector<UINT8> texture = GenerateTextureData();
-
-            D3D12_SUBRESOURCE_DATA textureData = {};
-            textureData.pData = &texture[0];
-            textureData.RowPitch = TextureWidth * TexturePixelSize;
-            textureData.SlicePitch = textureData.RowPitch * TextureHeight;
-
-            UpdateSubresources(m_commandList.Get(), m_texture.Get(), textureUploadHeap.Get(), 0, 0, 1, &textureData);
-            m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-        */
+        // Copy data to the intermediate upload heap and then schedule a copy 
+        // from the upload heap to the Texture2D.
+        //std::vector<UINT8> texture = GenerateTextureData();
+        //
+        //D3D12_SUBRESOURCE_DATA textureData = {};
+        //textureData.pData = &texture[0];
+        //textureData.RowPitch = TextureWidth * TexturePixelSize;
+        //textureData.SlicePitch = textureData.RowPitch * TextureHeight;
+        //
+        //UpdateSubresources(cmdlist, m_texture.Get(), textureUploadHeap.Get(), 0, 0, 1, &textureData);
+        //cmdlist->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
     }
 
     U32 m_Width, m_Height;
@@ -113,6 +109,25 @@ public:
     // so note to not revoke access
     friend class D3D12_RHI;
     friend class D3D12Swapchain;
+
+private:
+    [[nodiscard]] D3D12_RESOURCE_DESC CreateD3D12ResourceDesc(const TextureDesc& desc)
+    {
+        // Describe and create a Texture2D.
+        D3D12_RESOURCE_DESC textureDesc = {};
+        textureDesc.MipLevels = 1;
+        textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        textureDesc.Width = desc.width;
+        textureDesc.Height = desc.height;
+        textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+        textureDesc.DepthOrArraySize = 1;
+        textureDesc.SampleDesc.Count = 1;
+        textureDesc.SampleDesc.Quality = 0;
+        textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+
+        return textureDesc;
+    }
+
 private:
     ComPtr<ID3D12Resource> pResource = nullptr;
     D3D12_RESOURCE_STATES currentState {};
@@ -142,8 +157,26 @@ public:
 
     [[nodiscard]] U32 CreateViewFromHeap(ID3D12Resource* resource)
     {
-        m_pDevice->CreateRenderTargetView(resource, nullptr, GetCurrentOffsetHandle());
-        return ++m_CurrentOffset;
+        // Higher level code should identify the resource's type first
+        // this function then is called from the appropriate DescriptorHeap,
+        // hence why we can reliably call the correct Create*View call from
+        // the DescriptorHeap itself
+        // TODO combine this so it's all centralized since they rely on eachother
+        switch (m_HeapType)
+        {
+        case ResourceType::ShaderResource:
+            break;
+        case ResourceType::RenderTarget:
+            m_pDevice->CreateRenderTargetView(resource, nullptr, GetCurrentOffsetHandle());
+            break;
+        case ResourceType::DepthStencil:
+            m_pDevice->CreateDepthStencilView(resource, nullptr, GetCurrentOffsetHandle());
+            break;
+        case ResourceType::Sampler:
+            break;
+        }
+
+        return m_CurrentOffset++;
     }
 
     D3D12_DESCRIPTOR_HEAP_DESC GetDesc() const { return pDescriptorHeap->GetDesc(); }
@@ -210,6 +243,8 @@ public:
     void BeginRenderPass(RHICommandList& cmdlist, RenderPassDesc desc);
     void EndRenderPass(RHICommandList& cmdlist);
     void ExecuteCommandList(const RHICommandList& cmdlist);
+    void ExecuteCommandLists(const RHICommandList rhiCommandLists[], U32 numCommandLists);
+
     void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[]);
     void SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer);
     void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[]);
@@ -217,6 +252,7 @@ public:
     void ClearDepth(RHICommandList& cmdlist, TextureHandle& handle, float clearDepth);
     void DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation);
     void Dispatch(RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ);
+    void Present(D3D12Swapchain* pSwapchain);
 
 private:
     FeatureSupportData m_FeatureSupportData;

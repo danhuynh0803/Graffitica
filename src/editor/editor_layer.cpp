@@ -123,7 +123,7 @@ void EditorLayer::OnUpdate(double dt)
     });
 
     pRHI->ClearColor(gCmdlist, backBufferHndl, { .4, .5, .7, 1.0 });
-    pRHI->ClearDepth(gCmdlist, gDepthBufferHndl, 1.0f);
+    //pRHI->ClearDepth(gCmdlist, gDepthBufferHndl, 1.0f);
     pRHI->SetVertexBuffers(gCmdlist, 1, &gVertexBuffer);
     //pRHI->DrawIndexedInstanced(gCmdList..);
     
@@ -134,6 +134,8 @@ void EditorLayer::OnUpdate(double dt)
     
     //rhi::DispatchRays(gCmdlist, pSwapchain->GetWidth(), pSwapchain->GetHeight(), 1);
     //pRHI->DrawIndexedInstanced(gCmdlist, model.m_MeshData->GetIndices().size(), 1, 0, 0, 0);
+    pRHI->Present(pSwapchain);
+
 }
 
 void EditorLayer::OnEvent(Event& event)

@@ -32,6 +32,34 @@ inline DXGI_FORMAT ToDXGIFormat(GrFormat fmt)
     }
 }
 
+inline bool IsDepthStencilFormat(DXGI_FORMAT fmt)
+{
+    switch (fmt)
+    {
+    // Pure depth formats
+    case DXGI_FORMAT_D16_UNORM:
+    case DXGI_FORMAT_D32_FLOAT:    
+    // Depth + stencil formats
+    case DXGI_FORMAT_D24_UNORM_S8_UINT:
+    case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
+    // Typeless versions (used for creating SRV/DSV pairs)
+    case DXGI_FORMAT_R16_TYPELESS:
+    case DXGI_FORMAT_R32_TYPELESS:
+    case DXGI_FORMAT_R24G8_TYPELESS:
+    case DXGI_FORMAT_R32G8X24_TYPELESS:
+        return true;
+
+    // Non-depthstencil format
+    default:
+        return false;
+    }
+}
+
+inline bool IsDepthStencilFormat(GrFormat fmt)
+{
+    return IsDepthStencilFormat(ToDXGIFormat(fmt));
+}
+
 inline std::string HrToString(HRESULT hr)
 {
     char s_str[64] = {};
