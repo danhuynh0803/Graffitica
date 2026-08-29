@@ -21,9 +21,7 @@ namespace gr::rhi
 
 enum class ResourceType : U8
 {
-    ConstantBuffer = 0,
-    ShaderResource,
-    UnorderedAccess,
+    ShaderResource = 0, // cbv, srv, uav, etc
     Sampler,
     RenderTarget,
     DepthStencil,

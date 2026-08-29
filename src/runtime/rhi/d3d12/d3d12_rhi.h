@@ -17,8 +17,7 @@
 #include "d3d12_pipeline.h"
 #include "rhi/interface/rhi.h"
 #include "rhi/resource_pool.h"
-#include "rhi/d3d12/d3d12_buffer_resource.h"
-#include "rhi/d3d12/d3d12_texture_resource.h"
+#include "d3d12_util.h"
 
 namespace gr::rhi
 {
@@ -30,6 +29,87 @@ struct FeatureSupportData
     bool supportsRaytracing;
 };
 
+struct D3D12BufferResource
+{
+    D3D12BufferResource() = delete;
+    D3D12BufferResource(const BufferDesc& desc)
+        //: m_SizeInBytes(desc.size), m_StrideInBytes(0)
+    {
+        // TODO create D3D12 resource here
+    }
+};
+
+struct D3D12TextureResource
+{
+    D3D12TextureResource() = delete;
+    D3D12TextureResource(const TextureDesc& desc)
+      : m_Width(desc.width), m_Height(desc.height), m_Format(desc.eFormat),
+        pResource(nullptr)
+    {
+    }
+
+    U32 m_Width, m_Height;
+    GrFormat m_Format;
+
+    // RHI will handle creating the Native D3D12 Objects
+    // so note to not revoke access
+    friend class D3D12_RHI;
+
+private:
+    ComPtr<ID3D12Resource> pResource = nullptr;
+    D3D12_RESOURCE_DESC desc {};
+    D3D12_RESOURCE_STATES currentState {};
+    // Offsets into the descriptor heaps owned by RHI
+    I32 srvIndex = -1;
+    I32 rtvIndex = -1;
+    I32 dsvIndex = -1;
+};
+
+class D3D12DescriptorHeap
+{
+public:
+    D3D12DescriptorHeap() = default;
+
+    D3D12DescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, ResourceType eType, U32 heapSize)
+        : m_HeapType(eType)
+    {
+        D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+        heapDesc.NumDescriptors = heapSize;
+        heapDesc.Type = ToD3D12DescriptorHeapType(eType);
+        heapDesc.Flags = (eType == ResourceType::ShaderResource || eType == ResourceType::Sampler)
+            ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
+            : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+        ThrowIfFailed(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&pDescriptorHeap)));
+        m_DescriptorSize = device->GetDescriptorHandleIncrementSize(heapDesc.Type);
+    }
+
+    D3D12_DESCRIPTOR_HEAP_DESC GetDesc() const { return pDescriptorHeap->GetDesc(); }
+    ID3D12DescriptorHeap* GetNative() { return pDescriptorHeap.Get(); }
+    U32 GetDescriptorSize() { return m_DescriptorSize; }
+
+private:
+    D3D12_DESCRIPTOR_HEAP_TYPE ToD3D12DescriptorHeapType(ResourceType eType)
+    {
+        switch (eType)
+        {
+        case ResourceType::ShaderResource:
+            return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        case ResourceType::Sampler:
+            return D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+        case ResourceType::RenderTarget:
+            return D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+        case ResourceType::DepthStencil:
+            return D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+        default:
+            return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        }
+    }
+
+    ResourceType m_HeapType;
+    ComPtr<ID3D12DescriptorHeap> pDescriptorHeap;
+    U32 m_DescriptorSize = 0;
+};
+
 class D3D12_RHI
 {
 public:
@@ -38,7 +118,7 @@ public:
     [[nodiscard]] ID3D12Device* GetDevice() const { return m_Device.Get(); }
     [[nodiscard]] ComPtr<ID3D12CommandQueue> GetCommandQueue() const { return m_CommandQueue; }
     [[nodiscard]] ComPtr<ID3D12CommandAllocator> GetGraphicsCommandAllocator() const { return m_GraphicsCommandAllocator; }
-    [[nodiscard]] ComPtr<ID3D12DescriptorHeap> GetRTVDescriptorHeap() const { return m_RTVDescriptorHeap; }
+    [[nodiscard]] inline D3D12DescriptorHeap& GetDescriptorHeap(ResourceType eType) { return m_DescriptorHeaps[static_cast<I32>(eType)]; }
     [[nodiscard]] const FeatureSupportData& GetFeatureSupportData() const { return m_FeatureSupportData; }
 
     [[nodiscard]] BufferHandle CreateBuffer(const BufferDesc& desc);
@@ -69,11 +149,9 @@ private:
     ComPtr<ID3D12CommandQueue> m_CommandQueue;
     ComPtr<ID3D12CommandAllocator> m_GraphicsCommandAllocator;
 
-    U32 m_MaxHeapSize = 1000; 
-    ComPtr<ID3D12DescriptorHeap> m_CBV_SRV_UAV_DescriptorHeap;
-    ComPtr<ID3D12DescriptorHeap> m_SamplerDescriptorHeap;
-    ComPtr<ID3D12DescriptorHeap> m_RTVDescriptorHeap;
-    ComPtr<ID3D12DescriptorHeap> m_DSVDescriptorHeap;
+    U32 m_MaxHeapSize = 1000;
+    // reference it using the ResourceType indices
+    D3D12DescriptorHeap m_DescriptorHeaps[static_cast<I32>(ResourceType::COUNT)];
 
     BufferResourcePool<D3D12BufferResource>  m_BufferPool;
     TextureResourcePool<D3D12TextureResource> m_TexturePool;
