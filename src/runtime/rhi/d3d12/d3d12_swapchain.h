@@ -10,6 +10,8 @@
 namespace gr::rhi
 {
 
+class D3D12_RHI;
+
 using Microsoft::WRL::ComPtr;
 
 class D3D12Swapchain final : public ISwapchain
@@ -17,7 +19,8 @@ class D3D12Swapchain final : public ISwapchain
 public:
     D3D12Swapchain(ComPtr<ID3D12Device> device,
                    ComPtr<ID3D12CommandQueue> commandQueue,
-                   const SwapchainProperties& props);
+                   const SwapchainProperties& props,
+                   D3D12_RHI* rhiInstance);
     ~D3D12Swapchain() = default;
 
     // TODO add to ISwapchainInterface

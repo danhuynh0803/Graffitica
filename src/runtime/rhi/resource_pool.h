@@ -60,6 +60,23 @@ public:
         return m_Cache[handle];
     }
 
+    [[nodiscard]] U32 Import(TResource&& resource)
+    {
+        U32 handle;
+        if (!m_FreeList.empty())
+        {
+            handle = m_FreeList.back();
+            m_FreeList.pop_back();
+            m_Cache[handle] = std::move(resource);
+        }
+        else
+        {
+            handle = m_Cache.size();
+            m_Cache.push_back(std::move(resource));
+        }
+        return handle;
+    }
+
     [[nodiscard]] U32 Allocate(const TextureDesc& desc)
     {
         TResource resource(desc);

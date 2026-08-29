@@ -54,7 +54,7 @@ struct D3D12TextureResource
     // RHI will handle creating the Native D3D12 Objects
     // so note to not revoke access
     friend class D3D12_RHI;
-
+    friend class D3D12Swapchain;
 private:
     ComPtr<ID3D12Resource> pResource = nullptr;
     D3D12_RESOURCE_DESC desc {};
@@ -71,7 +71,7 @@ public:
     D3D12DescriptorHeap() = default;
 
     D3D12DescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, ResourceType eType, U32 heapSize)
-        : m_HeapType(eType)
+        : m_HeapType(eType), m_CurrentOffset(0)
     {
         D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
         heapDesc.NumDescriptors = heapSize;
@@ -108,6 +108,7 @@ private:
     ResourceType m_HeapType;
     ComPtr<ID3D12DescriptorHeap> pDescriptorHeap;
     U32 m_DescriptorSize = 0;
+    U32 m_CurrentOffset = 0; /* Running offset that increments as we add resources to the heap */
 };
 
 class D3D12_RHI
@@ -123,6 +124,7 @@ public:
 
     [[nodiscard]] BufferHandle CreateBuffer(const BufferDesc& desc);
     [[nodiscard]] TextureHandle CreateTexture(const TextureDesc& desc);
+    [[nodiscard]] TextureHandle ImportTexture(D3D12TextureResource& resource);
     [[nodiscard]] D3D12TextureResource& GetTexture(TextureHandle handle);
     [[nodiscard]] RHICommandList CreateCommandList(CommandListType type);
 

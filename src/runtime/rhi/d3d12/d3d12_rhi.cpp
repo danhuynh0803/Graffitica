@@ -133,6 +133,12 @@ D3D12_RHI::D3D12_RHI()
     return m_TexturePool.Allocate(desc);
 }
 
+TextureHandle D3D12_RHI::ImportTexture(D3D12TextureResource& resource)
+{
+    GR_TRACE_START(SYS_RHI);
+    return m_TexturePool.Import(std::move(resource));
+}
+
 [[nodiscard]] D3D12TextureResource& D3D12_RHI::GetTexture(TextureHandle handle)
 {
     GR_TRACE_START(SYS_RHI);

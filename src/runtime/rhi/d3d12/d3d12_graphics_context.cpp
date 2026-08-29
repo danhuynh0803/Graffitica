@@ -43,7 +43,7 @@ D3D12GraphicsContext::D3D12GraphicsContext(SDL_Window* window)
 
     auto device = m_D3D12RHIInstance->GetDevice();
     auto commandQueue = m_D3D12RHIInstance->GetCommandQueue();
-    m_Swapchain = std::make_unique<D3D12Swapchain>(device, commandQueue, swapchainProps);
+    m_Swapchain = std::make_unique<D3D12Swapchain>(device, commandQueue, swapchainProps, m_D3D12RHIInstance.get());
 }
 
 void D3D12GraphicsContext::UpdateBackBuffer(SDL_Surface* surfaceToUpdate)

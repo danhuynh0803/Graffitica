@@ -3,15 +3,16 @@
 #include "d3d12_swapchain.h"
 #include "d3d12_util.h"
 #include "d3d12_graphics_context.h"
+#include "d3d12_rhi.h"
 
 namespace gr::rhi
 {
 
-
 D3D12Swapchain::D3D12Swapchain(
     ComPtr<ID3D12Device> device,
     ComPtr<ID3D12CommandQueue> commandQueue,
-    const SwapchainProperties& props)
+    const SwapchainProperties& props,
+    D3D12_RHI* rhiInstance)
     : ISwapchain(props)
 {
     ComPtr<IDXGIFactory4> factory;
@@ -40,22 +41,28 @@ D3D12Swapchain::D3D12Swapchain(
 
     ThrowIfFailed(swapchain1.As(&m_RawSwapchain));
 
-    // Descriptor heaps
-    D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc{};
-    rtvHeapDesc.NumDescriptors = 3; // TODO start with hardcoding 3 for the backbuffer targets to test
-    rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-    rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-    ThrowIfFailed(device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_RTVDescriptorHeap)));
-
-    m_RTVDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-
     // Create frame resources
+    TextureDesc textureDesc{
+        .width = m_Width,
+        .height = m_Height,
+        .eFormat = props.format,
+        .eResourceType = ResourceType::RenderTarget
+    };
+
     CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_RTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
     for (UINT i = 0; i < props.imageCount; ++i)
     {
         ThrowIfFailed(m_RawSwapchain->GetBuffer(i, IID_PPV_ARGS(&m_BackBuffers[i])));
         device->CreateRenderTargetView(m_BackBuffers[i].Get(), nullptr, rtvHandle);
         rtvHandle.Offset(1, m_RTVDescriptorSize);
+
+        rhiInstance->CreateTexture(textureDesc);
+        D3D12TextureResource rhiResource(textureDesc);
+        rhiResource.pResource = m_BackBuffers[i];
+        rhiResource.desc = m_BackBuffers[i]->GetDesc();
+        //rhiResource.rtvIndex =
+
+        rhiInstance->ImportTexture(rhiResource);
     }
 }
 
