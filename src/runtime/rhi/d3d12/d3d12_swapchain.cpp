@@ -49,20 +49,14 @@ D3D12Swapchain::D3D12Swapchain(
         .eResourceType = ResourceType::RenderTarget
     };
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_RTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
     for (UINT i = 0; i < props.imageCount; ++i)
     {
         ThrowIfFailed(m_RawSwapchain->GetBuffer(i, IID_PPV_ARGS(&m_BackBuffers[i])));
-        device->CreateRenderTargetView(m_BackBuffers[i].Get(), nullptr, rtvHandle);
-        rtvHandle.Offset(1, m_RTVDescriptorSize);
+        //device->CreateRenderTargetView(m_BackBuffers[i].Get(), nullptr, rtvHandle);
+        //rtvHandle.Offset(1, m_RTVDescriptorSize);
 
-        rhiInstance->CreateTexture(textureDesc);
-        D3D12TextureResource rhiResource(textureDesc);
-        rhiResource.pResource = m_BackBuffers[i];
-        rhiResource.desc = m_BackBuffers[i]->GetDesc();
-        //rhiResource.rtvIndex =
-
-        rhiInstance->ImportTexture(rhiResource);
+        auto handle = rhiInstance->CreateTexture(m_BackBuffers[i], ResourceType::RenderTarget);
+        m_PresentResourceHandles.push_back(handle);
     }
 }
 

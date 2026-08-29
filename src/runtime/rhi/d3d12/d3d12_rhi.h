@@ -41,11 +41,69 @@ struct D3D12BufferResource
 
 struct D3D12TextureResource
 {
+public:
     D3D12TextureResource() = delete;
+    D3D12TextureResource(ComPtr<ID3D12Resource> resource)
+      : pResource(resource)
+    {
+        const auto& desc = resource->GetDesc();
+        m_Width = desc.Width;
+        m_Height = desc.Height;
+        //m_Format = desc.Format;
+    }
     D3D12TextureResource(const TextureDesc& desc)
       : m_Width(desc.width), m_Height(desc.height), m_Format(desc.eFormat),
         pResource(nullptr)
     {
+        // TODO no implementation on constructor
+        // Maybe just do this at RHI level and then override
+        // the resource?
+        /*
+        // Create the texture.
+        {
+            // Describe and create a Texture2D.
+            D3D12_RESOURCE_DESC textureDesc = {};
+            textureDesc.MipLevels = 1;
+            textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+            textureDesc.Width = desc.width;
+            textureDesc.Height = desc.height;
+            textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+            textureDesc.DepthOrArraySize = 1;
+            textureDesc.SampleDesc.Count = 1;
+            textureDesc.SampleDesc.Quality = 0;
+            textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+
+            ThrowIfFailed(m_device->CreateCommittedResource(
+                &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+                D3D12_HEAP_FLAG_NONE,
+                &textureDesc,
+                D3D12_RESOURCE_STATE_COPY_DEST,
+                nullptr,
+                IID_PPV_ARGS(&m_texture)));
+
+            const UINT64 uploadBufferSize = GetRequiredIntermediateSize(m_texture.Get(), 0, 1);
+
+            // Create the GPU upload buffer.
+            ThrowIfFailed(m_device->CreateCommittedResource(
+                &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+                D3D12_HEAP_FLAG_NONE,
+                &CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),
+                D3D12_RESOURCE_STATE_GENERIC_READ,
+                nullptr,
+                IID_PPV_ARGS(&textureUploadHeap)));
+
+            // Copy data to the intermediate upload heap and then schedule a copy 
+            // from the upload heap to the Texture2D.
+            std::vector<UINT8> texture = GenerateTextureData();
+
+            D3D12_SUBRESOURCE_DATA textureData = {};
+            textureData.pData = &texture[0];
+            textureData.RowPitch = TextureWidth * TexturePixelSize;
+            textureData.SlicePitch = textureData.RowPitch * TextureHeight;
+
+            UpdateSubresources(m_commandList.Get(), m_texture.Get(), textureUploadHeap.Get(), 0, 0, 1, &textureData);
+            m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+        */
     }
 
     U32 m_Width, m_Height;
@@ -57,7 +115,6 @@ struct D3D12TextureResource
     friend class D3D12Swapchain;
 private:
     ComPtr<ID3D12Resource> pResource = nullptr;
-    D3D12_RESOURCE_DESC desc {};
     D3D12_RESOURCE_STATES currentState {};
     // Offsets into the descriptor heaps owned by RHI
     I32 srvIndex = -1;
@@ -71,7 +128,7 @@ public:
     D3D12DescriptorHeap() = default;
 
     D3D12DescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, ResourceType eType, U32 heapSize)
-        : m_HeapType(eType), m_CurrentOffset(0)
+        : m_pDevice(device.Get()), m_HeapType(eType), m_CurrentOffset(0)
     {
         D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
         heapDesc.NumDescriptors = heapSize;
@@ -83,9 +140,23 @@ public:
         m_DescriptorSize = device->GetDescriptorHandleIncrementSize(heapDesc.Type);
     }
 
+    [[nodiscard]] U32 CreateViewFromHeap(ID3D12Resource* resource)
+    {
+        m_pDevice->CreateRenderTargetView(resource, nullptr, GetCurrentOffsetHandle());
+        return ++m_CurrentOffset;
+    }
+
     D3D12_DESCRIPTOR_HEAP_DESC GetDesc() const { return pDescriptorHeap->GetDesc(); }
     ID3D12DescriptorHeap* GetNative() { return pDescriptorHeap.Get(); }
+    CD3DX12_CPU_DESCRIPTOR_HANDLE GetStartHandle() { return CD3DX12_CPU_DESCRIPTOR_HANDLE(pDescriptorHeap->GetCPUDescriptorHandleForHeapStart()); }
+    CD3DX12_CPU_DESCRIPTOR_HANDLE GetCurrentOffsetHandle() {
+        CD3DX12_CPU_DESCRIPTOR_HANDLE hndl(pDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+        hndl.Offset(m_CurrentOffset, m_DescriptorSize);
+        return hndl;
+    }
+
     U32 GetDescriptorSize() { return m_DescriptorSize; }
+    U32 GetCurrentOffset() { return m_CurrentOffset; }
 
 private:
     D3D12_DESCRIPTOR_HEAP_TYPE ToD3D12DescriptorHeapType(ResourceType eType)
@@ -105,6 +176,7 @@ private:
         }
     }
 
+    ID3D12Device* m_pDevice;
     ResourceType m_HeapType;
     ComPtr<ID3D12DescriptorHeap> pDescriptorHeap;
     U32 m_DescriptorSize = 0;
@@ -124,6 +196,7 @@ public:
 
     [[nodiscard]] BufferHandle CreateBuffer(const BufferDesc& desc);
     [[nodiscard]] TextureHandle CreateTexture(const TextureDesc& desc);
+    [[nodiscard]] TextureHandle CreateTexture(ComPtr<ID3D12Resource> extResource, ResourceType eResourceType);
     [[nodiscard]] TextureHandle ImportTexture(D3D12TextureResource& resource);
     [[nodiscard]] D3D12TextureResource& GetTexture(TextureHandle handle);
     [[nodiscard]] RHICommandList CreateCommandList(CommandListType type);

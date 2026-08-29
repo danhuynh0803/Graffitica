@@ -130,7 +130,37 @@ D3D12_RHI::D3D12_RHI()
 [[nodiscard]] TextureHandle D3D12_RHI::CreateTexture(const TextureDesc& desc)
 {
     GR_TRACE_START(SYS_RHI);
-    return m_TexturePool.Allocate(desc);
+
+    auto heap = GetDescriptorHeap(desc.eResourceType);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE hndl(heap.GetStartHandle());
+    
+    // TODO: convoluted steps due to separation of classes
+    // 1. ID3D12Resource is first created and referenced from D3D12TextureResource
+    // 2. We need to generate the view on the selected heap
+    // 3. Then we reference the view via an index
+    D3D12TextureResource res(desc);
+    hndl.Offset(res.rtvIndex, heap.GetDescriptorSize());
+    res.rtvIndex = heap.CreateViewFromHeap(res.pResource.Get());
+    return m_TexturePool.Import(std::move(res));
+}
+
+TextureHandle D3D12_RHI::CreateTexture(ComPtr<ID3D12Resource> extResource, ResourceType eResourceType)
+{
+    GR_TRACE_START(SYS_RHI);
+
+    auto heap = GetDescriptorHeap(eResourceType);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE hndl(heap.GetStartHandle());
+
+    // TODO: convoluted steps due to separation of classes
+    // 1. ID3D12Resource is first created and referenced from D3D12TextureResource
+    // 2. We need to generate the view on the selected heap
+    // 3. Then we reference the view via an index
+    D3D12TextureResource res(extResource);
+    hndl.Offset(res.rtvIndex, heap.GetDescriptorSize());
+    // TODO switch resourceType enum to flags
+    // since a resource can be allocated to multiple heaps and thus contain multiple heap indices
+    res.rtvIndex = heap.CreateViewFromHeap(res.pResource.Get());
+    return m_TexturePool.Import(std::move(res));
 }
 
 TextureHandle D3D12_RHI::ImportTexture(D3D12TextureResource& resource)
