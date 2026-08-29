@@ -1,8 +1,8 @@
 #pragma once
 
+#include <SDL3/SDL.h>
 #include "core/types.h"
-#include "rhi/interface/framebuffer.h"
-#include "rhi/interface/rhi.h"
+#include "rhi/resource.h"
 
 namespace gr::rhi
 {
@@ -18,6 +18,9 @@ struct SwapchainProperties
 class ISwapchain
 {
 public:
+    virtual void Present() = 0;
+
+public:
     ISwapchain(const SwapchainProperties& props)
       : m_Width(props.width), m_Height(props.height),
         m_ImageCount(props.imageCount),
@@ -31,7 +34,7 @@ public:
     U32 GetHeight() const { return m_Height; }
     U32 GetCurrentBackBufferIndex() const { return m_CurrentFrameIndex; }
     U32 GetImageCount() const { return m_ImageCount; }
-
+    
     TextureHandle GetCurrentFrameResourceHandle() {
         return m_PresentResourceHandles.at(m_CurrentFrameIndex);
     }

@@ -17,6 +17,9 @@ public:
     ~CPUSwapchain() = default;
     void UpdateBackBuffer(SDL_Surface* surfaceToUpdate);
 
+public:
+    virtual void Present() override { /* TODO no-op on cpu because CPUGfxContext is handling it */ }
+
 private:
     CPU_RHI* m_RHIInstance;
 };

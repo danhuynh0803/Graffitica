@@ -23,8 +23,7 @@ public:
                    D3D12_RHI* rhiInstance);
     ~D3D12Swapchain() = default;
 
-    // TODO add to ISwapchainInterface
-    void Present()
+    virtual void Present() override
     {
         ThrowIfFailed(m_RawSwapchain->Present(1, 0));
         //m_CurrentFrameIndex = m_RawSwapchain->GetCurrentBackBufferIndex();
@@ -39,6 +38,7 @@ public:
         return rtvHandle;
     }
 
+    friend class D3D12_RHI;
 private:
     U64 m_RTVDescriptorSize;
     static constexpr int MaxBackBuffers = 3;

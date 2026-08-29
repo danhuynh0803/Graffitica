@@ -5,6 +5,52 @@
 #include "rhi/formats.h"
 #include "developer/profiler/profiler.h"
 
+enum class ResourceType : U8
+{
+    ShaderResource = 0, // cbv, srv, uav, etc
+    Sampler,
+    RenderTarget,
+    DepthStencil,
+    COUNT
+};
+
+/*
+RHI Buffer Handles
+*/
+typedef U32 BufferHandle;
+struct BufferDesc
+{
+    U32 size;
+    U32 usageFlags;
+    ResourceType eResourceType;
+};
+
+/*
+RHI Texture Handles
+*/
+typedef U32 TextureHandle;
+struct TextureDesc
+{
+    U32 width;
+    U32 height;
+    gr::rhi::GrFormat eFormat;
+    ResourceType eResourceType;
+};
+
+struct RHITextureResource
+{
+    void* pNativeTextureResource;
+};
+
+struct RenderPassDesc
+{
+    U32 numColorAttachments;
+    TextureHandle colorAttachments[8];
+    TextureHandle depthAttachment;
+    //vec4f clearColor;
+    //float clearDepth;
+};
+
 class Mesh;
 
 struct VertexAttributes
@@ -52,6 +98,8 @@ struct Buffer
 namespace gr::rhi
 {
 
+// Old cpu-rasterizer structs
+// TODO remove after CPU-rhi impl
 template<typename FORMAT> class ImageView;
 
 // Image is the resource owner
@@ -133,59 +181,5 @@ struct ImageView : BaseImageView
     }
 };
 
-/*
-class ImageView
-{
-public:
-    ImageView(U32 w, U32 h, void* surfacePixels)
-        : width(w), height(h)
-    {
-        data = static_cast<FORMAT_R8G8B8A8_UNORM*>(surfacePixels);
-    }
-
-    ImageView& operator =(const ImageView&) = delete;    
-
-    U32 width, height;
-    FORMAT_R8G8B8A8_UNORM* data = nullptr;
-
-    FORMAT_R8G8B8A8_UNORM& at(U32 x, U32 y) const
-    {
-        return data[x + y*width];
-    }
-};
-*/
-
-/*
-template <typename FORMAT>
-struct ImageView
-{
-    ImageView(U32 w, U32 h, void* surfacePixels)
-        : width(w), height(h)
-    {
-        //data = std::make_unique<FORMAT>(width*height);
-        data = (FORMAT*)surfacePixels;
-    }
-
-    ImageView& operator =(const ImageView&) = delete;
-
-    u32 width, height;
-    //std::unique_ptr<FORMAT> data = nullptr;
-    FORMAT* data = nullptr;
-};
-*/
-
-/*
-* TODO organize api like vk/dx12?
-* e.g. have inputlayouts and such to read data from interleaved arrays?
-* or just have SoAs for each vertex attribute?
-class Buffer
-{
-public:
-    Buffer(size_t sizeInBytes);
-    U32 stride, offset;
-private:
-    std::vector<float> m_Data;
-};
-*/
 
 }

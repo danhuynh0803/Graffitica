@@ -8,6 +8,7 @@
 #include "developer/profiler/profiler.h"
 #include "util/math/vector.h"
 #include "rhi/interface/pipeline.h"
+#include "rhi/interface/swapchain.h"
 
 enum class RHI_BACKEND : uint8_t
 {
@@ -18,53 +19,6 @@ enum class RHI_BACKEND : uint8_t
 
 namespace gr::rhi
 {
-
-enum class ResourceType : U8
-{
-    ShaderResource = 0, // cbv, srv, uav, etc
-    Sampler,
-    RenderTarget,
-    DepthStencil,
-    COUNT
-};
-
-/*
-RHI Buffer Handles
-*/
-typedef U32 BufferHandle;
-
-struct BufferDesc
-{
-    U32 size;
-    U32 usageFlags;
-    ResourceType eResourceType;
-};
-
-/*
-RHI Texture Handles
-*/
-typedef U32 TextureHandle;
-struct TextureDesc
-{
-    U32 width;
-    U32 height;
-    gr::rhi::GrFormat eFormat;
-    ResourceType eResourceType;
-};
-
-struct RHITextureResource
-{
-    void* pNativeTextureResource;
-};
-
-struct RenderPassDesc
-{
-    U32 numColorAttachments;
-    TextureHandle colorAttachments[8];
-    TextureHandle depthAttachment;
-    //vec4f clearColor;
-    //float clearDepth;
-};
 
 // Settling on the following design:
 // Prefered the function ptr table approach over using inheritance
@@ -97,6 +51,8 @@ struct RHIContext
     void (*pfnDrawIndexedInstanced)(void*, RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInststanceLocation);
     void (*pfnDispatch)(void*, RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ);
     void (*pfnDispatchRays)(void*, RHICommandList& cmdlist, U32 width, U32 height, U32 depth);
+
+    void (*pfnPresent)(void*, ISwapchain* pSwapchain);
 
     // Sets the function table to the appropriate backend implementation
     void* pInstance = nullptr;
@@ -182,6 +138,10 @@ struct RHIContext
         //pfnDispatchRays = [](void* p, RHICommandList& cmdlist, U32 width, U32 height, U32 depth) {
         //    static_cast<TRHIBackend*>(p)->DispatchRays(cmdlist, width, height, depth);
         //};
+
+        pfnPresent = [](void* p, ISwapchain* pSwapchain) {
+            //pSwapchain->Present();
+        };
     }
 
     [[nodiscard]] BufferHandle CreateBuffer(const BufferDesc& desc)
@@ -286,6 +246,12 @@ struct RHIContext
     {
         GR_TRACE_START(SYS_RHI);
         pfnDispatchRays(pInstance, cmdlist, width, height, depth);
+    }
+
+    inline void Present(ISwapchain* pSwapchain)
+    {
+        GR_TRACE_START(SYS_RHI);
+        pfnPresent(pInstance, pSwapchain);
     }
 };
 

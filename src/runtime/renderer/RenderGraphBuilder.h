@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include "rhi/rasterizer_state.h"
-#include "rhi/interface/rhi.h"
+#include "rhi/resource.h"
 #include "RenderGraphPass.h"
 
 namespace gr
@@ -14,8 +14,8 @@ public:
     void Compile();
     void Execute();
 
-    rhi::TextureHandle CreateTexture(const rhi::TextureDesc& desc, const char* debugName = "unnamed");
-    rhi::BufferHandle CreateBuffer(const rhi::BufferDesc& desc, const char* debugName = "unnamed");
+    TextureHandle CreateTexture(const TextureDesc& desc, const char* debugName = "unnamed");
+    BufferHandle CreateBuffer(const BufferDesc& desc, const char* debugName = "unnamed");
 
 private:
     std::vector<RenderGraphPass> m_RenderPasses;

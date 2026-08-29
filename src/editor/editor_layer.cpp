@@ -50,8 +50,8 @@ namespace
 
     rhi::RHIContext* pRHI;
     rhi::RHICommandList gCmdlist;
-    rhi::TextureHandle gDepthBufferHndl;
-    rhi::BufferHandle gVertexBuffer;
+    TextureHandle gDepthBufferHndl;
+    BufferHandle gVertexBuffer;
 
     struct Vertex
     {
@@ -87,11 +87,11 @@ EditorLayer::EditorLayer(const std::string& name)
     pRHI = pGfxContext->GetRHIContext();
     gCmdlist = pRHI->CreateCommandList(rhi::CommandListType::GRAPHICS);
 
-    rhi::TextureDesc targetDesc {
+    TextureDesc targetDesc {
         .width = pSwapchain->GetWidth(),
         .height = pSwapchain->GetHeight(),
         .eFormat = rhi::GrFormat::D32_SFLOAT,
-        .eResourceType = rhi::ResourceType::DepthStencil
+        .eResourceType = ResourceType::DepthStencil
     };
     gDepthBufferHndl = pRHI->CreateTexture(targetDesc);
 
