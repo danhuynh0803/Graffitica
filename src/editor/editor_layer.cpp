@@ -122,12 +122,16 @@ void EditorLayer::OnUpdate(double dt)
         .depthAttachment = gDepthBufferHndl
     });
 
+    pRHI->TransitionResource(gCmdlist, backBufferHndl, ResourceState::Present, ResourceState::RenderTarget);
     pRHI->ClearColor(gCmdlist, backBufferHndl, { .4, .5, .7, 1.0 });
     //pRHI->ClearDepth(gCmdlist, gDepthBufferHndl, 1.0f);
     pRHI->SetVertexBuffers(gCmdlist, 1, &gVertexBuffer);
     //pRHI->DrawIndexedInstanced(gCmdList..);
     
     pRHI->EndRenderPass(gCmdlist);
+
+    pRHI->TransitionResource(gCmdlist, backBufferHndl, ResourceState::RenderTarget, ResourceState::Present);
+
     pRHI->EndRecording(gCmdlist);
     
     pRHI->ExecuteCommandList(gCmdlist);

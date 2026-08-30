@@ -189,7 +189,7 @@ public:
         //gr::rhi::cpu::SetRenderTargets_CPU(cmdlist, numViews, views);
     }
     
-    void ClearColor(RHICommandList& cmdlist, TextureHandle& handle, const vec4f& color)
+    void ClearColor(RHICommandList& cmdlist, TextureHandle handle, const vec4f& color)
     {
         //GR_TRACE_START(SYS_RHI);
         CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
@@ -198,7 +198,7 @@ public:
         pCmdlist->m_Commands.emplace_back(ClearColorCmd{ handle, color });
     }
 
-    void ClearDepth(RHICommandList& cmdlist, TextureHandle& handle, float clearDepth)
+    void ClearDepth(RHICommandList& cmdlist, TextureHandle handle, float clearDepth)
     {
         GR_TRACE_START(SYS_RHI);
         CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
@@ -239,6 +239,12 @@ public:
         }
 
         std::cout << "DispatchRays_CPU\n";
+    }
+
+    void TransitionResource(RHICommandList& cmdlist, TextureHandle handle, ResourceState oldState, ResourceState newState)
+    {
+        GR_TRACE_START(SYS_RHI);
+        // no-op
     }
 
     // TODO: Expose for quick testing

@@ -326,10 +326,12 @@ public:
     void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[]);
     void SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer);
     void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[]);
-    void ClearColor(RHICommandList& cmdlist, TextureHandle& handle, const vec4f& color);
-    void ClearDepth(RHICommandList& cmdlist, TextureHandle& handle, float clearDepth);
+    void ClearColor(RHICommandList& cmdlist, TextureHandle handle, const vec4f& color);
+    void ClearDepth(RHICommandList& cmdlist, TextureHandle handle, float clearDepth);
     void DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation);
     void Dispatch(RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ);
+
+    void TransitionResource(RHICommandList& cmdlist, TextureHandle handle, ResourceState oldState, ResourceState newState);
     void Present(D3D12Swapchain* pSwapchain);
 
 private:

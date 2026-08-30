@@ -14,9 +14,31 @@ enum class ResourceType : U8
     COUNT
 };
 
+enum class ResourceState
+{
+    Common = 0,
+    VertexBuffer,
+    ConstantBuffer,
+    IndexBuffer,
+    RenderTarget,
+    UnorderedAccess,
+    DepthWrite,
+    DepthRead,
+    CopyDest,
+    CopySource,
+    Present,
+    // TODO add more as we need and after testing
+};
+
 /*
 RHI Buffer Handles
 */
+struct ResourceHandle
+{
+    U32 index;
+    ResourceType type;
+};
+
 typedef U32 BufferHandle;
 struct BufferDesc
 {

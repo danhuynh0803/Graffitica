@@ -7,6 +7,47 @@
 namespace gr::rhi
 {
 
+inline D3D12_RESOURCE_STATES ToD3D12ResourceState(ResourceState state)
+{
+    switch (state)
+    {
+    case ResourceState::VertexBuffer:
+        return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+
+    case ResourceState::ConstantBuffer:
+        return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+
+    case ResourceState::IndexBuffer:
+        return D3D12_RESOURCE_STATE_INDEX_BUFFER;
+
+    case ResourceState::RenderTarget:
+        return D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+    case ResourceState::UnorderedAccess:
+        return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+
+    case ResourceState::DepthWrite:
+        return D3D12_RESOURCE_STATE_DEPTH_WRITE;
+
+    case ResourceState::DepthRead:
+        return D3D12_RESOURCE_STATE_DEPTH_READ;
+
+    case ResourceState::CopyDest:
+        return D3D12_RESOURCE_STATE_COPY_DEST;
+
+    case ResourceState::CopySource:
+        return D3D12_RESOURCE_STATE_COPY_SOURCE;
+    
+    case ResourceState::Present:
+        return D3D12_RESOURCE_STATE_PRESENT;
+
+    case ResourceState::Common:
+    default:
+        // fallback — COMMON should always be valid
+        return D3D12_RESOURCE_STATE_COMMON;
+    }
+}
+
 // various dx12 utility functions
 inline DXGI_FORMAT ToDXGIFormat(GrFormat fmt)
 {

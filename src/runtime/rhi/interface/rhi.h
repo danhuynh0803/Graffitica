@@ -46,12 +46,12 @@ struct RHIContext
     void (*pfnSetIndexBuffer)(void*, RHICommandList& cmdlist, BufferHandle);
 
     // Draw cmds
-    void (*pfnClearColor)(void*, RHICommandList& cmdlist, TextureHandle& resource, const vec4f& color);
-    void (*pfnClearDepth)(void*, RHICommandList& cmdlist, TextureHandle& resource, float clearDepth);
+    void (*pfnClearColor)(void*, RHICommandList& cmdlist, TextureHandle resource, const vec4f& color);
+    void (*pfnClearDepth)(void*, RHICommandList& cmdlist, TextureHandle resource, float clearDepth);
     void (*pfnDrawIndexedInstanced)(void*, RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInststanceLocation);
     void (*pfnDispatch)(void*, RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ);
     void (*pfnDispatchRays)(void*, RHICommandList& cmdlist, U32 width, U32 height, U32 depth);
-
+    void (*pfnTransitionResource)(void*, RHICommandList& cmdlist, TextureHandle resource, ResourceState oldState, ResourceState newState);
     void (*pfnPresent)(void*, ISwapchain* pSwapchain);
 
     // Sets the function table to the appropriate backend implementation
@@ -119,16 +119,20 @@ struct RHIContext
             static_cast<TRHIBackend*>(p)->SetIndexBuffer(cmdlist, indexBuffer);
         };
 
-        pfnClearColor = [](void* p, RHICommandList& cmdlist, TextureHandle& resource, const vec4f& color) {
+        pfnClearColor = [](void* p, RHICommandList& cmdlist, TextureHandle resource, const vec4f& color) {
             static_cast<TRHIBackend*>(p)->ClearColor(cmdlist, resource, color);
         };
 
-        pfnClearDepth = [](void* p, RHICommandList& cmdlist, TextureHandle& resource, float clearDepth) {
+        pfnClearDepth = [](void* p, RHICommandList& cmdlist, TextureHandle resource, float clearDepth) {
             static_cast<TRHIBackend*>(p)->ClearDepth(cmdlist, resource, clearDepth);
         };
 
         pfnDrawIndexedInstanced = [](void* p, RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation) {
             static_cast<TRHIBackend*>(p)->DrawIndexedInstanced(cmdlist, indexCount, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
+        };
+
+        pfnTransitionResource = [](void* p, RHICommandList& cmdlist, TextureHandle resource, ResourceState oldState, ResourceState newState) {
+            static_cast<TRHIBackend*>(p)->TransitionResource(cmdlist, resource, oldState, newState);
         };
 
         //pfnDispatch = [](void* p, RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ) {
@@ -253,6 +257,11 @@ struct RHIContext
         GR_TRACE_START(SYS_RHI);
         pfnPresent(pInstance, pSwapchain);
     }
+
+    inline void TransitionResource(RHICommandList& cmdlist, TextureHandle resource, ResourceState oldState, ResourceState newState) {
+        GR_TRACE_START(SYS_RHI)
+        pfnTransitionResource(pInstance, cmdlist, resource, oldState, newState);
+    };
 };
 
 }

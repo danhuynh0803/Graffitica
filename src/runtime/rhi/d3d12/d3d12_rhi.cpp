@@ -8,7 +8,7 @@
 
 namespace gr::rhi
 {
-ID3D12CommandList* GetNativeCommandList(const RHICommandList& cmdlist)
+ID3D12GraphicsCommandList1* GetNativeCommandList(const RHICommandList& cmdlist)
 {
     D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
     return pCmdlist->GetRawCommandList();
@@ -233,25 +233,33 @@ RHICommandList D3D12_RHI::CreateCommandList(CommandListType type)
 void D3D12_RHI::BeginRecording(RHICommandList& cmdlist)
 {
     auto native = GetNativeCommandList(cmdlist);
-
+    // TODO hardcode for now to use GraphicsCmdAllocator
+    ThrowIfFailed(m_GraphicsCommandAllocator->Reset());
+    ThrowIfFailed(native->Reset(m_GraphicsCommandAllocator.Get(), nullptr));
 }
+
 void D3D12_RHI::EndRecording(RHICommandList& cmdlist)
 {
-
+    auto native = GetNativeCommandList(cmdlist);
+    ThrowIfFailed(native->Close());
 }
+
 void D3D12_RHI::BeginRenderPass(RHICommandList& cmdlist, RenderPassDesc desc)
 {
+    // TODO - state is dynamic by default so, but I want this RenderPassDesc for the RG usecase
 
 }
+
 void D3D12_RHI::EndRenderPass(RHICommandList& cmdlist)
 {
-
+    // TODO
 }
 
 void D3D12_RHI::ExecuteCommandList(const RHICommandList& cmdlist)
 {
-    //auto rawCmdList = GetNativeCommandList(cmdlist);
-    //m_CommandQueue->ExecuteCommandLists(1, &rawCmdList);
+    auto native = GetNativeCommandList(cmdlist);
+    ID3D12CommandList* ppCommandLists[] = { native };
+    m_CommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 }
 
 void D3D12_RHI::ExecuteCommandLists(const RHICommandList rhiCommandLists[], U32 numCommandLists)
@@ -287,7 +295,7 @@ void D3D12_RHI::SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureH
     //gr::rhi::cpu::SetRenderTargets_CPU(cmdlist, numViews, views);
 }
 
-void D3D12_RHI::ClearColor(RHICommandList& cmdlist, TextureHandle& handle, const vec4f& color)
+void D3D12_RHI::ClearColor(RHICommandList& cmdlist, TextureHandle handle, const vec4f& color)
 {
     GR_TRACE_START(SYS_RHI);
     D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
@@ -305,7 +313,7 @@ void D3D12_RHI::ClearColor(RHICommandList& cmdlist, TextureHandle& handle, const
     nativeCmdList->ClearRenderTargetView(descriptorHandle, clearColor, 0, nullptr);
 }
 
-void D3D12_RHI::ClearDepth(RHICommandList& cmdlist, TextureHandle& handle, float clearDepth)
+void D3D12_RHI::ClearDepth(RHICommandList& cmdlist, TextureHandle handle, float clearDepth)
 {
     GR_TRACE_START(SYS_RHI);
     D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
@@ -324,8 +332,19 @@ void D3D12_RHI::Dispatch(RHICommandList& cmdlist, U32 groupCountX, U32 groupCoun
     // TODO
 }
 
+void D3D12_RHI::TransitionResource(RHICommandList& cmdlist, TextureHandle handle, ResourceState oldState, ResourceState newState)
+{
+    auto nativeCmdlist = GetNativeCommandList(cmdlist);
+    auto& internalResource = m_TexturePool.Get(handle);
+    CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(internalResource.pResource.Get(),
+                                                                            ToD3D12ResourceState(oldState),
+                                                                            ToD3D12ResourceState(newState));
+    nativeCmdlist->ResourceBarrier(1, &barrier);
+}
+
 void D3D12_RHI::Present(D3D12Swapchain* pSwapchain)
 {
+    pSwapchain->m_RawSwapchain->Present(1, 0);
 }
 
 //void DispatchRays(RHICommandList& cmdlist, U32 width, U32 height, U32 depth)
