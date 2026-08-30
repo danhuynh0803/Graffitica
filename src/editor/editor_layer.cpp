@@ -140,6 +140,7 @@ void EditorLayer::OnUpdate(double dt)
     //pRHI->DrawIndexedInstanced(gCmdlist, model.m_MeshData->GetIndices().size(), 1, 0, 0, 0);
     pRHI->Present(pSwapchain);
 
+    pRHI->WaitForQueueCompletion();
 }
 
 void EditorLayer::OnEvent(Event& event)

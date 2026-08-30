@@ -334,6 +334,8 @@ public:
     void TransitionResource(RHICommandList& cmdlist, TextureHandle handle, ResourceState oldState, ResourceState newState);
     void Present(D3D12Swapchain* pSwapchain);
 
+    void WaitForQueueCompletion(void* pQueue, void* pFence);
+
 private:
     FeatureSupportData m_FeatureSupportData;
     ComPtr<ID3D12Device> m_Device;
@@ -346,6 +348,10 @@ private:
 
     BufferResourcePool<D3D12BufferResource>  m_BufferPool;
     TextureResourcePool<D3D12TextureResource> m_TexturePool;
+
+    ComPtr<ID3D12Fence> m_Fence;
+    U64 m_FenceValue;
+    HANDLE m_FenceEventHandle;
 };
 
 } // namespace gr::rhi

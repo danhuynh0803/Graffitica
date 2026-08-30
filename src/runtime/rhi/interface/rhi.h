@@ -53,6 +53,7 @@ struct RHIContext
     void (*pfnDispatchRays)(void*, RHICommandList& cmdlist, U32 width, U32 height, U32 depth);
     void (*pfnTransitionResource)(void*, RHICommandList& cmdlist, TextureHandle resource, ResourceState oldState, ResourceState newState);
     void (*pfnPresent)(void*, ISwapchain* pSwapchain);
+    void (*pfnWaitForQueueCompletion)(void*, void* pQueue, void* pFence);
 
     // Sets the function table to the appropriate backend implementation
     void* pInstance = nullptr;
@@ -145,6 +146,10 @@ struct RHIContext
 
         pfnPresent = [](void* p, ISwapchain* pSwapchain) {
             pSwapchain->Present();
+        };
+
+        pfnWaitForQueueCompletion = [](void* p, void* pQueue, void* pFence) {
+            static_cast<TRHIBackend*>(p)->WaitForQueueCompletion(pQueue, pFence);
         };
     }
 
@@ -261,7 +266,13 @@ struct RHIContext
     inline void TransitionResource(RHICommandList& cmdlist, TextureHandle resource, ResourceState oldState, ResourceState newState) {
         GR_TRACE_START(SYS_RHI)
         pfnTransitionResource(pInstance, cmdlist, resource, oldState, newState);
-    };
+    }
+
+    inline void WaitForQueueCompletion(void* pQueue = nullptr, void* pFence = nullptr)
+    {
+        GR_TRACE_START(SYS_RHI)
+        pfnWaitForQueueCompletion(pInstance, pQueue, pFence);
+    }
 };
 
-}
+} // namespace gr::rhi

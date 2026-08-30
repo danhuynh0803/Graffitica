@@ -125,6 +125,19 @@ D3D12_RHI::D3D12_RHI()
     for (int i = 0; i < static_cast<int>(ResourceType::COUNT); ++i) {
         m_DescriptorHeaps[i] = D3D12DescriptorHeap{m_Device, static_cast<ResourceType>(i), m_MaxHeapSize};
     }
+
+    // Fence synchronization - have RHI own this for now
+    {
+        ThrowIfFailed(m_Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_Fence)));
+        m_FenceValue = 1;
+
+        // Create an event handle to use for frame synchronization.
+        m_FenceEventHandle = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+        if (m_FenceEventHandle == nullptr)
+        {
+            ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
+        }
+    }
 }
 
 [[nodiscard]] BufferHandle D3D12_RHI::CreateBuffer(const BufferDesc& desc)
@@ -345,6 +358,23 @@ void D3D12_RHI::TransitionResource(RHICommandList& cmdlist, TextureHandle handle
 void D3D12_RHI::Present(D3D12Swapchain* pSwapchain)
 {
     pSwapchain->m_RawSwapchain->Present(1, 0);
+}
+
+void D3D12_RHI::WaitForQueueCompletion(void* pQueue, void* pFence)
+{
+    ID3D12CommandQueue* queueToWait = (pQueue != nullptr) ? static_cast<ID3D12CommandQueue*>(pQueue) : m_CommandQueue.Get();
+    ID3D12Fence* fenceToUse = (pFence != nullptr) ? static_cast<ID3D12Fence*>(pFence) : m_Fence.Get();
+    // Signal and increment the fence value.
+    const UINT64 fence = m_FenceValue;
+    ThrowIfFailed(queueToWait->Signal(fenceToUse, fence));
+    m_FenceValue++;
+
+    // Wait until the previous frame is finished.
+    if (fenceToUse->GetCompletedValue() < fence)
+    {
+        ThrowIfFailed(fenceToUse->SetEventOnCompletion(fence, m_FenceEventHandle));
+        WaitForSingleObject(m_FenceEventHandle, INFINITE);
+    }
 }
 
 //void DispatchRays(RHICommandList& cmdlist, U32 width, U32 height, U32 depth)

@@ -247,6 +247,11 @@ public:
         // no-op
     }
 
+    void WaitForQueueCompletion(void*, void*)
+    {
+        // no-op
+    }
+
     // TODO: Expose for quick testing
     //CPUBufferResourcePool& GetBufferPool() { return m_BufferPool; }
     //CPUTextureResourcePool& GetTexturePool() { return m_TexturePool; }
