@@ -45,6 +45,91 @@ struct D3D12TextureResource
 {
 public:
     D3D12TextureResource() = delete;
+    // ------------------------------------------------------------
+    // Move Constructor
+    // ------------------------------------------------------------
+    D3D12TextureResource(D3D12TextureResource&& other) noexcept
+      : pResource(std::move(other.pResource)),
+        currentState(other.currentState),
+        rtvIndex(other.rtvIndex),
+        srvIndex(other.srvIndex),
+        dsvIndex(other.dsvIndex),
+        m_Format(other.m_Format)
+    {
+        // Reset other
+        other.pResource = nullptr;
+        // Should be okay not to reset in terms of destructor cost,
+        // but keep consistent
+        other.rtvIndex = -1;
+        other.srvIndex = -1;
+        other.dsvIndex = -1;
+    }
+
+    // ------------------------------------------------------------
+    // Move Assignment
+    // ------------------------------------------------------------
+    D3D12TextureResource& operator=(D3D12TextureResource&& other) noexcept
+    {
+        if (this != &other)
+        {
+            // Release existing COM resource
+            pResource.Reset();
+
+            // Move COM pointer + POD fields
+            pResource = std::move(other.pResource);
+            currentState = other.currentState;
+            rtvIndex = other.rtvIndex;
+            srvIndex = other.srvIndex;
+            dsvIndex = other.dsvIndex;
+            m_Format = other.m_Format;
+
+            // Reset other
+            other.pResource = nullptr;
+            other.rtvIndex = -1;
+            other.srvIndex = -1;
+            other.dsvIndex = -1;
+        }
+        return *this;
+    }
+
+    // ------------------------------------------------------------
+    // Copy Constructor
+    // ------------------------------------------------------------
+    D3D12TextureResource(const D3D12TextureResource& other)
+      : currentState(other.currentState),
+        rtvIndex(other.rtvIndex),
+        srvIndex(other.srvIndex),
+        dsvIndex(other.dsvIndex),
+        m_Format(other.m_Format)
+    {
+        // COM pointers must be AddRef'd on copy
+        pResource = other.pResource;
+        if (pResource) pResource->AddRef();
+    }
+
+    // ------------------------------------------------------------
+    // Copy Assignment
+    // ------------------------------------------------------------
+    D3D12TextureResource& operator=(const D3D12TextureResource& other)
+    {
+        if (this != &other)
+        {
+            // Release existing COM resource
+            pResource.Reset();
+
+            // Copy COM pointer (AddRef)
+            pResource = other.pResource;
+            if (pResource) pResource->AddRef();
+
+            currentState = other.currentState;
+            rtvIndex = other.rtvIndex;
+            srvIndex = other.srvIndex;
+            dsvIndex = other.dsvIndex;
+            m_Format = other.m_Format;
+        }
+        return *this;
+    }
+
     D3D12TextureResource(const TextureDesc& desc)
     {
         // TODO
@@ -109,7 +194,7 @@ public:
     }
 
     U32 m_Width, m_Height;
-    GrFormat m_Format;
+    GrFormat m_Format = GrFormat::UNDEFINED;
 
     // RHI will handle creating the Native D3D12 Objects
     // so note to not revoke access
@@ -117,22 +202,6 @@ public:
     friend class D3D12Swapchain;
 
 private:
-    [[nodiscard]] D3D12_RESOURCE_DESC CreateD3D12ResourceDesc(const TextureDesc& desc)
-    {
-        // Describe and create a Texture2D.
-        D3D12_RESOURCE_DESC textureDesc = {};
-        textureDesc.MipLevels = 1;
-        textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        textureDesc.Width = desc.width;
-        textureDesc.Height = desc.height;
-        textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-        textureDesc.DepthOrArraySize = 1;
-        textureDesc.SampleDesc.Count = 1;
-        textureDesc.SampleDesc.Quality = 0;
-        textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-
-        return textureDesc;
-    }
 
 private:
     ComPtr<ID3D12Resource> pResource = nullptr;

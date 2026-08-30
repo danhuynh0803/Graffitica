@@ -64,12 +64,12 @@ public:
         {
             handle = m_FreeList.back();
             m_FreeList.pop_back();
-            m_Cache[handle] = std::move(resource);
+            m_Cache[handle] = resource;
         }
         else
         {
             handle = m_Cache.size();
-            m_Cache.push_back(std::move(resource));
+            m_Cache.push_back(resource);
         }
         return handle;
     }

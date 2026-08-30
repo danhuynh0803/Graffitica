@@ -162,6 +162,7 @@ D3D12_RHI::D3D12_RHI()
     default:
         throw std::runtime_error("ResourceFormat is not valid");
     }
+    
     return m_TexturePool.Import(std::move(res));
 }
 
@@ -180,7 +181,6 @@ TextureHandle D3D12_RHI::CreateTexture(ComPtr<ID3D12Resource> extResource, Resou
     hndl.Offset(res.rtvIndex, heap.GetDescriptorSize());
     // TODO switch resourceType enum to flags
     // since a resource can be allocated to multiple heaps and thus contain multiple heap indices
-    res.rtvIndex = heap.CreateViewFromHeap(res.pResource.Get());
     return m_TexturePool.Import(std::move(res));
 }
 
@@ -248,7 +248,7 @@ void D3D12_RHI::ExecuteCommandList(const RHICommandList& cmdlist)
 void D3D12_RHI::ExecuteCommandLists(const RHICommandList rhiCommandLists[], U32 numCommandLists)
 {
     std::vector<ID3D12CommandList> nativeCmds;
-    nativeCmds.reserve(numCommandLists);
+    //nativeCmds.reserve(numCommandLists);
     //for (int i = 0; i < numCommandLists; ++i)
     //    nativeCmds.push_back()
     //auto rawCmdList = GetNativeCommandList(cmdlist);
