@@ -251,7 +251,10 @@ public:
             break;
         }
 
-        return m_CurrentOffset++;
+        U32 heapIdx = m_CurrentOffset;
+        m_CurrentOffset++; // Increment heap handle to avoid overwriting past-views
+        // TODO will heap free any view resources? Have freelist to overwrite no-longer referenced views
+        return heapIdx;
     }
 
     D3D12_DESCRIPTOR_HEAP_DESC GetDesc() const { return pDescriptorHeap->GetDesc(); }
@@ -299,7 +302,7 @@ public:
     [[nodiscard]] ID3D12Device* GetDevice() const { return m_Device.Get(); }
     [[nodiscard]] ComPtr<ID3D12CommandQueue> GetCommandQueue() const { return m_CommandQueue; }
     [[nodiscard]] ComPtr<ID3D12CommandAllocator> GetGraphicsCommandAllocator() const { return m_GraphicsCommandAllocator; }
-    [[nodiscard]] inline D3D12DescriptorHeap& GetDescriptorHeap(ResourceType eType) { return m_DescriptorHeaps[static_cast<I32>(eType)]; }
+    [[nodiscard]] D3D12DescriptorHeap& GetDescriptorHeap(ResourceType eType) { return m_DescriptorHeaps[static_cast<I32>(eType)]; }
     [[nodiscard]] const FeatureSupportData& GetFeatureSupportData() const { return m_FeatureSupportData; }
 
     [[nodiscard]] BufferHandle CreateBuffer(const BufferDesc& desc);

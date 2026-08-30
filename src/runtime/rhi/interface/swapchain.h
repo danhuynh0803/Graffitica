@@ -32,15 +32,16 @@ public:
     GrFormat GetSurfaceFormat() const { return m_SwapchainFormat; }
     U32 GetWidth()  const { return m_Width; }
     U32 GetHeight() const { return m_Height; }
-    U32 GetCurrentBackBufferIndex() const { return m_CurrentFrameIndex; }
     U32 GetImageCount() const { return m_ImageCount; }
     
-    TextureHandle GetCurrentFrameResourceHandle() {
-        return m_PresentResourceHandles.at(m_CurrentFrameIndex);
-    }
-
     TextureHandle GetFrameResourceHandle(int i) {
         return m_PresentResourceHandles.at(i);
+    }
+
+public:
+    virtual U32 GetCurrentBackBufferIndex() const { return m_CurrentFrameIndex; }
+    virtual TextureHandle GetCurrentFrameResourceHandle() {
+        return m_PresentResourceHandles.at(m_CurrentFrameIndex);
     }
 
 protected:

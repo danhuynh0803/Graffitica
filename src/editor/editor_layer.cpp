@@ -93,7 +93,7 @@ EditorLayer::EditorLayer(const std::string& name)
         .eFormat = rhi::GrFormat::D32_SFLOAT,
         .eResourceType = ResourceType::DepthStencil
     };
-    gDepthBufferHndl = pRHI->CreateTexture(targetDesc);
+    //gDepthBufferHndl = pRHI->CreateTexture(targetDesc);
 
     std::string shaderDir = "shaders/";
     auto compiledOutputs = gShaderCompilerModule.CompileSlangToBlob((shaderDir + "default.slang").c_str(), "VSMain");
@@ -134,7 +134,7 @@ void EditorLayer::OnUpdate(double dt)
     
     //rhi::DispatchRays(gCmdlist, pSwapchain->GetWidth(), pSwapchain->GetHeight(), 1);
     //pRHI->DrawIndexedInstanced(gCmdlist, model.m_MeshData->GetIndices().size(), 1, 0, 0, 0);
-    //pRHI->Present(pSwapchain);
+    pRHI->Present(pSwapchain);
 
 }
 

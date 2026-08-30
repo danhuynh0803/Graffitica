@@ -29,6 +29,11 @@ public:
         //m_CurrentFrameIndex = m_RawSwapchain->GetCurrentBackBufferIndex();
     }
 
+    virtual U32 GetCurrentBackBufferIndex() const override { return m_RawSwapchain->GetCurrentBackBufferIndex(); }
+    virtual TextureHandle GetCurrentFrameResourceHandle() override {
+        return m_PresentResourceHandles.at(m_RawSwapchain->GetCurrentBackBufferIndex());
+    }
+
     ComPtr<ID3D12Resource> GetCurrentBackBuffer() const { return m_BackBuffers[m_RawSwapchain->GetCurrentBackBufferIndex()]; }
     ComPtr<ID3D12Resource> GetBackBuffer(int i) const { return m_BackBuffers[i]; }
     D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandleForCurrentFrame() const

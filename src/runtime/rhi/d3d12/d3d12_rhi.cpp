@@ -130,16 +130,14 @@ D3D12_RHI::D3D12_RHI()
 [[nodiscard]] BufferHandle D3D12_RHI::CreateBuffer(const BufferDesc& desc)
 {
     GR_TRACE_START(SYS_RHI);
-    //return m_BufferPool.Allocate(desc);
-    return -1;
+    return m_BufferPool.Allocate(desc);
 }
 
 [[nodiscard]] TextureHandle D3D12_RHI::CreateTexture(const TextureDesc& desc)
 {
     GR_TRACE_START(SYS_RHI);
 
-    auto heap = GetDescriptorHeap(desc.eResourceType);
-    CD3DX12_CPU_DESCRIPTOR_HANDLE hndl(heap.GetStartHandle());
+    auto& heap = GetDescriptorHeap(desc.eResourceType);
     
     // TODO: convoluted steps due to separation of classes
     // 1. ID3D12Resource is first created and referenced from D3D12TextureResource
@@ -147,7 +145,6 @@ D3D12_RHI::D3D12_RHI()
     // 3. Then we reference the view via an index
     
     D3D12TextureResource res(GetDevice(), desc);
-    hndl.Offset(res.rtvIndex, heap.GetDescriptorSize());
     switch (desc.eResourceType)
     {
     case ResourceType::ShaderResource:
@@ -170,17 +167,29 @@ TextureHandle D3D12_RHI::CreateTexture(ComPtr<ID3D12Resource> extResource, Resou
 {
     GR_TRACE_START(SYS_RHI);
 
-    auto heap = GetDescriptorHeap(eResourceType);
-    CD3DX12_CPU_DESCRIPTOR_HANDLE hndl(heap.GetStartHandle());
-
+    auto& heap = GetDescriptorHeap(eResourceType);
     // TODO: convoluted steps due to separation of classes
     // 1. ID3D12Resource is first created and referenced from D3D12TextureResource
     // 2. We need to generate the view on the selected heap
     // 3. Then we reference the view via an index
     D3D12TextureResource res(GetDevice(), extResource);
-    hndl.Offset(res.rtvIndex, heap.GetDescriptorSize());
     // TODO switch resourceType enum to flags
     // since a resource can be allocated to multiple heaps and thus contain multiple heap indices
+    switch (eResourceType)
+    {
+    case ResourceType::ShaderResource:
+        res.srvIndex = heap.CreateViewFromHeap(res.pResource.Get());
+        break;
+    case ResourceType::RenderTarget:
+        res.rtvIndex = heap.CreateViewFromHeap(res.pResource.Get());
+        break;
+    case ResourceType::DepthStencil:
+        res.dsvIndex = heap.CreateViewFromHeap(res.pResource.Get());
+        break;
+    default:
+        throw std::runtime_error("ResourceFormat is not valid");
+    }
+
     return m_TexturePool.Import(std::move(res));
 }
 
