@@ -24,9 +24,19 @@ gr::rhi::IGraphicsContext* CreateRHI(RHI_BACKEND backend, SDL_Window* window)
     default:
         throw std::runtime_error("Unsupported RHI selected");
     }
-
-
 }
+
+constexpr std::string RHIToString(RHI_BACKEND backend)
+{
+    switch (backend)
+    {
+    case RHI_BACKEND::D3D12:  return "D3D12";
+    case RHI_BACKEND::VULKAN: return "Vulkan";
+    case RHI_BACKEND::CPU:    return "CPU";
+    default:                  return "Unknown";
+    }
+}
+
 
 // For platform-specific windows if needed later
 std::unique_ptr<Window> Window::Create(const WindowProperties& props)
@@ -39,12 +49,15 @@ Window::Window(const WindowProperties& props)
 {
     SDL_Init(m_InitFlags);
 
-    m_Window = SDL_CreateWindow(m_Name.c_str(),
+    RHI_BACKEND rhi = RHI_BACKEND::D3D12;
+    //rhi = RHI_BACKEND::CPU;
+
+    m_Window = SDL_CreateWindow((m_Name + " (" + RHIToString(rhi) + ")").c_str(),
                                 m_Width, m_Height,
                                 SDL_WINDOW_RESIZABLE);
 
     // TODO generate an engine.config file and read in cli arg flags
-    m_GraphicsContext = CreateRHI(RHI_BACKEND::D3D12, m_Window);
+    m_GraphicsContext = CreateRHI(rhi, m_Window);
 }
 
 Window::~Window()

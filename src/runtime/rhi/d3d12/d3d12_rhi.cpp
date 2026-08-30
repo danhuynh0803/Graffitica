@@ -291,7 +291,7 @@ void D3D12_RHI::SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHa
 {
     GR_TRACE_START(SYS_RHI);
     D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
-    //std::cout << "D3D12 SetVertexBuffers called with numViews: " << numViews << std::endl;
+    std::cout << "D3D12 SetVertexBuffers called with numViews: " << numViews << std::endl;
 }
 
 void D3D12_RHI::SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer)
