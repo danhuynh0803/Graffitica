@@ -26,7 +26,6 @@ public:
     virtual void Present() override
     {
         ThrowIfFailed(m_RawSwapchain->Present(1, 0));
-        //m_CurrentFrameIndex = m_RawSwapchain->GetCurrentBackBufferIndex();
     }
 
     virtual U32 GetCurrentBackBufferIndex() const override { return m_RawSwapchain->GetCurrentBackBufferIndex(); }

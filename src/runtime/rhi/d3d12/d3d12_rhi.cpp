@@ -277,14 +277,13 @@ void D3D12_RHI::ExecuteCommandList(const RHICommandList& cmdlist)
 
 void D3D12_RHI::ExecuteCommandLists(const RHICommandList rhiCommandLists[], U32 numCommandLists)
 {
-    std::vector<ID3D12CommandList> nativeCmds;
-    //nativeCmds.reserve(numCommandLists);
-    //for (int i = 0; i < numCommandLists; ++i)
-    //    nativeCmds.push_back()
-    //auto rawCmdList = GetNativeCommandList(cmdlist);
-    //ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
-
-    //m_CommandQueue->ExecuteCommandLists(_countof(rawCmdList), ppCommandLists);
+    std::vector<ID3D12CommandList*> pNativeCmds;
+    pNativeCmds.reserve(numCommandLists);
+    for (int i = 0; i < numCommandLists; ++i) {
+        auto rawCmdList = GetNativeCommandList(rhiCommandLists[i]);
+        pNativeCmds.push_back(rawCmdList);
+    }
+    m_CommandQueue->ExecuteCommandLists(pNativeCmds.size(), pNativeCmds.data());
 }
 
 void D3D12_RHI::SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])
