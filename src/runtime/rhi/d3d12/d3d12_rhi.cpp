@@ -212,6 +212,12 @@ TextureHandle D3D12_RHI::ImportTexture(D3D12TextureResource&& resource)
     return m_TexturePool.Import(std::move(resource));
 }
 
+D3D12BufferResource D3D12_RHI::GetBuffer(BufferHandle handle)
+{
+    GR_TRACE_START(SYS_RHI);
+    return m_BufferPool.Get(handle);
+}
+
 [[nodiscard]] D3D12TextureResource& D3D12_RHI::GetTexture(TextureHandle handle)
 {
     GR_TRACE_START(SYS_RHI);
@@ -245,6 +251,8 @@ RHICommandList D3D12_RHI::CreateCommandList(CommandListType type)
 
 void D3D12_RHI::BeginRecording(RHICommandList& cmdlist)
 {
+    GR_TRACE_START(SYS_RHI);
+
     auto native = GetNativeCommandList(cmdlist);
     // TODO hardcode for now to use GraphicsCmdAllocator
     ThrowIfFailed(m_GraphicsCommandAllocator->Reset());
@@ -253,23 +261,31 @@ void D3D12_RHI::BeginRecording(RHICommandList& cmdlist)
 
 void D3D12_RHI::EndRecording(RHICommandList& cmdlist)
 {
+    GR_TRACE_START(SYS_RHI);
+
     auto native = GetNativeCommandList(cmdlist);
     ThrowIfFailed(native->Close());
 }
 
 void D3D12_RHI::BeginRenderPass(RHICommandList& cmdlist, RenderPassDesc desc)
 {
+    GR_TRACE_START(SYS_RHI);
+
     // TODO - state is dynamic by default so, but I want this RenderPassDesc for the RG usecase
 
 }
 
 void D3D12_RHI::EndRenderPass(RHICommandList& cmdlist)
 {
+    GR_TRACE_START(SYS_RHI);
+
     // TODO
 }
 
 void D3D12_RHI::ExecuteCommandList(const RHICommandList& cmdlist)
 {
+    GR_TRACE_START(SYS_RHI);
+
     auto native = GetNativeCommandList(cmdlist);
     ID3D12CommandList* ppCommandLists[] = { native };
     m_CommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
@@ -277,6 +293,8 @@ void D3D12_RHI::ExecuteCommandList(const RHICommandList& cmdlist)
 
 void D3D12_RHI::ExecuteCommandLists(const RHICommandList rhiCommandLists[], U32 numCommandLists)
 {
+    GR_TRACE_START(SYS_RHI);
+
     std::vector<ID3D12CommandList*> pNativeCmds;
     pNativeCmds.reserve(numCommandLists);
     for (int i = 0; i < numCommandLists; ++i) {
@@ -289,8 +307,17 @@ void D3D12_RHI::ExecuteCommandLists(const RHICommandList rhiCommandLists[], U32 
 void D3D12_RHI::SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])
 {
     GR_TRACE_START(SYS_RHI);
-    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
+
+    auto pCmdlist = GetNativeCommandList(cmdlist);
     std::cout << "D3D12 SetVertexBuffers called with numViews: " << numViews << std::endl;
+
+    std::vector<D3D12_VERTEX_BUFFER_VIEW> pViews;
+    // convert internal to d3d12buffers
+
+    pViews.reserve(numViews);
+
+    pCmdlist->IASetVertexBuffers(0, numViews, pViews.data());
+
 }
 
 void D3D12_RHI::SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer)
