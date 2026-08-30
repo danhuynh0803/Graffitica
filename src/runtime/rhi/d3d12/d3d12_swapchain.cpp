@@ -13,7 +13,7 @@ D3D12Swapchain::D3D12Swapchain(
     ComPtr<ID3D12CommandQueue> commandQueue,
     const SwapchainProperties& props,
     D3D12_RHI* rhiInstance)
-    : ISwapchain(props)
+    : ISwapchain(props), m_BackBuffers(props.imageCount)
 {
     ComPtr<IDXGIFactory4> factory;
     HRESULT res = CreateDXGIFactory1(IID_PPV_ARGS(&factory));
