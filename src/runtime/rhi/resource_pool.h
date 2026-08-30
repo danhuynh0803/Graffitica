@@ -8,9 +8,6 @@
 namespace gr::rhi
 {
 
-//class BufferDesc;
-//class TextureDesc;
-
 template <typename TResource>
 class BufferResourcePool
 {

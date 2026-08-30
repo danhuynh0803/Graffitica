@@ -1,9 +1,10 @@
 #include <iostream>
+#include "developer/profiler/profiler.h"
 #include <directx/d3d12.h>
 #include <dxgi1_6.h>
 #include "d3d12_rhi.h"
 #include "d3d12_util.h"
-#include "developer/profiler/profiler.h"
+#include "d3d12_swapchain.h"
 
 namespace gr::rhi
 {
@@ -129,7 +130,8 @@ D3D12_RHI::D3D12_RHI()
 [[nodiscard]] BufferHandle D3D12_RHI::CreateBuffer(const BufferDesc& desc)
 {
     GR_TRACE_START(SYS_RHI);
-    return m_BufferPool.Allocate(desc);
+    //return m_BufferPool.Allocate(desc);
+    return -1;
 }
 
 [[nodiscard]] TextureHandle D3D12_RHI::CreateTexture(const TextureDesc& desc)
@@ -182,7 +184,7 @@ TextureHandle D3D12_RHI::CreateTexture(ComPtr<ID3D12Resource> extResource, Resou
     return m_TexturePool.Import(std::move(res));
 }
 
-TextureHandle D3D12_RHI::ImportTexture(D3D12TextureResource& resource)
+TextureHandle D3D12_RHI::ImportTexture(D3D12TextureResource&& resource)
 {
     GR_TRACE_START(SYS_RHI);
     return m_TexturePool.Import(std::move(resource));

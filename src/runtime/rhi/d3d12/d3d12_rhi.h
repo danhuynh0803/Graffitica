@@ -22,6 +22,8 @@
 namespace gr::rhi
 {
 
+class D3D12Swapchain;
+
 using Microsoft::WRL::ComPtr;
 
 struct FeatureSupportData
@@ -43,6 +45,10 @@ struct D3D12TextureResource
 {
 public:
     D3D12TextureResource() = delete;
+    D3D12TextureResource(const TextureDesc& desc)
+    {
+        // TODO
+    }
     D3D12TextureResource(ID3D12Device* pDevice, ComPtr<ID3D12Resource> resource)
       : pResource(resource)
     {
@@ -230,7 +236,7 @@ public:
     [[nodiscard]] BufferHandle CreateBuffer(const BufferDesc& desc);
     [[nodiscard]] TextureHandle CreateTexture(const TextureDesc& desc);
     [[nodiscard]] TextureHandle CreateTexture(ComPtr<ID3D12Resource> extResource, ResourceType eResourceType);
-    [[nodiscard]] TextureHandle ImportTexture(D3D12TextureResource& resource);
+    [[nodiscard]] TextureHandle ImportTexture(D3D12TextureResource&& resource);
     [[nodiscard]] D3D12TextureResource& GetTexture(TextureHandle handle);
     [[nodiscard]] RHICommandList CreateCommandList(CommandListType type);
 

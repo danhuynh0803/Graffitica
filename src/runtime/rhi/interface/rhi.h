@@ -140,7 +140,7 @@ struct RHIContext
         //};
 
         pfnPresent = [](void* p, ISwapchain* pSwapchain) {
-            //pSwapchain->Present();
+            pSwapchain->Present();
         };
     }
 
