@@ -54,7 +54,7 @@ public:
         else
         {
             handle = m_Cache.size();
-            m_Cache.emplace_back(desc);
+            m_Cache.emplace_back(m_RHIInstance->GetDevice(), desc);
         }
         return handle;
     }

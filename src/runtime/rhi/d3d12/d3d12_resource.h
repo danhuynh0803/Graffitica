@@ -169,6 +169,7 @@ public:
         m_Height = desc.Height;
         //m_Format = desc.Format;
     }
+
     D3D12TextureResource(ID3D12Device* pDevice, /*ID3D12CommandList* cmdlist,*/ const TextureDesc& desc)
       : m_Width(desc.width), m_Height(desc.height), m_Format(desc.eFormat),
         pResource(nullptr)
