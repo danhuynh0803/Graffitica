@@ -75,7 +75,8 @@ enum class GrFormat : uint32_t
     R8G8B8A8_UNORM,
     R8_UNORM,
     R8_SNORM,
-
+    R16_UINT,
+    R32_UINT,
     R32G32B32_UINT,
     R32G32B32_SINT,
     R32G32B32_SFLOAT,

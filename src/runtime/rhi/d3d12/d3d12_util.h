@@ -56,6 +56,8 @@ inline DXGI_FORMAT ToDXGIFormat(GrFormat fmt)
     case GrFormat::R8G8B8A8_UNORM:          return DXGI_FORMAT_R8G8B8A8_UNORM;
     case GrFormat::R8_UNORM:                return DXGI_FORMAT_R8_UNORM;
     case GrFormat::R8_SNORM:                return DXGI_FORMAT_R8_SNORM;
+    case GrFormat::R16_UINT:                return DXGI_FORMAT_R16_UINT;
+    case GrFormat::R32_UINT:                return DXGI_FORMAT_R32_UINT;
 
     case GrFormat::R32G32B32_UINT:          return DXGI_FORMAT_R32G32B32_UINT;
     case GrFormat::R32G32B32_SINT:          return DXGI_FORMAT_R32G32B32_SINT;

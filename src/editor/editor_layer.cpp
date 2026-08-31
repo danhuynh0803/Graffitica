@@ -109,7 +109,8 @@ EditorLayer::EditorLayer(const std::string& name)
         .strideInBytes = sizeof(U16),
         .usageFlags = 0, // TODO
         .dataSrc = quadIndices,
-        .eResourceType = BufferResourceType::VertexBuffer
+        .eResourceType = BufferResourceType::IndexBuffer,
+        .eFormat = rhi::GrFormat::R16_UINT
     };
 
     gIndexBuffer = pRHI->CreateBuffer(indexDesc);

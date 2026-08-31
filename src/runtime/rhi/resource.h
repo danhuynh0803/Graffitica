@@ -66,6 +66,7 @@ struct BufferDesc
     U32 usageFlags;
     void* dataSrc;
     BufferResourceType eResourceType;
+    gr::rhi::GrFormat eFormat; // Used for a subset of buffers (e.g. index)
 };
 
 /*

@@ -42,14 +42,22 @@ public:
         pResource->Unmap(0, nullptr);
 
         // Initialize the vertex buffer view.
-        m_View.vertexBufferView.BufferLocation = pResource->GetGPUVirtualAddress();
-        m_View.vertexBufferView.StrideInBytes = desc.strideInBytes;
-        m_View.vertexBufferView.SizeInBytes = desc.sizeInBytes;
 
-        m_View.indexBufferView.BufferLocation = pResource->GetGPUVirtualAddress();
-        //TODO
-        //m_View.indexBufferView.Format = desc.
-        m_View.indexBufferView.SizeInBytes = desc.sizeInBytes;
+        switch (desc.eResourceType)
+        {
+        case BufferResourceType::VertexBuffer:
+            m_View.vertexBufferView.BufferLocation = pResource->GetGPUVirtualAddress();
+            m_View.vertexBufferView.StrideInBytes = desc.strideInBytes;
+            m_View.vertexBufferView.SizeInBytes = desc.sizeInBytes;
+            break;
+        case BufferResourceType::IndexBuffer:
+            m_View.indexBufferView.BufferLocation = pResource->GetGPUVirtualAddress();
+            m_View.indexBufferView.Format = ToDXGIFormat(desc.eFormat);
+            m_View.indexBufferView.SizeInBytes = desc.sizeInBytes;
+            break;
+        default:
+            std::cout << "BufferResourceType not supported\n";
+        }
     }
 
     friend class D3D12_RHI;
