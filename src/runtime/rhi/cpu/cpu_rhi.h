@@ -6,173 +6,10 @@
 #include "cpu_command_list.h"
 #include "cpu_command.h"
 #include "cpu_pipeline.h"
-
-//class RHIGraphicsPipelineHandle;
+#include "cpu_resource.h"
 
 namespace gr::rhi
 {
-
-struct BufferView
-{
-    BufferHandle buffer;
-    U32 strideInBytes;
-    U32 sizeInBytes;
-};
-
-class CPUBufferResource
-{
-public:
-    CPUBufferResource() = delete;
-
-    CPUBufferResource([[maybeunused]] void*, const BufferDesc& desc)
-        : m_SizeInBytes(desc.sizeInBytes), m_StrideInBytes(0)
-    {
-        m_Data.resize(m_SizeInBytes);
-    }
-
-    CPUBufferResource(void* data, U32 size, U32 stride)
-        : m_SizeInBytes(size), m_StrideInBytes(stride)
-    {
-        m_Data.resize(m_SizeInBytes);
-        memcpy(m_Data.data(), data, size);
-    }
-
-    // -------------------------------
-    // Copy constructor
-    // -------------------------------
-    CPUBufferResource(const CPUBufferResource& other)
-        : m_SizeInBytes(other.m_SizeInBytes),
-        m_StrideInBytes(other.m_StrideInBytes),
-        m_Data(other.m_Data) // vector handles deep copy
-    {
-    }
-
-    // -------------------------------
-    // Copy assignment
-    // -------------------------------
-    CPUBufferResource& operator=(const CPUBufferResource& other)
-    {
-        if (this != &other)
-        {
-            m_SizeInBytes = other.m_SizeInBytes;
-            m_StrideInBytes = other.m_StrideInBytes;
-            m_Data = other.m_Data; // deep copy
-        }
-        return *this;
-    }
-
-    // -------------------------------
-    // Move constructor
-    // -------------------------------
-    CPUBufferResource(CPUBufferResource&& other) noexcept
-        : m_SizeInBytes(other.m_SizeInBytes),
-        m_StrideInBytes(other.m_StrideInBytes),
-        m_Data(std::move(other.m_Data))
-    {
-        other.m_SizeInBytes = 0;
-        other.m_StrideInBytes = 0;
-    }
-
-    // -------------------------------
-    // Move assignment
-    // -------------------------------
-    CPUBufferResource& operator=(CPUBufferResource&& other) noexcept
-    {
-        if (this != &other)
-        {
-            m_SizeInBytes = other.m_SizeInBytes;
-            m_StrideInBytes = other.m_StrideInBytes;
-            m_Data = std::move(other.m_Data);
-
-            other.m_SizeInBytes = 0;
-            other.m_StrideInBytes = 0;
-        }
-        return *this;
-    }
-
-    void* Map() { return m_Data.data(); }
-    void Unmap() { /* No-op for CPU RHI */ }
-
-private:
-    U32 m_SizeInBytes;
-    U32 m_StrideInBytes;
-    std::vector<U8> m_Data;
-};
-
-struct CPUTextureResource
-{
-    CPUTextureResource() = delete;
-
-    CPUTextureResource(const TextureDesc& desc)
-      : m_Width(desc.width),
-        m_Height(desc.height),
-        m_Format(desc.eFormat),
-        m_Data(m_Width* m_Height* ConvertFormatToByteSize(desc.eFormat))
-    {
-    }
-
-    // delegating constructor
-    CPUTextureResource([[maybeunused]] void*, const TextureDesc& desc)
-        : CPUTextureResource(desc)
-    {
-    }
-
-    // move constructor
-    CPUTextureResource(CPUTextureResource&& other) noexcept
-      : m_Width(other.m_Width),
-        m_Height(other.m_Height),
-        m_Format(other.m_Format),
-        m_Data(std::move(other.m_Data))
-    {
-        other.m_Format = GrFormat::UNDEFINED;
-        other.m_Width = 0;
-        other.m_Height = 0;
-    }
-
-    // copy constructor
-    CPUTextureResource(const CPUTextureResource& other)
-      : m_Width(other.m_Width),
-        m_Height(other.m_Height),
-        m_Format(other.m_Format),
-        m_Data(other.m_Data)
-    {
-    }
-
-    // move assignment
-    CPUTextureResource& operator=(CPUTextureResource&& other) noexcept
-    {
-        if (this != &other)
-        {
-            m_Width = other.m_Width;
-            m_Height = other.m_Height;
-            m_Format = other.m_Format;
-            m_Data = std::move(other.m_Data);
-
-            other.m_Format = GrFormat::UNDEFINED;
-            other.m_Width = 0;
-            other.m_Height = 0;
-        }
-        return *this;
-    }
-
-    // copy assignment
-    CPUTextureResource& operator=(const CPUTextureResource& other)
-    {
-        if (this != &other)
-        {
-            m_Width = other.m_Width;
-            m_Height = other.m_Height;
-            m_Format = other.m_Format;
-            m_Data = other.m_Data;
-        }
-        return *this;
-    }
-
-    U32 m_Width = 0;
-    U32 m_Height = 0;
-    GrFormat m_Format = GrFormat::UNDEFINED;
-    std::vector<U8> m_Data;
-};
 
 class CPU_RHI
 {
@@ -190,7 +27,7 @@ public:
         GR_TRACE_START(SYS_RHI);
         return m_BufferPool->Allocate(desc);
     }
-    
+
     [[nodiscard]] TextureHandle CreateTexture(const TextureDesc& desc)
     {
         GR_TRACE_START(SYS_RHI);
@@ -216,7 +53,7 @@ public:
         CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
         pCmdlist->EndRecording();
     }
-    
+
     RHIGraphicsPipeline CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
     {
         GR_TRACE_START(SYS_RHI);
@@ -224,7 +61,7 @@ public:
         handle.pNativePipeline = new CPUGraphicsPipeline(desc);
         return handle;
     }
-    
+
     RHIComputePipeline CreateComputePipeline(const ComputePipelineDesc& desc)
     {
         GR_TRACE_START(SYS_RHI);
