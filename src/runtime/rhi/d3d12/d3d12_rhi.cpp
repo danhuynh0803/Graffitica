@@ -126,8 +126,8 @@ D3D12_RHI::D3D12_RHI()
 
     // Allocate one heap for each DescriptorHeap type: srv, rtv, dsv, samplers
     // For now lets just use hardcode of 1000 for heapsize
-    for (int i = 0; i < static_cast<int>(ResourceType::COUNT); ++i) {
-        m_DescriptorHeaps[i] = D3D12DescriptorHeap{m_Device, static_cast<ResourceType>(i), m_MaxHeapSize};
+    for (int i = 0; i < static_cast<int>(DescriptorResourceType::COUNT); ++i) {
+        m_DescriptorHeaps[i] = D3D12DescriptorHeap{m_Device, static_cast<DescriptorResourceType>(i), m_MaxHeapSize};
     }
 
     // Fence synchronization - have RHI own this for now
@@ -164,13 +164,13 @@ D3D12_RHI::D3D12_RHI()
     D3D12TextureResource res(GetDevice(), desc);
     switch (desc.eResourceType)
     {
-    case ResourceType::ShaderResource:
+    case DescriptorResourceType::ShaderResource:
         res.srvIndex = heap.CreateViewFromHeap(res.pResource.Get());
         break;
-    case ResourceType::RenderTarget:
+    case DescriptorResourceType::RenderTarget:
         res.rtvIndex = heap.CreateViewFromHeap(res.pResource.Get());
         break;
-    case ResourceType::DepthStencil:
+    case DescriptorResourceType::DepthStencil:
         res.dsvIndex = heap.CreateViewFromHeap(res.pResource.Get());
         break;
     default:
@@ -180,7 +180,7 @@ D3D12_RHI::D3D12_RHI()
     return m_TexturePool->Import(std::move(res));
 }
 
-TextureHandle D3D12_RHI::CreateTexture(ComPtr<ID3D12Resource> extResource, ResourceType eResourceType)
+TextureHandle D3D12_RHI::CreateTexture(ComPtr<ID3D12Resource> extResource, DescriptorResourceType eResourceType)
 {
     GR_TRACE_START(SYS_RHI);
 
@@ -194,13 +194,13 @@ TextureHandle D3D12_RHI::CreateTexture(ComPtr<ID3D12Resource> extResource, Resou
     // since a resource can be allocated to multiple heaps and thus contain multiple heap indices
     switch (eResourceType)
     {
-    case ResourceType::ShaderResource:
+    case DescriptorResourceType::ShaderResource:
         res.srvIndex = heap.CreateViewFromHeap(res.pResource.Get());
         break;
-    case ResourceType::RenderTarget:
+    case DescriptorResourceType::RenderTarget:
         res.rtvIndex = heap.CreateViewFromHeap(res.pResource.Get());
         break;
-    case ResourceType::DepthStencil:
+    case DescriptorResourceType::DepthStencil:
         res.dsvIndex = heap.CreateViewFromHeap(res.pResource.Get());
         break;
     default:
@@ -316,19 +316,22 @@ void D3D12_RHI::SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHa
     std::cout << "D3D12 SetVertexBuffers called with numViews: " << numViews << std::endl;
 
     std::vector<D3D12_VERTEX_BUFFER_VIEW> pViews;
-    // convert internal to d3d12buffers
-
     pViews.reserve(numViews);
-
+    // convert internal to d3d12buffers
+    for (int i = 0; i < numViews; ++i) {
+        pViews.push_back(m_BufferPool->Get(views[i]).m_View.vertexBufferView);
+    }
     pCmdlist->IASetVertexBuffers(0, numViews, pViews.data());
 
 }
 
-void D3D12_RHI::SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer)
+void D3D12_RHI::SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBufferHandle)
 {
     GR_TRACE_START(SYS_RHI);
-    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
-    // TODO: Implement index buffer binding using indexBuffer
+    auto pCmdlist = GetNativeCommandList(cmdlist);
+
+    auto& res = m_BufferPool->Get(indexBufferHandle);
+    pCmdlist->IASetIndexBuffer(&res.m_View.indexBufferView);
 }
 
 void D3D12_RHI::SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[])
@@ -347,7 +350,7 @@ void D3D12_RHI::ClearColor(RHICommandList& cmdlist, TextureHandle handle, const 
     auto nativeCmdList = pCmdlist->GetRawCommandList();
     const float clearColor[] = { color.r, color.g, color.b, color.a };
 
-    auto& rtvHeap = GetDescriptorHeap(ResourceType::RenderTarget);
+    auto& rtvHeap = GetDescriptorHeap(DescriptorResourceType::RenderTarget);
     CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(
         rtvHeap.GetStartHandle(),
         resource.rtvIndex,

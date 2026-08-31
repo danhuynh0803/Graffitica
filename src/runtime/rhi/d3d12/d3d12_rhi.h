@@ -41,12 +41,12 @@ public:
     [[nodiscard]] ID3D12Device* GetDevice() const { return m_Device.Get(); }
     [[nodiscard]] ComPtr<ID3D12CommandQueue> GetCommandQueue() const { return m_CommandQueue; }
     [[nodiscard]] ComPtr<ID3D12CommandAllocator> GetGraphicsCommandAllocator() const { return m_GraphicsCommandAllocator; }
-    [[nodiscard]] D3D12DescriptorHeap& GetDescriptorHeap(ResourceType eType) { return m_DescriptorHeaps[static_cast<I32>(eType)]; }
+    [[nodiscard]] D3D12DescriptorHeap& GetDescriptorHeap(DescriptorResourceType eType) { return m_DescriptorHeaps[static_cast<I32>(eType)]; }
     [[nodiscard]] const FeatureSupportData& GetFeatureSupportData() const { return m_FeatureSupportData; }
 
     [[nodiscard]] BufferHandle CreateBuffer(const BufferDesc& desc);
     [[nodiscard]] TextureHandle CreateTexture(const TextureDesc& desc);
-    [[nodiscard]] TextureHandle CreateTexture(ComPtr<ID3D12Resource> extResource, ResourceType eResourceType);
+    [[nodiscard]] TextureHandle CreateTexture(ComPtr<ID3D12Resource> extResource, DescriptorResourceType eResourceType);
     [[nodiscard]] TextureHandle ImportTexture(D3D12TextureResource&& resource);
     [[nodiscard]] D3D12BufferResource GetBuffer(BufferHandle handle);
     [[nodiscard]] D3D12TextureResource& GetTexture(TextureHandle handle);
@@ -83,8 +83,8 @@ private:
     ComPtr<ID3D12CommandAllocator> m_GraphicsCommandAllocator;
 
     U32 m_MaxHeapSize = 1000;
-    // reference it using the ResourceType indices
-    D3D12DescriptorHeap m_DescriptorHeaps[static_cast<I32>(ResourceType::COUNT)];
+    // reference it using the DescriptorResourceType indices
+    D3D12DescriptorHeap m_DescriptorHeaps[static_cast<I32>(DescriptorResourceType::COUNT)];
 
     std::unique_ptr<ResourcePool<D3D12_RHI, D3D12BufferResource , BufferDesc >> m_BufferPool;
     std::unique_ptr<ResourcePool<D3D12_RHI, D3D12TextureResource, TextureDesc>> m_TexturePool;

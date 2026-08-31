@@ -52,6 +52,7 @@ namespace
     rhi::RHICommandList gCmdlist;
     TextureHandle gDepthBufferHndl;
     BufferHandle gVertexBuffer;
+    BufferHandle gIndexBuffer;
 
     struct Vertex
     {
@@ -68,6 +69,12 @@ namespace
         { {  0.5f, -0.5f, 0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f } },
         { { -0.5f, -0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f } },
         { {  0.5f,  0.5f, 0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f } },
+    };
+
+    U16 quadIndices[] =
+    {
+        0, 1, 2,
+        0, 3, 1,
     };
 }
 
@@ -87,11 +94,31 @@ EditorLayer::EditorLayer(const std::string& name)
     pRHI = pGfxContext->GetRHIContext();
     gCmdlist = pRHI->CreateCommandList(rhi::CommandListType::GRAPHICS);
 
+    BufferDesc bufferDesc{
+        .sizeInBytes = sizeof(triangleVertices),
+        .strideInBytes = sizeof(Vertex),
+        .usageFlags = 0,
+        .dataSrc = triangleVertices,
+        .eResourceType = BufferResourceType::VertexBuffer
+    };
+
+    gVertexBuffer = pRHI->CreateBuffer(bufferDesc);
+    
+    BufferDesc indexDesc{
+        .sizeInBytes = sizeof(quadIndices),
+        .strideInBytes = sizeof(U16),
+        .usageFlags = 0, // TODO
+        .dataSrc = quadIndices,
+        .eResourceType = BufferResourceType::VertexBuffer
+    };
+
+    gIndexBuffer = pRHI->CreateBuffer(indexDesc);
+
     TextureDesc targetDesc {
         .width = pSwapchain->GetWidth(),
         .height = pSwapchain->GetHeight(),
         .eFormat = rhi::GrFormat::D32_SFLOAT,
-        .eResourceType = ResourceType::DepthStencil
+        .eResourceType = DescriptorResourceType::DepthStencil
     };
     //gDepthBufferHndl = pRHI->CreateTexture(targetDesc);
 
@@ -125,9 +152,12 @@ void EditorLayer::OnUpdate(double dt)
     pRHI->TransitionResource(gCmdlist, backBufferHndl, ResourceState::Present, ResourceState::RenderTarget);
     pRHI->ClearColor(gCmdlist, backBufferHndl, { .4, .5, .7, 1.0 });
     //pRHI->ClearDepth(gCmdlist, gDepthBufferHndl, 1.0f);
-    pRHI->SetVertexBuffers(gCmdlist, 1, &gVertexBuffer);
-    //pRHI->DrawIndexedInstanced(gCmdList..);
     
+    pRHI->SetVertexBuffers(gCmdlist, 1, &gVertexBuffer);
+    pRHI->SetIndexBuffer(gCmdlist, gIndexBuffer);
+    
+    //pRHI->DrawIndexedInstanced(gCmdList..);
+
     pRHI->EndRenderPass(gCmdlist);
 
     pRHI->TransitionResource(gCmdlist, backBufferHndl, ResourceState::RenderTarget, ResourceState::Present);

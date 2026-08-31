@@ -5,7 +5,26 @@
 #include "rhi/formats.h"
 #include "developer/profiler/profiler.h"
 
-enum class ResourceType : U8
+enum class BufferResourceType : U8
+{
+    VertexBuffer = 0,
+    IndexBuffer,
+    ConstantBuffer,
+    // TODO
+    // listing out more buffer types as a reminder
+    // maybe impl after getting vk rhi to a similar place
+    StructuredBuffer,
+    //RawBuffer,
+    IndirectBuffer,
+    UploadBuffer,
+    //ReadbackBuffer,
+    //DefaultBuffer,
+    ShaderBindingTable,
+    //StreamOutput,
+};
+
+// TODO switch to bit flags
+enum class DescriptorResourceType
 {
     ShaderResource = 0, // cbv, srv, uav, etc
     Sampler,
@@ -36,7 +55,7 @@ RHI Buffer Handles
 struct ResourceHandle
 {
     U32 index;
-    ResourceType type;
+    DescriptorResourceType type;
 };
 
 typedef U32 BufferHandle;
@@ -45,8 +64,8 @@ struct BufferDesc
     U64 sizeInBytes;
     U32 strideInBytes;
     U32 usageFlags;
-    U8* dataSrc;
-    ResourceType eResourceType;
+    void* dataSrc;
+    BufferResourceType eResourceType;
 };
 
 /*
@@ -58,7 +77,7 @@ struct TextureDesc
     U32 width;
     U32 height;
     gr::rhi::GrFormat eFormat;
-    ResourceType eResourceType;
+    DescriptorResourceType eResourceType;
 };
 
 struct RHITextureResource

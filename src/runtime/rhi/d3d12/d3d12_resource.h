@@ -17,6 +17,7 @@ public:
     D3D12BufferResource(ID3D12Device* pDevice, const BufferDesc& desc)
         : m_SizeInBytes(desc.sizeInBytes), m_StrideInBytes(desc.strideInBytes)
     {
+        m_Data.resize(desc.sizeInBytes);
         memcpy(m_Data.data(), desc.dataSrc, desc.sizeInBytes);
 
         const auto buffer = CD3DX12_RESOURCE_DESC::Buffer(desc.sizeInBytes);
@@ -41,9 +42,14 @@ public:
         pResource->Unmap(0, nullptr);
 
         // Initialize the vertex buffer view.
-        m_VertexBufferView.BufferLocation = pResource->GetGPUVirtualAddress();
-        m_VertexBufferView.StrideInBytes = desc.strideInBytes;
-        m_VertexBufferView.SizeInBytes = desc.sizeInBytes;
+        m_View.vertexBufferView.BufferLocation = pResource->GetGPUVirtualAddress();
+        m_View.vertexBufferView.StrideInBytes = desc.strideInBytes;
+        m_View.vertexBufferView.SizeInBytes = desc.sizeInBytes;
+
+        m_View.indexBufferView.BufferLocation = pResource->GetGPUVirtualAddress();
+        //TODO
+        //m_View.indexBufferView.Format = desc.
+        m_View.indexBufferView.SizeInBytes = desc.sizeInBytes;
     }
 
     friend class D3D12_RHI;
@@ -51,13 +57,17 @@ public:
 private:
     // D3D12 related
     ComPtr<ID3D12Resource> pResource = nullptr;
-    // TODO union for other views
+    // TODO union for other views 
     // since buffer can only be either vertex,index,constant,etc
-    D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
+    union {
+        D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
+        D3D12_INDEX_BUFFER_VIEW indexBufferView;
+
+    } m_View;
 
 private:
-    U32 m_SizeInBytes;
-    U32 m_StrideInBytes;
+    U32 m_SizeInBytes {0};
+    U32 m_StrideInBytes {0};
     std::vector<U8> m_Data;
 };
 
@@ -245,13 +255,13 @@ class D3D12DescriptorHeap
 public:
     D3D12DescriptorHeap() = default;
 
-    D3D12DescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, ResourceType eType, U32 heapSize)
+    D3D12DescriptorHeap(const Microsoft::WRL::ComPtr<ID3D12Device>& device, DescriptorResourceType eType, U32 heapSize)
         : m_pDevice(device.Get()), m_HeapType(eType), m_CurrentOffset(0)
     {
         D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
         heapDesc.NumDescriptors = heapSize;
         heapDesc.Type = ToD3D12DescriptorHeapType(eType);
-        heapDesc.Flags = (eType == ResourceType::ShaderResource || eType == ResourceType::Sampler)
+        heapDesc.Flags = (eType == DescriptorResourceType::ShaderResource || eType == DescriptorResourceType::Sampler)
             ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
             : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
         ThrowIfFailed(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&pDescriptorHeap)));
@@ -267,15 +277,15 @@ public:
         // TODO combine this so it's all centralized since they rely on eachother
         switch (m_HeapType)
         {
-        case ResourceType::ShaderResource:
+        case DescriptorResourceType::ShaderResource:
             break;
-        case ResourceType::RenderTarget:
+        case DescriptorResourceType::RenderTarget:
             m_pDevice->CreateRenderTargetView(resource, nullptr, GetCurrentOffsetHandle());
             break;
-        case ResourceType::DepthStencil:
+        case DescriptorResourceType::DepthStencil:
             m_pDevice->CreateDepthStencilView(resource, nullptr, GetCurrentOffsetHandle());
             break;
-        case ResourceType::Sampler:
+        case DescriptorResourceType::Sampler:
             break;
         }
 
@@ -298,17 +308,17 @@ public:
     U32 GetCurrentOffset() { return m_CurrentOffset; }
 
 private:
-    D3D12_DESCRIPTOR_HEAP_TYPE ToD3D12DescriptorHeapType(ResourceType eType)
+    D3D12_DESCRIPTOR_HEAP_TYPE ToD3D12DescriptorHeapType(DescriptorResourceType eType)
     {
         switch (eType)
         {
-        case ResourceType::ShaderResource:
+        case DescriptorResourceType::ShaderResource:
             return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-        case ResourceType::Sampler:
+        case DescriptorResourceType::Sampler:
             return D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
-        case ResourceType::RenderTarget:
+        case DescriptorResourceType::RenderTarget:
             return D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-        case ResourceType::DepthStencil:
+        case DescriptorResourceType::DepthStencil:
             return D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
         default:
             return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
@@ -316,7 +326,7 @@ private:
     }
 
     ID3D12Device* m_pDevice;
-    ResourceType m_HeapType;
+    DescriptorResourceType m_HeapType;
     ComPtr<ID3D12DescriptorHeap> pDescriptorHeap;
     U32 m_DescriptorSize = 0;
     U32 m_CurrentOffset = 0; /* Running offset that increments as we add resources to the heap */

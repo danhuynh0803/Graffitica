@@ -46,7 +46,7 @@ D3D12Swapchain::D3D12Swapchain(
         .width = m_Width,
         .height = m_Height,
         .eFormat = props.format,
-        .eResourceType = ResourceType::RenderTarget
+        .eResourceType = DescriptorResourceType::RenderTarget
     };
 
     for (UINT i = 0; i < props.imageCount; ++i)
@@ -55,7 +55,7 @@ D3D12Swapchain::D3D12Swapchain(
         //device->CreateRenderTargetView(m_BackBuffers[i].Get(), nullptr, rtvHandle);
         //rtvHandle.Offset(1, m_RTVDescriptorSize);
 
-        auto handle = rhiInstance->CreateTexture(m_BackBuffers[i], ResourceType::RenderTarget);
+        auto handle = rhiInstance->CreateTexture(m_BackBuffers[i], DescriptorResourceType::RenderTarget);
         m_PresentResourceHandles.push_back(handle);
     }
 }
