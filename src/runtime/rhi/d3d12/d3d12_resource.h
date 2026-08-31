@@ -1,5 +1,6 @@
 #pragma once
 
+#include <wrl.h>
 #include "rhi/resource.h"
 #include "rhi/formats.h"
 #include "d3d12_util.h"
@@ -7,20 +8,57 @@
 namespace gr::rhi
 {
 
+using Microsoft::WRL::ComPtr;
+
 class D3D12BufferResource
 {
 public:
     D3D12BufferResource() = delete;
-    D3D12BufferResource(const BufferDesc& desc)
-        //: m_SizeInBytes(desc.size), m_StrideInBytes(0)
+    D3D12BufferResource(ID3D12Device* pDevice, const BufferDesc& desc)
+        : m_SizeInBytes(desc.sizeInBytes), m_StrideInBytes(desc.strideInBytes)
     {
-        // TODO create D3D12 resource here
+        memcpy(m_Data.data(), desc.dataSrc, desc.sizeInBytes);
+
+        const auto buffer = CD3DX12_RESOURCE_DESC::Buffer(desc.sizeInBytes);
+        // TODO Create the vertex buffer resource in the GPU's default heap and copy vertex data into it using the upload heap.
+        // For simplicity lets use the upload heap to quickly test
+        const auto heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+        ThrowIfFailed(pDevice->CreateCommittedResource(
+            //&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+            &heap,
+            D3D12_HEAP_FLAG_NONE,
+            &buffer, //&CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize),
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            nullptr,
+            IID_PPV_ARGS(&pResource))
+        );
+
+        // Copy the data to the buffer.
+        U8* pDataBegin;
+        CD3DX12_RANGE readRange(0, 0); // We do not intend to read from this resource on the CPU.
+        ThrowIfFailed(pResource->Map(0, &readRange, reinterpret_cast<void**>(&pDataBegin)));
+        memcpy(pDataBegin, desc.dataSrc, desc.sizeInBytes);
+        pResource->Unmap(0, nullptr);
+
+        // Initialize the vertex buffer view.
+        m_VertexBufferView.BufferLocation = pResource->GetGPUVirtualAddress();
+        m_VertexBufferView.StrideInBytes = desc.strideInBytes;
+        m_VertexBufferView.SizeInBytes = desc.sizeInBytes;
     }
 
     friend class D3D12_RHI;
 
 private:
+    // D3D12 related
     ComPtr<ID3D12Resource> pResource = nullptr;
+    // TODO union for other views
+    // since buffer can only be either vertex,index,constant,etc
+    D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
+
+private:
+    U32 m_SizeInBytes;
+    U32 m_StrideInBytes;
+    std::vector<U8> m_Data;
 };
 
 class D3D12TextureResource
@@ -118,10 +156,10 @@ public:
     // D3D12 RHI is actually not using the Allocate call anymore for that reason,
     // but is now using the Import call where the backend first generates the resource
     // external to the ResourcePool
-    D3D12TextureResource(const TextureDesc& desc)
-    {
-        // TODO
-    }
+    //D3D12TextureResource(const TextureDesc& desc)
+    //{
+    //    // TODO
+    //}
 
     D3D12TextureResource(ID3D12Device* pDevice, ComPtr<ID3D12Resource> resource)
       : pResource(resource)

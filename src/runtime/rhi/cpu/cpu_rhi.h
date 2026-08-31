@@ -23,8 +23,8 @@ class CPUBufferResource
 {
 public:
     CPUBufferResource() = delete;
-    CPUBufferResource(const BufferDesc& desc)
-        : m_SizeInBytes(desc.size), m_StrideInBytes(0)
+    CPUBufferResource([[maybeunused]] void* , const BufferDesc& desc)
+        : m_SizeInBytes(desc.sizeInBytes), m_StrideInBytes(0)
     {
         m_Data.resize(m_SizeInBytes);
     }
@@ -50,12 +50,17 @@ private:
 struct CPUTextureResource
 {
     CPUTextureResource() = delete;
-    CPUTextureResource(const TextureDesc& desc)
+    CPUTextureResource([[maybeunused]] void* , const TextureDesc& desc)
         : m_Width(desc.width), m_Height(desc.height), m_Format(desc.eFormat)
     {
         auto byteSize = ConvertFormatToByteSize(desc.eFormat);
         m_Data.resize(m_Width * m_Height * byteSize);
     }
+
+    CPUTextureResource(CPUTextureResource&& other) = default;
+    CPUTextureResource(const CPUTextureResource& other) = default;
+    CPUTextureResource& operator=(CPUTextureResource&& other) noexcept = default;
+    CPUTextureResource& operator=(const CPUTextureResource& other) = default;
 
     U32 m_Width, m_Height;
     GrFormat m_Format;
@@ -65,24 +70,30 @@ struct CPUTextureResource
 class CPU_RHI
 {
 public:
-    CPU_RHI() = default;
+    CPU_RHI()
+    {
+        m_BufferPool  = std::make_unique< ResourcePool<CPU_RHI, CPUBufferResource, BufferDesc> >(this);
+        m_TexturePool = std::make_unique< ResourcePool<CPU_RHI, CPUTextureResource, TextureDesc> >(this);
+    }
+
+    void* GetDevice() { return nullptr; /* no-op */ }
 
     [[nodiscard]] BufferHandle CreateBuffer(const BufferDesc& desc)
     {
         GR_TRACE_START(SYS_RHI);
-        return m_BufferPool.Allocate(desc);
+        return m_BufferPool->Allocate(desc);
     }
     
     [[nodiscard]] TextureHandle CreateTexture(const TextureDesc& desc)
     {
         GR_TRACE_START(SYS_RHI);
-        return m_TexturePool.Allocate(desc);
+        return m_TexturePool->Allocate(desc);
     }
 
     [[nodiscard]] CPUTextureResource& GetTexture(TextureHandle handle)
     {
         GR_TRACE_START(SYS_RHI);
-        return m_TexturePool.Get(handle);
+        return m_TexturePool->Get(handle);
     }
 
     void BeginRecording(RHICommandList& cmdlist)
@@ -133,14 +144,14 @@ public:
             case CommandType::ClearColor:
             {
                 const auto& ctx = cmd.clearColorCmd;
-                auto& resource = m_TexturePool.Get(ctx.target);
+                auto& resource = m_TexturePool->Get(ctx.target);
                 pCmdlist->ClearColorImpl(resource, ctx.color);
                 break;
             }
             case CommandType::ClearDepth:
             {
                 const auto& ctx = cmd.clearDepthCmd;
-                auto& resource = m_TexturePool.Get(ctx.target);
+                auto& resource = m_TexturePool->Get(ctx.target);
                 pCmdlist->ClearDepthImpl(resource, ctx.depth);
                 break;
             }
@@ -257,8 +268,8 @@ public:
     //CPUTextureResourcePool& GetTexturePool() { return m_TexturePool; }
 
 private:
-    BufferResourcePool<CPUBufferResource>   m_BufferPool;
-    TextureResourcePool<CPUTextureResource> m_TexturePool;
+    std::unique_ptr< ResourcePool<CPU_RHI, CPUBufferResource, BufferDesc > > m_BufferPool;
+    std::unique_ptr< ResourcePool<CPU_RHI, CPUTextureResource, TextureDesc> > m_TexturePool;
 };
 
 } // namespace gr::rhi

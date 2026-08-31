@@ -83,6 +83,10 @@ FeatureSupportData CheckFeatureSupport(const ComPtr<ID3D12Device>& device)
 
 D3D12_RHI::D3D12_RHI()
 {
+    // Init rhi instance to resource pools, which are needed to access device
+    m_BufferPool  = std::make_unique< ResourcePool<D3D12_RHI, D3D12BufferResource, BufferDesc> >(this);
+    m_TexturePool = std::make_unique< ResourcePool<D3D12_RHI, D3D12TextureResource, TextureDesc> >(this);
+
     // Adapter
     UINT dxgiFactoryFlags = 0;
 
@@ -143,7 +147,7 @@ D3D12_RHI::D3D12_RHI()
 [[nodiscard]] BufferHandle D3D12_RHI::CreateBuffer(const BufferDesc& desc)
 {
     GR_TRACE_START(SYS_RHI);
-    return m_BufferPool.Allocate(desc);
+    return m_BufferPool->Allocate(desc);
 }
 
 [[nodiscard]] TextureHandle D3D12_RHI::CreateTexture(const TextureDesc& desc)
@@ -173,7 +177,7 @@ D3D12_RHI::D3D12_RHI()
         throw std::runtime_error("ResourceFormat is not valid");
     }
     
-    return m_TexturePool.Import(std::move(res));
+    return m_TexturePool->Import(std::move(res));
 }
 
 TextureHandle D3D12_RHI::CreateTexture(ComPtr<ID3D12Resource> extResource, ResourceType eResourceType)
@@ -203,25 +207,25 @@ TextureHandle D3D12_RHI::CreateTexture(ComPtr<ID3D12Resource> extResource, Resou
         throw std::runtime_error("ResourceFormat is not valid");
     }
 
-    return m_TexturePool.Import(std::move(res));
+    return m_TexturePool->Import(std::move(res));
 }
 
 TextureHandle D3D12_RHI::ImportTexture(D3D12TextureResource&& resource)
 {
     GR_TRACE_START(SYS_RHI);
-    return m_TexturePool.Import(std::move(resource));
+    return m_TexturePool->Import(std::move(resource));
 }
 
 D3D12BufferResource D3D12_RHI::GetBuffer(BufferHandle handle)
 {
     GR_TRACE_START(SYS_RHI);
-    return m_BufferPool.Get(handle);
+    return m_BufferPool->Get(handle);
 }
 
 [[nodiscard]] D3D12TextureResource& D3D12_RHI::GetTexture(TextureHandle handle)
 {
     GR_TRACE_START(SYS_RHI);
-    return m_TexturePool.Get(handle);
+    return m_TexturePool->Get(handle);
 }
 
 RHIGraphicsPipeline D3D12_RHI::CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
@@ -338,7 +342,7 @@ void D3D12_RHI::ClearColor(RHICommandList& cmdlist, TextureHandle handle, const 
 {
     GR_TRACE_START(SYS_RHI);
     D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
-    auto& resource = m_TexturePool.Get(handle);
+    auto& resource = m_TexturePool->Get(handle);
 
     auto nativeCmdList = pCmdlist->GetRawCommandList();
     const float clearColor[] = { color.r, color.g, color.b, color.a };
@@ -356,7 +360,7 @@ void D3D12_RHI::ClearDepth(RHICommandList& cmdlist, TextureHandle handle, float 
 {
     GR_TRACE_START(SYS_RHI);
     D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
-    auto& resource = m_TexturePool.Get(handle);
+    auto& resource = m_TexturePool->Get(handle);
 }
 
 void D3D12_RHI::DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
@@ -374,7 +378,7 @@ void D3D12_RHI::Dispatch(RHICommandList& cmdlist, U32 groupCountX, U32 groupCoun
 void D3D12_RHI::TransitionResource(RHICommandList& cmdlist, TextureHandle handle, ResourceState oldState, ResourceState newState)
 {
     auto nativeCmdlist = GetNativeCommandList(cmdlist);
-    auto& internalResource = m_TexturePool.Get(handle);
+    auto& internalResource = m_TexturePool->Get(handle);
     CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(internalResource.pResource.Get(),
                                                                             ToD3D12ResourceState(oldState),
                                                                             ToD3D12ResourceState(newState));

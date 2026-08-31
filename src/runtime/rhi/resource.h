@@ -42,9 +42,10 @@ struct ResourceHandle
 typedef U32 BufferHandle;
 struct BufferDesc
 {
-    U64 size;
+    U64 sizeInBytes;
+    U32 strideInBytes;
     U32 usageFlags;
-
+    U8* dataSrc;
     ResourceType eResourceType;
 };
 

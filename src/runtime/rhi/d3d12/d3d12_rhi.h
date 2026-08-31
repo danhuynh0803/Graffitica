@@ -86,8 +86,8 @@ private:
     // reference it using the ResourceType indices
     D3D12DescriptorHeap m_DescriptorHeaps[static_cast<I32>(ResourceType::COUNT)];
 
-    BufferResourcePool<D3D12BufferResource>  m_BufferPool;
-    TextureResourcePool<D3D12TextureResource> m_TexturePool;
+    std::unique_ptr<ResourcePool<D3D12_RHI, D3D12BufferResource , BufferDesc >> m_BufferPool;
+    std::unique_ptr<ResourcePool<D3D12_RHI, D3D12TextureResource, TextureDesc>> m_TexturePool;
 
     ComPtr<ID3D12Fence> m_Fence;
     U64 m_FenceValue;
