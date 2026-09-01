@@ -38,7 +38,7 @@ class D3D12_RHI
 public:
     D3D12_RHI();
 
-    [[nodiscard]] ID3D12Device* GetDevice() const { return m_Device.Get(); }
+    [[nodiscard]] ID3D12Device1* GetDevice() const { return m_Device.Get(); }
     [[nodiscard]] ComPtr<ID3D12CommandQueue> GetCommandQueue() const { return m_CommandQueue; }
     [[nodiscard]] ComPtr<ID3D12CommandAllocator> GetGraphicsCommandAllocator() const { return m_GraphicsCommandAllocator; }
     [[nodiscard]] D3D12DescriptorHeap& GetDescriptorHeap(DescriptorResourceType eType) { return m_DescriptorHeaps[static_cast<I32>(eType)]; }
@@ -52,8 +52,8 @@ public:
     [[nodiscard]] D3D12TextureResource& GetTexture(TextureHandle handle);
     [[nodiscard]] RHICommandList CreateCommandList(CommandListType type);
 
-    [[nodiscard]] RHIGraphicsPipeline CreateGraphicsPipeline(const GraphicsPipelineDesc& desc);
-    [[nodiscard]] RHIComputePipeline CreateComputePipeline(const ComputePipelineDesc& desc);
+    [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& desc);
+    [[nodiscard]] ComputePipelineHandle CreateComputePipeline(const ComputePipelineDesc& desc);
 
     // TODO replace with a RESULT return later?
     void BeginRecording(RHICommandList& cmdlist);
@@ -78,7 +78,7 @@ public:
 
 private:
     FeatureSupportData m_FeatureSupportData;
-    ComPtr<ID3D12Device> m_Device;
+    ComPtr<ID3D12Device1> m_Device;
     ComPtr<ID3D12CommandQueue> m_CommandQueue;
     ComPtr<ID3D12CommandAllocator> m_GraphicsCommandAllocator;
 
@@ -92,6 +92,8 @@ private:
     ComPtr<ID3D12Fence> m_Fence;
     U64 m_FenceValue;
     HANDLE m_FenceEventHandle;
+
+    ComPtr<ID3D12PipelineLibrary> m_PipelineLibrary;
 };
 
 } // namespace gr::rhi

@@ -54,20 +54,20 @@ public:
         pCmdlist->EndRecording();
     }
 
-    RHIGraphicsPipeline CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
+    GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
     {
         GR_TRACE_START(SYS_RHI);
-        RHIGraphicsPipeline handle;
-        handle.pNativePipeline = new CPUGraphicsPipeline(desc);
-        return handle;
+        //RHIGraphicsPipeline handle;
+        //handle.pNativePipeline = new CPUGraphicsPipeline(desc);
+        return {};
     }
 
-    RHIComputePipeline CreateComputePipeline(const ComputePipelineDesc& desc)
+    ComputePipelineHandle CreateComputePipeline(const ComputePipelineDesc& desc)
     {
         GR_TRACE_START(SYS_RHI);
-        RHIComputePipeline handle;
-        handle.pNativePipeline = new CPUComputePipeline(desc);
-        return handle;
+        //RHIComputePipeline handle;
+        //handle.pNativePipeline = new CPUComputePipeline(desc);
+        return {};
     }
     
     RHICommandList CreateCommandList([[maybe_unused]] CommandListType type)
@@ -198,7 +198,6 @@ public:
 
     void TransitionResource(RHICommandList& cmdlist, TextureHandle handle, ResourceState oldState, ResourceState newState)
     {
-        GR_TRACE_START(SYS_RHI);
         // no-op
     }
 

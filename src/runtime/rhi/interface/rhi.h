@@ -27,10 +27,9 @@ struct RHIContext
     // Resource creation
     BufferHandle (*pfnCreateBuffer)(void*, const BufferDesc&);
     TextureHandle (*pfnCreateTexture)(void*, const TextureDesc&);
-    // TODO replace with PipelineHandle or PipelineID or something similar, instead of returning the actual pipeline object
-    RHIGraphicsPipeline (*pfnCreateGraphicsPipeline)(void*, const GraphicsPipelineDesc&);
-    RHIComputePipeline  (*pfnCreateComputePipeline)(void*, const ComputePipelineDesc&);
-    
+    GraphicsPipelineHandle (*pfnCreateGraphicsPipeline)(void*, const GraphicsPipelineDesc&);
+    ComputePipelineHandle  (*pfnCreateComputePipeline)(void*, const ComputePipelineDesc&);
+
     // Command Recording
     RHICommandList (*pfnCreateCommandList)(void*, CommandListType);
     void (*pfnBeginRecording)(void*, RHICommandList&);
@@ -57,8 +56,8 @@ struct RHIContext
 
     // Sets the function table to the appropriate backend implementation
     void* pInstance = nullptr;
-    bool IsValid() { 
-        return pInstance != nullptr; 
+    bool IsValid() {
+        return pInstance != nullptr;
     }
 
     template <typename TRHIBackend>
@@ -80,13 +79,13 @@ struct RHIContext
             return static_cast<TRHIBackend*>(p)->CreateTexture(desc);
         };
 
-        pfnCreateGraphicsPipeline = [](void* p, const GraphicsPipelineDesc& desc) -> RHIGraphicsPipeline {
+        pfnCreateGraphicsPipeline = [](void* p, const GraphicsPipelineDesc& desc) -> GraphicsPipelineHandle {
             return static_cast<TRHIBackend*>(p)->CreateGraphicsPipeline(desc);
         };
 
-        //pfnCreateComputePipeline = [](void* p, const ComputePipelineDesc& desc) -> RHIComputePipeline {
-        //    return static_cast<TRHIBackend*>(p)->CreateComputePipeline(desc);
-        //};
+        pfnCreateComputePipeline = [](void* p, const ComputePipelineDesc& desc) -> ComputePipelineHandle {
+            return static_cast<TRHIBackend*>(p)->CreateComputePipeline(desc);
+        };
 
         pfnCreateCommandList = [](void* p, CommandListType type) -> RHICommandList {
             return static_cast<TRHIBackend*>(p)->CreateCommandList(type);
@@ -165,13 +164,13 @@ struct RHIContext
         return pfnCreateTexture(pInstance, desc);
     }
 
-    [[nodiscard]] RHIGraphicsPipeline CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
+    [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
     {
         GR_TRACE_START(SYS_RHI);
         return pfnCreateGraphicsPipeline(pInstance, desc);
     }
 
-    [[nodiscard]] RHIComputePipeline CreateComputePipeline(const ComputePipelineDesc& desc)
+    [[nodiscard]] ComputePipelineHandle CreateComputePipeline(const ComputePipelineDesc& desc)
     {
         GR_TRACE_START(SYS_RHI);
         return pfnCreateComputePipeline(pInstance, desc);

@@ -23,14 +23,17 @@ struct GraphicsPipelineDesc
     RasterizerState rasterizerState;
     DepthStencilState depthStencilState;
     std::vector<InputLayoutState> inputLayoutStates;
-    RHIShader vertexShader;
-    RHIShader pixelShader;
+    RHIShader VS;
+    RHIShader PS;
 };
 
 struct ComputePipelineDesc
 {
     RHIShader computeShader;
 };
+
+typedef U64 GraphicsPipelineHandle;
+typedef U64 ComputePipelineHandle;
 
 struct RHIGraphicsPipeline
 {

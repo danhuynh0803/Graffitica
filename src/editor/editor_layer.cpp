@@ -12,6 +12,7 @@
 #include "rhi/shader.h"
 #include "rhi/command_buffer.h"
 #include "rhi/interface/graphics_context.h"
+#include "rhi/interface/pipeline.h"
 
 #include "renderer/camera.h"
 #include "renderer/camera_controller.h"
@@ -53,6 +54,7 @@ namespace
     TextureHandle gDepthBufferHndl;
     BufferHandle gVertexBuffer;
     BufferHandle gIndexBuffer;
+    rhi::GraphicsPipelineHandle gPipelineHandle;
 
     struct Vertex
     {
@@ -101,7 +103,6 @@ EditorLayer::EditorLayer(const std::string& name)
         .dataSrc = triangleVertices,
         .eResourceType = BufferResourceType::VertexBuffer
     };
-
     gVertexBuffer = pRHI->CreateBuffer(bufferDesc);
     
     BufferDesc indexDesc{
@@ -112,7 +113,6 @@ EditorLayer::EditorLayer(const std::string& name)
         .eResourceType = BufferResourceType::IndexBuffer,
         .eFormat = rhi::GrFormat::R16_UINT
     };
-
     gIndexBuffer = pRHI->CreateBuffer(indexDesc);
 
     TextureDesc targetDesc {
@@ -127,10 +127,12 @@ EditorLayer::EditorLayer(const std::string& name)
     auto compiledOutputs = gShaderCompilerModule.CompileSlangToBlob((shaderDir + "default.slang").c_str(), "VSMain");
     rhi::GraphicsPipelineDesc pipelineDesc{};
     // TODO create helper to simplify
-    pipelineDesc.vertexShader.pShaderByteCode = compiledOutputs.VS->getBufferPointer();
-    pipelineDesc.vertexShader.byteCodeLength  = compiledOutputs.VS->getBufferSize();
-    pipelineDesc.pixelShader.pShaderByteCode = compiledOutputs.PS->getBufferPointer();
-    pipelineDesc.pixelShader.byteCodeLength = compiledOutputs.PS->getBufferSize();
+    pipelineDesc.VS.pShaderByteCode = compiledOutputs.VS->getBufferPointer();
+    pipelineDesc.VS.byteCodeLength  = compiledOutputs.VS->getBufferSize();
+    pipelineDesc.PS.pShaderByteCode = compiledOutputs.PS->getBufferPointer();
+    pipelineDesc.PS.byteCodeLength = compiledOutputs.PS->getBufferSize();
+
+    gPipelineHandle = pRHI->CreateGraphicsPipeline(pipelineDesc);
 }
 
 void EditorLayer::OnUpdate(double dt)
@@ -151,13 +153,22 @@ void EditorLayer::OnUpdate(double dt)
     });
 
     pRHI->TransitionResource(gCmdlist, backBufferHndl, ResourceState::Present, ResourceState::RenderTarget);
+    
+    // TODO SetPrimitiveTopology
+    //m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
     pRHI->ClearColor(gCmdlist, backBufferHndl, { .4, .5, .7, 1.0 });
     //pRHI->ClearDepth(gCmdlist, gDepthBufferHndl, 1.0f);
     
+    // TODO Set necessary graphics state
+    //m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+    //m_commandList->RSSetViewports(1, &m_viewport);
+    //m_commandList->RSSetScissorRects(1, &m_scissorRect);
+
     pRHI->SetVertexBuffers(gCmdlist, 1, &gVertexBuffer);
     pRHI->SetIndexBuffer(gCmdlist, gIndexBuffer);
     
-    //pRHI->DrawIndexedInstanced(gCmdList..);
+    pRHI->DrawIndexedInstanced(gCmdlist, sizeof(quadIndices) / sizeof(U16), 1, 0, 0, 0);
 
     pRHI->EndRenderPass(gCmdlist);
 
@@ -171,6 +182,8 @@ void EditorLayer::OnUpdate(double dt)
     //pRHI->DrawIndexedInstanced(gCmdlist, model.m_MeshData->GetIndices().size(), 1, 0, 0, 0);
     pRHI->Present(pSwapchain);
 
+    // nullparam will use the default fence and queue created in RHI backend
+    // eventually the sync objects should be handled/called by the RG
     pRHI->WaitForQueueCompletion();
 }
 

@@ -58,7 +58,7 @@ struct ResourceHandle
     DescriptorResourceType type;
 };
 
-typedef U32 BufferHandle;
+typedef U64 BufferHandle;
 struct BufferDesc
 {
     U64 sizeInBytes;
@@ -72,7 +72,7 @@ struct BufferDesc
 /*
 RHI Texture Handles
 */
-typedef U32 TextureHandle;
+typedef U64 TextureHandle;
 struct TextureDesc
 {
     U32 width;

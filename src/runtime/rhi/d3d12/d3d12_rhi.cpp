@@ -142,6 +142,10 @@ D3D12_RHI::D3D12_RHI()
             ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
         }
     }
+
+    // Create pipeline library
+    // TODO check for library binary data on disk
+    //m_Device->CreatePipelineLibrary()
 }
 
 [[nodiscard]] BufferHandle D3D12_RHI::CreateBuffer(const BufferDesc& desc)
@@ -228,20 +232,26 @@ D3D12BufferResource D3D12_RHI::GetBuffer(BufferHandle handle)
     return m_TexturePool->Get(handle);
 }
 
-RHIGraphicsPipeline D3D12_RHI::CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
+GraphicsPipelineHandle D3D12_RHI::CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
 {
     GR_TRACE_START(SYS_RHI);
-    RHIGraphicsPipeline handle;
-    handle.pNativePipeline = new D3D12GraphicsPipeline(desc);
-    return handle;
+    //RHIGraphicsPipeline handle;
+    //handle.pNativePipeline = new D3D12GraphicsPipeline(desc);
+    //return handle;
+    // TODO add to pipeline library
+
+
+    return {};
 }
 
-RHIComputePipeline D3D12_RHI::CreateComputePipeline(const ComputePipelineDesc& desc)
+ComputePipelineHandle D3D12_RHI::CreateComputePipeline(const ComputePipelineDesc& desc)
 {
     GR_TRACE_START(SYS_RHI);
-    RHIComputePipeline handle;
+    //RHIComputePipeline handle;
     //handle.pNativePipeline = new D3D12ComputePipeline(desc);
     //return handle;
+
+
     return {};
 }
 
@@ -313,7 +323,6 @@ void D3D12_RHI::SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHa
     GR_TRACE_START(SYS_RHI);
 
     auto pCmdlist = GetNativeCommandList(cmdlist);
-    std::cout << "D3D12 SetVertexBuffers called with numViews: " << numViews << std::endl;
 
     std::vector<D3D12_VERTEX_BUFFER_VIEW> pViews;
     pViews.reserve(numViews);
@@ -337,8 +346,29 @@ void D3D12_RHI::SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer
 void D3D12_RHI::SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[])
 {
     GR_TRACE_START(SYS_RHI);
-    // TODO implement SetRenderTargets for CPU RHI
-    //gr::rhi::cpu::SetRenderTargets_CPU(cmdlist, numViews, views);
+
+    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
+    auto nativeCmdList = pCmdlist->GetRawCommandList();
+    
+    std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> nativeViews;
+    nativeViews.reserve(numViews);
+
+    for (int i = 0; i < numViews; ++i)
+    {
+        auto& resource = m_TexturePool->Get(views[i]);
+
+        auto& rtvHeap = GetDescriptorHeap(DescriptorResourceType::RenderTarget);
+        CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(
+            rtvHeap.GetStartHandle(),
+            resource.rtvIndex,
+            rtvHeap.GetDescriptorSize()
+        );
+
+        nativeViews.push_back(descriptorHandle);
+    }
+
+    // TODO Group with RenderPass Desc to set both Color and DepthStencil targetss
+    nativeCmdList->OMSetRenderTargets(numViews, nativeViews.data(), FALSE, nullptr);
 }
 
 void D3D12_RHI::ClearColor(RHICommandList& cmdlist, TextureHandle handle, const vec4f& color)
