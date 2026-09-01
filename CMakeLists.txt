@@ -124,6 +124,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Microsoft::DirectX-Headers
     #Microsoft::DirectX12-Agility
 
+    xxHash::xxhash
+
     Tracy::TracyClient
 )
 

@@ -32,6 +32,12 @@ add_subdirectory(tracy)
 
 add_subdirectory(DirectX-Headers)
 
+# xxHash
+# Optional: Configure xxHash before adding
+set(XXHASH_BUILD_XXHSUM OFF)        # Don't build command line tool
+option(BUILD_SHARED_LIBS OFF)       # Build static library
+add_subdirectory(xxHash/build/cmake xxhash_build EXCLUDE_FROM_ALL)
+
 
 set(AGILITY_SDK_VER 1.619.2)
 set(AGILITY_SDK_DIR ${CMAKE_SOURCE_DIR}/external/D3D12AgilitySDK/${AGILITY_SDK_VER}/bin/x64/)
