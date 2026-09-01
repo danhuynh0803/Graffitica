@@ -84,8 +84,11 @@ FeatureSupportData CheckFeatureSupport(const ComPtr<ID3D12Device>& device)
 D3D12_RHI::D3D12_RHI()
 {
     // Init rhi instance to resource pools, which are needed to access device
-    m_BufferPool  = std::make_unique< ResourcePool<D3D12_RHI, D3D12BufferResource, BufferDesc> >(this);
-    m_TexturePool = std::make_unique< ResourcePool<D3D12_RHI, D3D12TextureResource, TextureDesc> >(this);
+    // TODO or we could just query it from the context each time?
+    // Would simplify needing to initialize with the instance
+    m_BufferPool  = std::make_unique< D3D12ResourcePool<D3D12BufferResource, BufferDesc> >(this);
+    m_TexturePool = std::make_unique< D3D12ResourcePool<D3D12TextureResource, TextureDesc> >(this);
+    m_GraphicsPipelinePool = std::make_unique< D3D12ResourcePool<D3D12GraphicsPipeline, GraphicsPipelineDesc> >(this);
 
     // Adapter
     UINT dxgiFactoryFlags = 0;
@@ -235,11 +238,8 @@ D3D12BufferResource D3D12_RHI::GetBuffer(BufferHandle handle)
 GraphicsPipelineHandle D3D12_RHI::CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
 {
     GR_TRACE_START(SYS_RHI);
-    //RHIGraphicsPipeline handle;
-    //handle.pNativePipeline = new D3D12GraphicsPipeline(desc);
-    //return handle;
-    // TODO add to pipeline library
 
+    return m_GraphicsPipelinePool->Allocate(desc);
 
     return {};
 }
@@ -341,6 +341,23 @@ void D3D12_RHI::SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer
 
     auto& res = m_BufferPool->Get(indexBufferHandle);
     pCmdlist->IASetIndexBuffer(&res.m_View.indexBufferView);
+}
+
+void D3D12_RHI::SetPipeline(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, U64 pipelineHandle)
+{
+    GR_TRACE_START(SYS_RHI);
+    auto pCmdlist = GetNativeCommandList(cmdlist);
+
+    if (eBindPoint == PipelineBindPoint::Graphics)
+    {
+        const auto& res = m_GraphicsPipelinePool->Get(pipelineHandle);
+        pCmdlist->SetPipelineState(res.m_D3D12PipelineState.Get());
+    }
+    else if (eBindPoint == PipelineBindPoint::Compute)
+    {
+        // TODO
+    }
+    // else if RT, etc
 }
 
 void D3D12_RHI::SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[])

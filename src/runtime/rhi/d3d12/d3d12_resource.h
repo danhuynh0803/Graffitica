@@ -316,23 +316,6 @@ public:
     U32 GetCurrentOffset() { return m_CurrentOffset; }
 
 private:
-    D3D12_DESCRIPTOR_HEAP_TYPE ToD3D12DescriptorHeapType(DescriptorResourceType eType)
-    {
-        switch (eType)
-        {
-        case DescriptorResourceType::ShaderResource:
-            return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-        case DescriptorResourceType::Sampler:
-            return D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
-        case DescriptorResourceType::RenderTarget:
-            return D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-        case DescriptorResourceType::DepthStencil:
-            return D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-        default:
-            return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-        }
-    }
-
     ID3D12Device* m_pDevice;
     DescriptorResourceType m_HeapType;
     ComPtr<ID3D12DescriptorHeap> pDescriptorHeap;

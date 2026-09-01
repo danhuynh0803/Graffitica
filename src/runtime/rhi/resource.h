@@ -26,7 +26,10 @@ enum class BufferResourceType : U8
 // TODO switch to bit flags
 enum class DescriptorResourceType
 {
-    ShaderResource = 0, // cbv, srv, uav, etc
+    //ShaderResource = 0, // cbv, srv, uav, etc
+    ConstantBuffer = 0,
+    ShaderResource,
+    UnorderedAccess,
     Sampler,
     RenderTarget,
     DepthStencil,

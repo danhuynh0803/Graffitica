@@ -32,7 +32,6 @@ struct FeatureSupportData
     bool supportsRaytracing;
 };
 
-
 class D3D12_RHI
 {
 public:
@@ -65,6 +64,7 @@ public:
 
     void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[]);
     void SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer);
+    void SetPipeline(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, U64 pipelineHandle);
     void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[]);
     void ClearColor(RHICommandList& cmdlist, TextureHandle handle, const vec4f& color);
     void ClearDepth(RHICommandList& cmdlist, TextureHandle handle, float clearDepth);
@@ -86,8 +86,12 @@ private:
     // reference it using the DescriptorResourceType indices
     D3D12DescriptorHeap m_DescriptorHeaps[static_cast<I32>(DescriptorResourceType::COUNT)];
 
-    std::unique_ptr<ResourcePool<D3D12_RHI, D3D12BufferResource , BufferDesc >> m_BufferPool;
-    std::unique_ptr<ResourcePool<D3D12_RHI, D3D12TextureResource, TextureDesc>> m_TexturePool;
+    template <typename TResource, typename TDesc>
+    using D3D12ResourcePool = ResourcePool<D3D12_RHI, TResource, TDesc>;
+
+    std::unique_ptr<D3D12ResourcePool<D3D12BufferResource , BufferDesc >> m_BufferPool;
+    std::unique_ptr<D3D12ResourcePool<D3D12TextureResource, TextureDesc>> m_TexturePool;
+    std::unique_ptr<D3D12ResourcePool<D3D12GraphicsPipeline, GraphicsPipelineDesc>> m_GraphicsPipelinePool;
 
     ComPtr<ID3D12Fence> m_Fence;
     U64 m_FenceValue;

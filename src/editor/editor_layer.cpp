@@ -123,6 +123,7 @@ EditorLayer::EditorLayer(const std::string& name)
     };
     //gDepthBufferHndl = pRHI->CreateTexture(targetDesc);
 
+    // Pipeline creation
     std::string shaderDir = "shaders/";
     auto compiledOutputs = gShaderCompilerModule.CompileSlangToBlob((shaderDir + "default.slang").c_str(), "VSMain");
     rhi::GraphicsPipelineDesc pipelineDesc{};
@@ -131,6 +132,22 @@ EditorLayer::EditorLayer(const std::string& name)
     pipelineDesc.VS.byteCodeLength  = compiledOutputs.VS->getBufferSize();
     pipelineDesc.PS.pShaderByteCode = compiledOutputs.PS->getBufferPointer();
     pipelineDesc.PS.byteCodeLength = compiledOutputs.PS->getBufferSize();
+
+    rhi::InputLayoutState 
+    pipelineDesc.inputLayoutStates = {
+
+    }
+
+    // TODO test layout later when textures and cbs are added
+    // would prefer to get vk rhi up first to test before the
+    // design incurs more tech debt somewhere
+    //std::vector<rhi::DescriptorSetBinding> setBindings(3);
+    //setBindings[0] = rhi::DescriptorSetBinding{
+    //    .binding = 0,
+    //    .descriptorType=DescriptorResourceType::ConstantBuffer,
+    //    .descriptorCount = 1,
+    //    .stageFlags=rhi::ShaderStageFlagBits::ALL_GRAPHICS
+    //};
 
     gPipelineHandle = pRHI->CreateGraphicsPipeline(pipelineDesc);
 }
@@ -164,7 +181,7 @@ void EditorLayer::OnUpdate(double dt)
     //m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
     //m_commandList->RSSetViewports(1, &m_viewport);
     //m_commandList->RSSetScissorRects(1, &m_scissorRect);
-
+    pRHI->SetPipeline(gCmdlist, rhi::PipelineBindPoint::Graphics, gPipelineHandle);
     pRHI->SetVertexBuffers(gCmdlist, 1, &gVertexBuffer);
     pRHI->SetIndexBuffer(gCmdlist, gIndexBuffer);
     

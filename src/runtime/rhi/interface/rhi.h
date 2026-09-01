@@ -43,7 +43,7 @@ struct RHIContext
     // Binding cmds
     void (*pfnSetVertexBuffers)(void*, RHICommandList& cmdlist, U32 numViews, BufferHandle[]);
     void (*pfnSetIndexBuffer)(void*, RHICommandList& cmdlist, BufferHandle);
-
+    void (*pfnSetPipeline)(void*, RHICommandList& cmdlist, PipelineBindPoint eBindPoint, U64 handle);
     // Draw cmds
     void (*pfnClearColor)(void*, RHICommandList& cmdlist, TextureHandle resource, const vec4f& color);
     void (*pfnClearDepth)(void*, RHICommandList& cmdlist, TextureHandle resource, float clearDepth);
@@ -206,12 +206,6 @@ struct RHIContext
         pfnEndRenderPass(pInstance, cmdlist);
     }
 
-    inline void SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer)
-    {
-        GR_TRACE_START(SYS_RHI);
-        pfnSetIndexBuffer(pInstance, cmdlist, indexBuffer);
-    }
-
     inline void ExecuteCommandList(const RHICommandList& cmdlist)
     {
         GR_TRACE_START(SYS_RHI);
@@ -222,6 +216,18 @@ struct RHIContext
     {
         GR_TRACE_START(SYS_RHI);
         pfnSetVertexBuffers(pInstance, cmdlist, numViews, views);
+    }
+
+    inline void SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer)
+    {
+        GR_TRACE_START(SYS_RHI);
+        pfnSetIndexBuffer(pInstance, cmdlist, indexBuffer);
+    }
+
+    inline void SetPipeline(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, U64 pipelineHandle)
+    {
+        GR_TRACE_START(SYS_RHI);
+        pfnSetPipeline(pInstance, cmdlist, eBindPoint, pipelineHandle);
     }
 
     inline void ClearColor(RHICommandList& cmdlist, TextureHandle resource, const vec4f& color)

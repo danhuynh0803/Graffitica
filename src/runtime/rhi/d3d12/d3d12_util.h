@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <stdexcept>
 #include <wrl/wrappers/corewrappers.h>
@@ -6,6 +6,25 @@
 
 namespace gr::rhi
 {
+
+inline D3D12_DESCRIPTOR_HEAP_TYPE ToD3D12DescriptorHeapType(DescriptorResourceType eType)
+    {
+        switch (eType)
+        {
+        case DescriptorResourceType::ConstantBuffer:
+        case DescriptorResourceType::ShaderResource:
+        case DescriptorResourceType::UnorderedAccess:
+            return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        case DescriptorResourceType::Sampler:
+            return D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+        case DescriptorResourceType::RenderTarget:
+            return D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+        case DescriptorResourceType::DepthStencil:
+            return D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+        default:
+            return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        }
+    }
 
 inline D3D12_RESOURCE_STATES ToD3D12ResourceState(ResourceState state)
 {
@@ -43,7 +62,7 @@ inline D3D12_RESOURCE_STATES ToD3D12ResourceState(ResourceState state)
 
     case ResourceState::Common:
     default:
-        // fallback � COMMON should always be valid
+        // fallback — COMMON should always be valid
         return D3D12_RESOURCE_STATE_COMMON;
     }
 }

@@ -17,7 +17,7 @@ inline U64 XXH64_Create(void* buffer, U64 size, U64 seed = PERSISTENT_HASH_SEED_
     return XXH64(buffer, size, seed);
 }
 
-inline U32 XXH32_Create(void* buffer, U64 size, U32 seed = PERSISTENT_HASH_SEED_32)
+inline U32 XXH32_Create(void* buffer, U32 size, U32 seed = PERSISTENT_HASH_SEED_32)
 {
     return XXH32(buffer, size, seed);
 }
