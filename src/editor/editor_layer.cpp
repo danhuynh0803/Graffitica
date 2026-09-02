@@ -154,13 +154,13 @@ EditorLayer::EditorLayer(const std::string& name)
     };
 
     rhi::InputLayoutState normal{
-    .eInputType = rhi::InputType::NORMAL,
-    .semanticIndex = 0,
-    .format = rhi::GrFormat::R32G32B32_SFLOAT,
-    .inputSlot = 0,
-    .alignedByteOffset = offsetof(Vertex, normal),
-    .inputSlotClass = rhi::InputClass::PER_VERTEX,
-    .instanceDataStepRate = 0
+        .eInputType = rhi::InputType::NORMAL,
+        .semanticIndex = 0,
+        .format = rhi::GrFormat::R32G32B32_SFLOAT,
+        .inputSlot = 0,
+        .alignedByteOffset = offsetof(Vertex, normal),
+        .inputSlotClass = rhi::InputClass::PER_VERTEX,
+        .instanceDataStepRate = 0
     };
 
     rhi::InputLayoutState uv{
@@ -197,8 +197,25 @@ void EditorLayer::OnUpdate(double dt)
 
     auto backBufferHndl = pSwapchain->GetCurrentFrameResourceHandle();
     
+    ViewportDesc viewportDesc{
+        .x = 0.,
+        .y = 0.,
+        .width = static_cast<float>(pSwapchain->GetWidth()),
+        .height = static_cast<float>(pSwapchain->GetHeight()),
+        .minDepth = 0.0,
+        .maxDepth = 1.0
+    };
+
+    Rect2D scissorRect{
+        .left = 0,
+        .top = 0,
+        .right = pSwapchain->GetWidth(),
+        .bottom = pSwapchain->GetHeight()
+    };
+
     // TODO later replace with RenderGraph/RenderPass
     pRHI->BeginRecording(gCmdlist);
+
     pRHI->BeginRenderPass(gCmdlist, 
     {
         .numColorAttachments = 1,
@@ -207,17 +224,15 @@ void EditorLayer::OnUpdate(double dt)
     });
 
     pRHI->TransitionResource(gCmdlist, backBufferHndl, ResourceState::Present, ResourceState::RenderTarget);
-    
-    // TODO SetPrimitiveTopology
-    //m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    pRHI->SetRenderTargets(gCmdlist, 1, &backBufferHndl);
 
     pRHI->ClearColor(gCmdlist, backBufferHndl, { .4, .5, .7, 1.0 });
     //pRHI->ClearDepth(gCmdlist, gDepthBufferHndl, 1.0f);
-    
-    // TODO Set necessary graphics state
+    // TODO Separate rootsig/pipelinelayout setting from SetPipeline call
     //m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-    //m_commandList->RSSetViewports(1, &m_viewport);
-    //m_commandList->RSSetScissorRects(1, &m_scissorRect);
+    pRHI->SetViewport(gCmdlist, viewportDesc);
+    pRHI->SetScissor(gCmdlist, scissorRect);
     pRHI->SetPipeline(gCmdlist, rhi::PipelineBindPoint::Graphics, gPipelineHandle);
     pRHI->SetVertexBuffers(gCmdlist, 1, &gVertexBuffer);
     pRHI->SetIndexBuffer(gCmdlist, gIndexBuffer);
@@ -234,6 +249,7 @@ void EditorLayer::OnUpdate(double dt)
     
     //rhi::DispatchRays(gCmdlist, pSwapchain->GetWidth(), pSwapchain->GetHeight(), 1);
     //pRHI->DrawIndexedInstanced(gCmdlist, model.m_MeshData->GetIndices().size(), 1, 0, 0, 0);
+
     pRHI->Present(pSwapchain);
 
     // nullparam will use the default fence and queue created in RHI backend

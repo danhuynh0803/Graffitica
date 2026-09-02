@@ -123,6 +123,18 @@ public:
         CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
     }
 
+    void SetViewport(RHICommandList& cmdlist, const ViewportDesc& desc)
+    {
+        GR_TRACE_START(SYS_RHI);
+        // TODO
+    }
+
+    void SetScissor(RHICommandList& cmdlist, const Rect2D& desc)
+    {
+        GR_TRACE_START(SYS_RHI);
+        // TODO
+    }
+
     void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])
     {
         GR_TRACE_START(SYS_RHI);

@@ -89,13 +89,25 @@ struct RHITextureResource
     void* pNativeTextureResource;
 };
 
+// Rect range is based on upper-left and lower-right coord values
+struct Rect2D
+{
+    I64 left, top;
+    I64 right, bottom;
+};
+
+struct ViewportDesc
+{
+    float x, y;
+    float width, height;
+    float minDepth, maxDepth;
+};
+
 struct RenderPassDesc
 {
     U32 numColorAttachments;
     TextureHandle colorAttachments[8];
     TextureHandle depthAttachment;
-    //vec4f clearColor;
-    //float clearDepth;
 };
 
 class Mesh;

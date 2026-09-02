@@ -8,7 +8,8 @@
 
 namespace gr::rhi
 {
-ID3D12GraphicsCommandList1* GetNativeCommandList(const RHICommandList& cmdlist)
+
+inline ID3D12GraphicsCommandList1* GetNativeCommandList(const RHICommandList& cmdlist)
 {
     D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
     return pCmdlist->GetRawCommandList();
@@ -281,12 +282,14 @@ void D3D12_RHI::EndRecording(RHICommandList& cmdlist)
     ThrowIfFailed(native->Close());
 }
 
-void D3D12_RHI::BeginRenderPass(RHICommandList& cmdlist, RenderPassDesc desc)
+void D3D12_RHI::BeginRenderPass(RHICommandList& cmdlist, const RenderPassDesc& desc)
 {
     GR_TRACE_START(SYS_RHI);
+    auto pCmdList = GetNativeCommandList(cmdlist);
 
+    //D3D12_VIEWPORT viewport(.0f, 0.f, static_cast<float>(desc.), static_cast<float>(swapchain->GetHeight()), 0.f, 1.f);
     // TODO - state is dynamic by default so, but I want this RenderPassDesc for the RG usecase
-
+    //pCmdList->RSSetViewports(1)
 }
 
 void D3D12_RHI::EndRenderPass(RHICommandList& cmdlist)
@@ -316,6 +319,24 @@ void D3D12_RHI::ExecuteCommandLists(const RHICommandList rhiCommandLists[], U32 
         pNativeCmds.push_back(rawCmdList);
     }
     m_CommandQueue->ExecuteCommandLists(pNativeCmds.size(), pNativeCmds.data());
+}
+
+void D3D12_RHI::SetViewport(RHICommandList& cmdlist, const ViewportDesc& desc)
+{
+    GR_TRACE_START(SYS_RHI);
+    auto pCmdlist = GetNativeCommandList(cmdlist);
+
+    D3D12_VIEWPORT viewport(desc.x, desc.y, static_cast<float>(desc.width), static_cast<float>(desc.height), desc.minDepth, desc.maxDepth);
+    pCmdlist->RSSetViewports(1, &viewport);
+}
+
+void D3D12_RHI::SetScissor(RHICommandList& cmdlist, const Rect2D& desc)
+{
+    GR_TRACE_START(SYS_RHI);
+    auto pCmdlist = GetNativeCommandList(cmdlist);
+
+    CD3DX12_RECT rect(desc.left, desc.top, desc.right, desc.bottom);
+    pCmdlist->RSSetScissorRects(1, &rect);
 }
 
 void D3D12_RHI::SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])
@@ -351,7 +372,15 @@ void D3D12_RHI::SetPipeline(RHICommandList& cmdlist, PipelineBindPoint eBindPoin
     if (eBindPoint == PipelineBindPoint::Graphics)
     {
         const auto& res = m_GraphicsPipelinePool->Get(pipelineHandle);
+        // TODO split setting root signature for slight optimization later.
+        // However I like streamlining this since pipeline state already has a rootsignature
+        // Some gains when using multiple pipelines that have the same rootsig though,
+        // where the rootsig can be set upfront for all pipelines.
+        // TODO Reminder to revisit after pipeline library and RG impl is complete
+        pCmdlist->SetGraphicsRootSignature(res.m_D3D12RootSignature.Get());
         pCmdlist->SetPipelineState(res.m_D3D12PipelineState.Get());
+        pCmdlist->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
     }
     else if (eBindPoint == PipelineBindPoint::Compute)
     {
@@ -363,9 +392,7 @@ void D3D12_RHI::SetPipeline(RHICommandList& cmdlist, PipelineBindPoint eBindPoin
 void D3D12_RHI::SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[])
 {
     GR_TRACE_START(SYS_RHI);
-
-    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
-    auto nativeCmdList = pCmdlist->GetRawCommandList();
+    auto nativeCmdList = GetNativeCommandList(cmdlist);
     
     std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> nativeViews;
     nativeViews.reserve(numViews);
@@ -416,7 +443,9 @@ void D3D12_RHI::ClearDepth(RHICommandList& cmdlist, TextureHandle handle, float 
 void D3D12_RHI::DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
 {
     GR_TRACE_START(SYS_RHI);
-    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
+    auto pCmdlist = GetNativeCommandList(cmdlist);
+
+    pCmdlist->DrawIndexedInstanced(indexCount, instanceCount, startInstanceLocation, baseVertexLocation, startInstanceLocation);
 }
 
 void D3D12_RHI::Dispatch(RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ)

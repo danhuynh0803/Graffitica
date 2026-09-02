@@ -37,10 +37,13 @@ struct RHIContext
     void (*pfnExecuteCommandList)(void*, const RHICommandList&);
 
     // RenderPass cmds
-    void (*pfnBeginRenderPass)(void*, RHICommandList& cmdlist, RenderPassDesc);
+    void (*pfnBeginRenderPass)(void*, RHICommandList& cmdlist, const RenderPassDesc&);
     void (*pfnEndRenderPass)(void*, RHICommandList& cmdlist);
 
     // Binding cmds
+    void (*pfnSetViewport)(void*, RHICommandList& cmdlist, const ViewportDesc& desc);
+    void (*pfnSetScissor)(void*, RHICommandList& cmdlist, const Rect2D& rect);
+    void (*pfnSetRenderTargets)(void*, RHICommandList& cmdlist, U32 numViews, TextureHandle[]);
     void (*pfnSetVertexBuffers)(void*, RHICommandList& cmdlist, U32 numViews, BufferHandle[]);
     void (*pfnSetIndexBuffer)(void*, RHICommandList& cmdlist, BufferHandle);
     void (*pfnSetPipeline)(void*, RHICommandList& cmdlist, PipelineBindPoint eBindPoint, U64 handle);
@@ -103,12 +106,24 @@ struct RHIContext
             static_cast<TRHIBackend*>(p)->ExecuteCommandList(cmdlist);
         };
 
-        pfnBeginRenderPass = [](void* p, RHICommandList& cmdlist, RenderPassDesc desc) {
+        pfnBeginRenderPass = [](void* p, RHICommandList& cmdlist, const RenderPassDesc& desc) {
             static_cast<TRHIBackend*>(p)->BeginRenderPass(cmdlist, desc);
         };
 
         pfnEndRenderPass = [](void* p, RHICommandList& cmdlist) {
             static_cast<TRHIBackend*>(p)->EndRenderPass(cmdlist);
+        };
+
+        pfnSetViewport = [](void* p, RHICommandList& cmdlist, const ViewportDesc& desc) {
+            static_cast<TRHIBackend*>(p)->SetViewport(cmdlist, desc);
+        };
+
+        pfnSetScissor = [](void* p, RHICommandList& cmdlist, const Rect2D& rect) {
+            static_cast<TRHIBackend*>(p)->SetScissor(cmdlist, rect);
+        };
+
+        pfnSetRenderTargets = [](void* p, RHICommandList& cmdlist, U32 numViews, TextureHandle views[]) {
+            static_cast<TRHIBackend*>(p)->SetRenderTargets(cmdlist, numViews, views);
         };
 
         pfnSetVertexBuffers = [](void* p, RHICommandList& cmdlist, U32 numViews, BufferHandle views[]) {
@@ -198,7 +213,7 @@ struct RHIContext
         pfnEndRecording(pInstance, cmdlist);
     }
 
-    inline void BeginRenderPass(RHICommandList& cmdlist, RenderPassDesc desc)
+    inline void BeginRenderPass(RHICommandList& cmdlist, const RenderPassDesc& desc)
     {
         GR_TRACE_START(SYS_RHI);
         pfnBeginRenderPass(pInstance, cmdlist, desc);
@@ -214,6 +229,24 @@ struct RHIContext
     {
         GR_TRACE_START(SYS_RHI);
         pfnExecuteCommandList(pInstance, cmdlist);
+    }
+
+    inline void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[])
+    {
+        GR_TRACE_START(SYS_RHI);
+        pfnSetRenderTargets(pInstance, cmdlist, numViews, views);
+    }
+
+    inline void SetViewport(RHICommandList& cmdlist, const ViewportDesc& desc)
+    {
+        GR_TRACE_START(SYS_RHI);
+        pfnSetViewport(pInstance, cmdlist, desc);
+    }
+
+    inline void SetScissor(RHICommandList& cmdlist, const Rect2D& rect)
+    {
+        GR_TRACE_START(SYS_RHI);
+        pfnSetScissor(pInstance, cmdlist, rect);
     }
 
     inline void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])

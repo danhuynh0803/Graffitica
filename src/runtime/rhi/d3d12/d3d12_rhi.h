@@ -57,11 +57,13 @@ public:
     // TODO replace with a RESULT return later?
     void BeginRecording(RHICommandList& cmdlist);
     void EndRecording(RHICommandList& cmdlist);
-    void BeginRenderPass(RHICommandList& cmdlist, RenderPassDesc desc);
+    void BeginRenderPass(RHICommandList& cmdlist, const RenderPassDesc& desc);
     void EndRenderPass(RHICommandList& cmdlist);
     void ExecuteCommandList(const RHICommandList& cmdlist);
     void ExecuteCommandLists(const RHICommandList rhiCommandLists[], U32 numCommandLists);
 
+    void SetViewport(RHICommandList& cmdlist, const ViewportDesc& desc);
+    void SetScissor(RHICommandList& cmdlist, const Rect2D& desc);
     void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[]);
     void SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer);
     void SetPipeline(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, U64 pipelineHandle);
