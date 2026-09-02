@@ -77,6 +77,8 @@ inline DXGI_FORMAT ToDXGIFormat(GrFormat fmt)
     case GrFormat::R8_SNORM:                return DXGI_FORMAT_R8_SNORM;
     case GrFormat::R16_UINT:                return DXGI_FORMAT_R16_UINT;
     case GrFormat::R32_UINT:                return DXGI_FORMAT_R32_UINT;
+    
+    case GrFormat::R32G32_SFLOAT:           return DXGI_FORMAT_R32G32_FLOAT;
 
     case GrFormat::R32G32B32_UINT:          return DXGI_FORMAT_R32G32B32_UINT;
     case GrFormat::R32G32B32_SINT:          return DXGI_FORMAT_R32G32B32_SINT;
@@ -89,8 +91,11 @@ inline DXGI_FORMAT ToDXGIFormat(GrFormat fmt)
     case GrFormat::D32_SFLOAT:              return DXGI_FORMAT_D32_FLOAT;
 
     case GrFormat::UNDEFINED:
-    default:
+    default: {
+        throw std::runtime_error("Format mapping missing");
         return DXGI_FORMAT_UNKNOWN;
+    }
+
     }
 }
 

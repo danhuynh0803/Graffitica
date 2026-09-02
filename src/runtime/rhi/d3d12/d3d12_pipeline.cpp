@@ -33,7 +33,7 @@ D3D12GraphicsPipeline::D3D12GraphicsPipeline(ID3D12Device* pDevice, const Graphi
     for (const auto& input : desc.inputLayoutStates)
     {
         inputElementDescs.emplace_back(
-            input.semanticName.c_str(),
+            InputTypeToString(input.eInputType),
             input.semanticIndex,
             ToDXGIFormat(input.format),
             input.inputSlot,

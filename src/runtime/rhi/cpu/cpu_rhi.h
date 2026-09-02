@@ -137,6 +137,12 @@ public:
         std::cout << "CPU SetIndexBuffer called" << std::endl;
     }
 
+    void SetPipeline(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, U64 pipelineHandle)
+    {
+        GR_TRACE_START(SYS_RHI);
+        // TODO
+    }
+
     void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[])
     {
         GR_TRACE_START(SYS_RHI);

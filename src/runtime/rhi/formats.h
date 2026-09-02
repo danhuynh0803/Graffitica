@@ -77,6 +77,7 @@ enum class GrFormat : uint32_t
     R8_SNORM,
     R16_UINT,
     R32_UINT,
+    R32G32_SFLOAT,
     R32G32B32_UINT,
     R32G32B32_SINT,
     R32G32B32_SFLOAT,
@@ -98,6 +99,8 @@ inline U32 ConvertFormatToByteSize(GrFormat format)
     case GrFormat::R8G8B8A8_UNORM:
     case GrFormat::D32_SFLOAT:
         return 4;
+    case GrFormat::R32G32_SFLOAT:
+        return 8;
     case GrFormat::R32G32B32A32_UINT:
     case GrFormat::R32G32B32A32_SINT:
     case GrFormat::R32G32B32A32_SFLOAT:

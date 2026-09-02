@@ -70,9 +70,42 @@ enum class InputClass
     PER_INSTANCE = 1,
 };
 
+enum class InputType
+{
+    BINORMAL,        // float4
+    BLENDINDICES,    // uint
+    BLENDWEIGHT,     // float
+    COLOR,           // float4
+    NORMAL,          // float4
+    POSITION,        // float4
+    POSITIONT,       // float4 (transformed)
+    PSIZE,           // float
+    TANGENT,         // float4
+    TEXCOORD         // float4
+};
+
+inline const char* InputTypeToString(InputType type)
+{
+    switch (type)
+    {
+    case InputType::BINORMAL:        return "BINORMAL";
+    case InputType::BLENDINDICES:    return "BLENDINDICES";
+    case InputType::BLENDWEIGHT:     return "BLENDWEIGHT";
+    case InputType::COLOR:           return "COLOR";
+    case InputType::NORMAL:          return "NORMAL";
+    case InputType::POSITION:        return "POSITION";
+    case InputType::POSITIONT:       return "POSITIONT";
+    case InputType::PSIZE:           return "PSIZE";
+    case InputType::TANGENT:         return "TANGENT";
+    case InputType::TEXCOORD:        return "TEXCOORD";
+    }
+
+    return "";
+}
+
 struct InputLayoutState
 {
-    std::string semanticName;
+    InputType   eInputType;
     U32         semanticIndex;
     GrFormat    format;
     U32         inputSlot;

@@ -133,10 +133,47 @@ EditorLayer::EditorLayer(const std::string& name)
     pipelineDesc.PS.pShaderByteCode = compiledOutputs.PS->getBufferPointer();
     pipelineDesc.PS.byteCodeLength = compiledOutputs.PS->getBufferSize();
 
-    rhi::InputLayoutState 
-    pipelineDesc.inputLayoutStates = {
+    rhi::InputLayoutState position{
+        .eInputType = rhi::InputType::POSITION,
+        .semanticIndex = 0,
+        .format = rhi::GrFormat::R32G32B32_SFLOAT,
+        .inputSlot = 0,
+        .alignedByteOffset = offsetof(Vertex, position),
+        .inputSlotClass = rhi::InputClass::PER_VERTEX,
+        .instanceDataStepRate = 0
+    };
 
-    }
+    rhi::InputLayoutState color{
+        .eInputType = rhi::InputType::COLOR,
+        .semanticIndex = 0,
+        .format = rhi::GrFormat::R32G32B32A32_SFLOAT,
+        .inputSlot = 0,
+        .alignedByteOffset = offsetof(Vertex, color),
+        .inputSlotClass = rhi::InputClass::PER_VERTEX,
+        .instanceDataStepRate = 0
+    };
+
+    rhi::InputLayoutState normal{
+    .eInputType = rhi::InputType::NORMAL,
+    .semanticIndex = 0,
+    .format = rhi::GrFormat::R32G32B32_SFLOAT,
+    .inputSlot = 0,
+    .alignedByteOffset = offsetof(Vertex, normal),
+    .inputSlotClass = rhi::InputClass::PER_VERTEX,
+    .instanceDataStepRate = 0
+    };
+
+    rhi::InputLayoutState uv{
+        .eInputType = rhi::InputType::TEXCOORD,
+        .semanticIndex = 0,
+        .format = rhi::GrFormat::R32G32_SFLOAT,
+        .inputSlot = 0,
+        .alignedByteOffset = offsetof(Vertex, uv),
+        .inputSlotClass = rhi::InputClass::PER_VERTEX,
+        .instanceDataStepRate = 0
+    };
+
+    pipelineDesc.inputLayoutStates = { position, color, normal, uv };
 
     // TODO test layout later when textures and cbs are added
     // would prefer to get vk rhi up first to test before the

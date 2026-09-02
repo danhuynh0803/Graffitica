@@ -119,6 +119,10 @@ struct RHIContext
             static_cast<TRHIBackend*>(p)->SetIndexBuffer(cmdlist, indexBuffer);
         };
 
+        pfnSetPipeline = [](void* p, RHICommandList& cmdlist, PipelineBindPoint eBindPoint, U64 pipelineHandle) {
+            static_cast<TRHIBackend*>(p)->SetPipeline(cmdlist, eBindPoint, pipelineHandle);
+        };
+
         pfnClearColor = [](void* p, RHICommandList& cmdlist, TextureHandle resource, const vec4f& color) {
             static_cast<TRHIBackend*>(p)->ClearColor(cmdlist, resource, color);
         };
