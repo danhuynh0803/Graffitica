@@ -106,7 +106,7 @@ inline U32 ConvertFormatToByteSize(GrFormat format)
     case GrFormat::R32G32B32A32_UINT:
     case GrFormat::R32G32B32A32_SINT:
     case GrFormat::R32G32B32A32_SFLOAT:
-        return 128;
+        return 16;
     default:
         break;
     }

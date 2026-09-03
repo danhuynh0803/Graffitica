@@ -155,7 +155,8 @@ EditorLayer::EditorLayer(const std::string& name)
         //float intensity = std::max(0.0f, dot(vec3f(input.normal.xyz()), lightDir));
         //return input.normal;
         //return vec4f(input.texcoord, 0.0f, 1.0f);
-        return vec4f(1.0, 0.0f, 1.0f, 1.0f);
+        //return vec4f(1.0, 0.0f, 1.0f, 1.0f);
+        return inVarying.color;
     };
     pipelineDesc.PS.pShaderFn = ps;
     

@@ -304,6 +304,7 @@ void CPUCommandList::DrawIndexedInstancedImpl(U32 indexCount, U32 instanceCount,
     const U32 positionOffset = inputState[0].alignedByteOffset;
     const U32 positionSizeInBytes = ConvertFormatToByteSize(inputState[0].format);
     const U32 colorOffset = inputState[1].alignedByteOffset;
+    const U32 colorSizeInBytes = ConvertFormatToByteSize(inputState[1].format);
     const U32 vertexStride = vb->m_StrideInBytes;
 
     // Per instance - TODO
@@ -334,9 +335,13 @@ void CPUCommandList::DrawIndexedInstancedImpl(U32 indexCount, U32 instanceCount,
 
                 const int offset = face[i]*vertexStride;
                 memcpy(&attrib.aPos, vb->m_Data.data() + offset, positionSizeInBytes);
-                //attrib.aColor = colors[(tri * 3 + i) % colors.size()];
-                attrib.aColor = vec4f(1, 0, 0, 1);
-                attrib.aTexCoord = vec2f(0.0f, 0.0f);
+                // TODO bug due to SIMD alignment offset mismatch causing colorOffset to be 16 instead of 12
+                // for position vec3f
+                //memcpy(&attrib.aColor, vb->m_Data.data() + offset + colorOffset, colorSizeInBytes);
+                // circument by using the positionSizeInBytes which is based on the Format's expected byte size
+                memcpy(&attrib.aColor, vb->m_Data.data() + offset + colorOffset, colorSizeInBytes);
+
+                //attrib.aTexCoord = vec2f(0.0f, 0.0f);
             }
         }
 

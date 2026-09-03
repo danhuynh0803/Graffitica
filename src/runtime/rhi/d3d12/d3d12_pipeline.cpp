@@ -94,9 +94,11 @@ D3D12GraphicsPipeline::D3D12GraphicsPipeline(ID3D12Device* pDevice, const Graphi
     psoDesc.pRootSignature = m_D3D12RootSignature.Get();
     psoDesc.VS = { desc.VS.pShaderByteCode, desc.VS.byteCodeLength };
     psoDesc.PS = { desc.PS.pShaderByteCode, desc.PS.byteCodeLength };
-
+    
+    CD3DX12_RASTERIZER_DESC rsDesc(D3D12_DEFAULT);
+    rsDesc.FrontCounterClockwise = true; // dx12 has CCW Front as false by default!
     // TODO just keep the following state, but reminder to incorporate state from desc
-    psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+    psoDesc.RasterizerState = rsDesc;
     psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
     psoDesc.DepthStencilState.DepthEnable = FALSE;
     psoDesc.DepthStencilState.StencilEnable = FALSE;
