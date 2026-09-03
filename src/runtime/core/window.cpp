@@ -49,14 +49,14 @@ Window::Window(const WindowProperties& props)
 {
     SDL_Init(m_InitFlags);
 
+    // TODO generate an engine.config file and read in cli arg flags
     RHI_BACKEND rhi = RHI_BACKEND::D3D12;
-    //rhi = RHI_BACKEND::CPU;
+    rhi = RHI_BACKEND::CPU;
 
     m_Window = SDL_CreateWindow((m_Name + " (" + RHIToString(rhi) + ")").c_str(),
                                 m_Width, m_Height,
                                 SDL_WINDOW_RESIZABLE);
 
-    // TODO generate an engine.config file and read in cli arg flags
     m_GraphicsContext = CreateRHI(rhi, m_Window);
 }
 

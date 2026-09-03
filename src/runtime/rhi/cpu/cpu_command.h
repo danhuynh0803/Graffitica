@@ -11,6 +11,7 @@ enum class CommandType : U8
 {
     ClearColor,
     ClearDepth,
+    SetRenderTargets,
     DrawIndexedInstanced,
     Dispatch
 };
@@ -27,9 +28,20 @@ struct ClearDepthCmd
     float depth;
 };
 
+struct SetRenderTargetsCmd
+{
+    //std::vector<TextureHandle> targets;
+    U32 numViews;
+    TextureHandle* targets;
+};
+
 struct DrawIndexedInstancedCmd
 {
-    // TODO
+    U32 indexCount;
+    U32 instanceCount;
+    U32 startIndexLocation;
+    I32 baseVertexLocation;
+    U32 startInstanceLocation;
 };
 
 struct Command
@@ -39,6 +51,7 @@ struct Command
         ClearColorCmd clearColorCmd;
         ClearDepthCmd clearDepthCmd;
         DrawIndexedInstancedCmd drawIndexedInstancedCmd;
+        SetRenderTargetsCmd setRenderTargetsCmd;
     };
 
     Command(const ClearColorCmd& c) : type(CommandType::ClearColor), clearColorCmd(c)
@@ -49,6 +62,14 @@ struct Command
     Command(const ClearDepthCmd& c) : type(CommandType::ClearDepth), clearDepthCmd(c)
     {
         //new (&clearDepthCmd) ClearDepthCmd(c);
+    }
+
+    Command(const SetRenderTargetsCmd& c) : type(CommandType::SetRenderTargets), setRenderTargetsCmd(c)
+    {
+    }
+
+    Command(const DrawIndexedInstancedCmd& c) : type(CommandType::DrawIndexedInstanced), drawIndexedInstancedCmd(c)
+    {
     }
 
 };

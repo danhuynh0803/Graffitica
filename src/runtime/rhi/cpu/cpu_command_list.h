@@ -8,7 +8,13 @@
 
 namespace gr::rhi
 {
+// TODO: store command list state here, e.g. current framebuffer, pipeline state, shader resources, etc
+//Framebuffer* framebuffer;
+// Hardcode to max 8 streams for now and max 8 color targets
+static constexpr U32 MAX_VERTEX_STREAMS = 8;
+static constexpr U32 MAX_COLOR_TARGETS = 8;
 
+class CPUBufferResource;
 class CPUTextureResource;
 class Command;
 
@@ -34,12 +40,10 @@ public:
 
     void ClearDepthImpl(CPUTextureResource& view, float clearDepth);
 
-    //void ClearColorImpl(RHITextureResource& view, const vec4f& clearColor);
-
-    //void ClearDepthImpl(RHITextureResource& rhiView, float clearDepth);
-
+    void DrawIndexedInstancedImpl(U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation);
     //void DrawIndexedInstancedImpl();
 
+    //void SetRenderTargetsImpl(U32 numViews, CPUTextureResource)
     //void DrawIndexed(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset);
 
     //void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset);
@@ -60,14 +64,12 @@ public:
 
 private:
     std::vector<Command> m_Commands;
-    
-    // TODO: store command list state here, e.g. current framebuffer, pipeline state, shader resources, etc
-    //Framebuffer* framebuffer;
-    // Hardcode to max 8 streams for now and max 8 color targets
-    BufferHandle m_VertexBuffers[8];
-    BufferHandle m_IndexBuffer;
-    TextureHandle m_ColorTargets[8];
-    TextureHandle m_DepthTarget;
+
+    CPUBufferResource* m_VertexBuffers[MAX_VERTEX_STREAMS];
+    CPUBufferResource* m_IndexBuffer;
+
+    CPUTextureResource* m_ColorTargets[MAX_COLOR_TARGETS];
+    CPUTextureResource* m_DepthTarget;
 
     CPUGraphicsPipeline* m_GraphicsPipeline;
     CPUComputePipeline* m_ComputePipeline;

@@ -10,11 +10,12 @@
 #include "rhi/interface/pipeline.h"
 #include "rhi/interface/swapchain.h"
 
-enum class RHI_BACKEND : uint8_t
+enum RHI_BACKEND : uint8_t
 {
     D3D12 = 0,
     VULKAN = 1,
     CPU = 2,
+    COUNT
 };
 
 namespace gr::rhi

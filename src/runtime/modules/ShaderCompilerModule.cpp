@@ -3,6 +3,7 @@
 #include <slang/slang-com-helper.h>
 #include <stdexcept>
 #include <vector>
+#include "rhi/interface/rhi.h"
 
 namespace gr
 {
@@ -29,15 +30,21 @@ ShaderCompilerModule::ShaderCompilerModule()
     slang::createGlobalSession(mGlobalSession.writeRef());
 
     // TODO support multiple targets, for now we just support one target
-    //std::vector<slang::SessionDesc> sessionDescs = {};
-    slang::SessionDesc sessionDesc {};
-    slang::TargetDesc targetDesc {};
-    targetDesc.format = SLANG_DXIL;
-    //targetDesc.profile = globalSession->findProfile("spirv_1_5");
-    targetDesc.profile = mGlobalSession->findProfile("sm_6_0");
 
-    sessionDesc.targets = &targetDesc;
-    sessionDesc.targetCount = 1;
+    slang::SessionDesc sessionDesc {};
+    slang::TargetDesc targetDescs[RHI_BACKEND::COUNT];
+    targetDescs[RHI_BACKEND::D3D12].format = SLANG_DXIL;
+    targetDescs[RHI_BACKEND::D3D12].profile = mGlobalSession->findProfile("sm_6_0");
+
+    targetDescs[RHI_BACKEND::VULKAN].format = SLANG_SPIRV;
+    targetDescs[RHI_BACKEND::VULKAN].profile = mGlobalSession->findProfile("spirv_1_5");
+    
+    targetDescs[RHI_BACKEND::CPU].format = SLANG_CPP_SOURCE;
+    // Is a "profile" needed for compiling to CPP src? No documentation found on it
+    //targetDescs[RHI_BACKEND::CPU].profile = mGlobalSession->findProfile("cpp");
+
+    sessionDesc.targets = targetDescs;
+    sessionDesc.targetCount = RHI_BACKEND::COUNT;
 
     mGlobalSession->createSession(sessionDesc, mSession.writeRef());
 }
@@ -150,6 +157,10 @@ ShaderOutputs ShaderCompilerModule::CompileSlangToBlob(const char* filePath, con
     ShaderOutputs shaderOutputs {};
     shaderOutputs.VS = vsBlob;
     shaderOutputs.PS = psBlob;
+
+
+
+
 
     return shaderOutputs;
 }

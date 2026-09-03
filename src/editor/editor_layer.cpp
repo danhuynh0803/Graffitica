@@ -68,15 +68,15 @@ namespace
     Vertex triangleVertices[] =
     {
         { { -0.5f,  0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
-        { {  0.5f, -0.5f, 0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f } },
         { { -0.5f, -0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f } },
+        { {  0.5f, -0.5f, 0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f } },
         { {  0.5f,  0.5f, 0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f } },
     };
 
     U16 quadIndices[] =
     {
         0, 1, 2,
-        0, 3, 1,
+        0, 2, 3,
     };
 }
 
@@ -132,6 +132,33 @@ EditorLayer::EditorLayer(const std::string& name)
     pipelineDesc.VS.byteCodeLength  = compiledOutputs.VS->getBufferSize();
     pipelineDesc.PS.pShaderByteCode = compiledOutputs.PS->getBufferPointer();
     pipelineDesc.PS.byteCodeLength = compiledOutputs.PS->getBufferSize();
+
+    // TODO
+    // Testing cpu-rasterization path by hard-coding the vertex/pixel ops
+    // This will be replaced by slang after getting cpu-rhi back to original functionality
+    using pfnVS = rhi::Varyings(*)(const VertexAttributes&);
+    pfnVS vs = [](const VertexAttributes& inAttr) -> rhi::Varyings
+    {
+        rhi::Varyings v2f{};
+        v2f.position = vec4f(inAttr.aPos, 1.0f);
+        v2f.color = inAttr.aColor;
+        v2f.texcoord = inAttr.aTexCoord;
+        //v2f.normal = transpose(inverse(M)) * vec4f(attribs.aNormal, 0.0f);
+        return v2f;
+    };
+    pipelineDesc.VS.pShaderFn = vs;
+
+    using pfnPS = vec4f(*)(const rhi::Varyings&);
+    pfnPS ps = [](const rhi::Varyings& inVarying) -> vec4f
+    {
+        //vec3f lightDir = vec3f(0, 3, 5);
+        //float intensity = std::max(0.0f, dot(vec3f(input.normal.xyz()), lightDir));
+        //return input.normal;
+        //return vec4f(input.texcoord, 0.0f, 1.0f);
+        return vec4f(1.0, 0.0f, 1.0f, 1.0f);
+    };
+    pipelineDesc.PS.pShaderFn = ps;
+    
 
     rhi::InputLayoutState position{
         .eInputType = rhi::InputType::POSITION,
@@ -227,7 +254,9 @@ void EditorLayer::OnUpdate(double dt)
 
     pRHI->SetRenderTargets(gCmdlist, 1, &backBufferHndl);
 
-    pRHI->ClearColor(gCmdlist, backBufferHndl, { .4, .5, .7, 1.0 });
+    //pRHI->ClearColor(gCmdlist, backBufferHndl, { .4, .5, .7, 1.0 });
+    pRHI->ClearColor(gCmdlist, backBufferHndl, { .7, .7, .7, 1.0 });
+
     //pRHI->ClearDepth(gCmdlist, gDepthBufferHndl, 1.0f);
     // TODO Separate rootsig/pipelinelayout setting from SetPipeline call
     //m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());

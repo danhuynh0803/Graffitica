@@ -101,6 +101,8 @@ inline U32 ConvertFormatToByteSize(GrFormat format)
         return 4;
     case GrFormat::R32G32_SFLOAT:
         return 8;
+    case GrFormat::R32G32B32_SFLOAT:
+        return 12;
     case GrFormat::R32G32B32A32_UINT:
     case GrFormat::R32G32B32A32_SINT:
     case GrFormat::R32G32B32A32_SFLOAT:
@@ -109,7 +111,7 @@ inline U32 ConvertFormatToByteSize(GrFormat format)
         break;
     }
 
-    throw std::exception("Undefined format");
+    throw std::exception("Undefined format byte size");
 }
 
 } // gr::rhi
