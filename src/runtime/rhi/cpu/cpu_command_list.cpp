@@ -312,16 +312,7 @@ void CPUCommandList::DrawIndexedInstancedImpl(U32 indexCount, U32 instanceCount,
     for (U32 tri = startIndexLocation; tri < indexCount; tri += topologyIncrement)
     {
         //GR_TRACE_SCOPED("TriangleLoop");
-        //const std::vector<int>& face = vb.m_MeshData->face(tri);
-        // TODO redesign this as it's getting very error prone to
-        // have to manually offset the ptr to get the data
-        // since data is stored as a byte array for generic formats
-        U16 face[3] = {
-            //(U16)(ib->m_Data.data() + (tri+0)*ib->m_StrideInBytes),
-            //(U16)(ib->m_Data.data() + (tri+1)*ib->m_StrideInBytes),
-            //(U16)(ib->m_Data.data() + (tri+2)*ib->m_StrideInBytes),
-        };
-
+        U16 face[3] = {};
         memcpy(face, ib->m_Data.data() + (tri*ib->m_StrideInBytes), 3*ib->m_StrideInBytes);
 
         // assemble attributes for processing
@@ -335,12 +326,7 @@ void CPUCommandList::DrawIndexedInstancedImpl(U32 indexCount, U32 instanceCount,
 
                 const int offset = face[i]*vertexStride;
                 memcpy(&attrib.aPos, vb->m_Data.data() + offset, positionSizeInBytes);
-                // TODO bug due to SIMD alignment offset mismatch causing colorOffset to be 16 instead of 12
-                // for position vec3f
-                //memcpy(&attrib.aColor, vb->m_Data.data() + offset + colorOffset, colorSizeInBytes);
-                // circument by using the positionSizeInBytes which is based on the Format's expected byte size
                 memcpy(&attrib.aColor, vb->m_Data.data() + offset + colorOffset, colorSizeInBytes);
-
                 //attrib.aTexCoord = vec2f(0.0f, 0.0f);
             }
         }
@@ -351,9 +337,8 @@ void CPUCommandList::DrawIndexedInstancedImpl(U32 indexCount, U32 instanceCount,
         {   //ZoneScoped("VertexShader");
             for (int i = 0; i < 3; ++i)
             {
+                // Vertex shader execution
                 perVertexOutputs[i] = vsShaderFunc(inputAttributes[i]);
-
-                //perVertexOutputs[i] = shaderModule->vert(inputAttributes[i]);
 
                 // perspective divide
                 primitive.position[i] = perVertexOutputs[i].position / perVertexOutputs[i].position.w;
@@ -377,7 +362,6 @@ void CPUCommandList::DrawIndexedInstancedImpl(U32 indexCount, U32 instanceCount,
         const auto& a = NDCToViewport(primitive.position[0], width, height);
         const auto& b = NDCToViewport(primitive.position[1], width, height);
         const auto& c = NDCToViewport(primitive.position[2], width, height);
-
 
         const float totalArea = CalculateTriangleArea(a, b, c);
         const float invTotalArea = 1.0f / totalArea;
