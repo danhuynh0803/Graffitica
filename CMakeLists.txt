@@ -165,3 +165,15 @@ add_subdirectory(external)
 add_subdirectory(test)
 add_subdirectory(src/shaders)
 add_dependencies(${PROJECT_NAME} CompileShaders)
+
+# Copy over all shaders for runtime level compiling
+add_custom_target(CopyShaders ALL
+    #TARGET ${PROJECT_NAME} POST-BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_SOURCE_DIR}/src/shaders
+            ${CMAKE_BINARY_DIR}/Shaders
+)
+
+add_dependencies(${PROJECT_NAME} CopyShaders)
+
+

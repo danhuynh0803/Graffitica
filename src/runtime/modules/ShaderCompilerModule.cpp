@@ -127,40 +127,45 @@ ShaderOutputs ShaderCompilerModule::CompileSlangToBlob(const char* filePath, con
         //SLANG_RETURN_ON_FAIL(result);
     }
 
-    // TODO what is targetIndex for? Very little documentation found
-    SlangInt targetIndex = 0; //SLANG_DXIL;
-
-    Slang::ComPtr<slang::IBlob> vsBlob;
+    ShaderOutputs shaderOutputs{};
+    for (SlangInt targetIndex = 0; targetIndex < RHI_BACKEND::COUNT; ++targetIndex)
     {
-        Slang::ComPtr<slang::IBlob> diagnosticsBlob;
-        SlangResult result = linkedProgram->getEntryPointCode(
-            vertexEntryPointIndex,
-            targetIndex,
-            vsBlob.writeRef(),
-            diagnosticsBlob.writeRef());
-        DiagnoseIfNeeded(diagnosticsBlob);
-        //SLANG_RETURN_ON_FAIL(result);
+        //auto gpuVaryingsType = mSession->findTypeByName("PSInputGPU");
+        //auto cpuVaryingsType = mSession->findTypeByName("PSInputCPU");
+
+        // For GPU target:
+        //request->setTypeNameForGlobalGenericParameter("TVaryings", gpuVaryingsType);
+
+        // For CPU target:
+        //request->setTypeNameForGlobalGenericParameter("TVaryings", cpuVaryingsType);
+
+        Slang::ComPtr<slang::IBlob> vsBlob;
+        {
+            Slang::ComPtr<slang::IBlob> diagnosticsBlob;
+            SlangResult result = linkedProgram->getEntryPointCode(
+                vertexEntryPointIndex,
+                targetIndex,
+                vsBlob.writeRef(),
+                diagnosticsBlob.writeRef());
+            DiagnoseIfNeeded(diagnosticsBlob);
+            //SLANG_RETURN_ON_FAIL(result);
+        }
+
+        Slang::ComPtr<slang::IBlob> psBlob;
+        {
+            Slang::ComPtr<slang::IBlob> diagnosticsBlob;
+            SlangResult result = linkedProgram->getEntryPointCode(
+                fragmentEntryPointIndex,
+                targetIndex,
+                psBlob.writeRef(),
+                diagnosticsBlob.writeRef());
+            DiagnoseIfNeeded(diagnosticsBlob);
+            //SLANG_RETURN_ON_FAIL(result);
+        }
+
+        shaderOutputs.VS[targetIndex] = vsBlob;
+        shaderOutputs.PS[targetIndex] = psBlob;
     }
-
-    Slang::ComPtr<slang::IBlob> psBlob;
-    {
-        Slang::ComPtr<slang::IBlob> diagnosticsBlob;
-        SlangResult result = linkedProgram->getEntryPointCode(
-            fragmentEntryPointIndex,
-            targetIndex,
-            psBlob.writeRef(),
-            diagnosticsBlob.writeRef());
-        DiagnoseIfNeeded(diagnosticsBlob);
-        //SLANG_RETURN_ON_FAIL(result);
-    }
-
-    ShaderOutputs shaderOutputs {};
-    shaderOutputs.VS = vsBlob;
-    shaderOutputs.PS = psBlob;
-
-
-
-
 
     return shaderOutputs;
 }

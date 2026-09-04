@@ -128,10 +128,11 @@ EditorLayer::EditorLayer(const std::string& name)
     auto compiledOutputs = gShaderCompilerModule.CompileSlangToBlob((shaderDir + "default.slang").c_str(), "VSMain");
     rhi::GraphicsPipelineDesc pipelineDesc{};
     // TODO create helper to simplify
-    pipelineDesc.VS.pShaderByteCode = compiledOutputs.VS->getBufferPointer();
-    pipelineDesc.VS.byteCodeLength  = compiledOutputs.VS->getBufferSize();
-    pipelineDesc.PS.pShaderByteCode = compiledOutputs.PS->getBufferPointer();
-    pipelineDesc.PS.byteCodeLength = compiledOutputs.PS->getBufferSize();
+    const int backendIndex = static_cast<int>(pGfxContext->GetRHIBackend());
+    pipelineDesc.VS.pShaderByteCode = compiledOutputs.VS[backendIndex]->getBufferPointer();
+    pipelineDesc.VS.byteCodeLength  = compiledOutputs.VS[backendIndex]->getBufferSize();
+    pipelineDesc.PS.pShaderByteCode = compiledOutputs.PS[backendIndex]->getBufferPointer();
+    pipelineDesc.PS.byteCodeLength  = compiledOutputs.PS[backendIndex]->getBufferSize();
 
     // TODO
     // Testing cpu-rasterization path by hard-coding the vertex/pixel ops

@@ -7,6 +7,7 @@
 #include <wrl.h>
 #include <vector>
 #include <wchar.h>
+#include "rhi/interface/rhi.h"
 
 namespace gr
 {
@@ -15,18 +16,9 @@ using Microsoft::WRL::ComPtr;
 
 struct ShaderOutputs
 {
-    ComPtr<slang::IBlob> VS;
-    ComPtr<slang::IBlob> PS;
-    ComPtr<slang::IBlob> CS;
-
-
-    //ComPtr<ID3DBlob> dxilVS;
-    //ComPtr<ID3DBlob> dxilPS;
-    //ComPtr<ID3DBlob> dxilCS;
-
-    std::vector<UINT8> spirvVS;
-    std::vector<UINT8> spirvPS;
-    std::vector<UINT8> spirvCS;
+    ComPtr<slang::IBlob> VS[RHI_BACKEND::COUNT];
+    ComPtr<slang::IBlob> PS[RHI_BACKEND::COUNT];
+    ComPtr<slang::IBlob> CS[RHI_BACKEND::COUNT];
 };
 
 class ShaderCompilerModule

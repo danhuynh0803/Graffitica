@@ -22,11 +22,13 @@ public:
         // TODO create gr asserts to include location of error
         static_assert(std::is_base_of<IGraphicsContext, TGraphicsContext>::value, "Type needs to be of IGraphicsContext!");
         s_GraphicsContextInstance = TGraphicsContext::CreateInstance(window);
+
         return  TGraphicsContext::GetInstance();
     }
 
     [[nodiscard]] virtual ISwapchain* GetSwapchain() = 0;
     [[nodiscard]] virtual RHIContext* GetRHIContext() = 0;
+    [[nodiscard]] virtual RHI_BACKEND GetRHIBackend() const = 0;
 
 protected:
     inline static IGraphicsContext* s_GraphicsContextInstance;

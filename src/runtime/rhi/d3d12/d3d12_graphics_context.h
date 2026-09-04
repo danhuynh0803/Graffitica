@@ -25,6 +25,7 @@ public:
     virtual void UpdateBackBuffer(SDL_Surface* surfaceToUpdate) override;
     [[nodiscard]] virtual RHIContext* GetRHIContext() override { return m_RHIContext.get(); }
     [[nodiscard]] ID3D12Device* GetD3D12Device() const { return m_D3D12RHIInstance->GetDevice(); }
+    [[nodiscard]] virtual RHI_BACKEND GetRHIBackend() const override { return RHI_BACKEND::D3D12; }
 
 private:
     inline static std::unique_ptr<D3D12GraphicsContext> s_GraphicsContextInstance;
