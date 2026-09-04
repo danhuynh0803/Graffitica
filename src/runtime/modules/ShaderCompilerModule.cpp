@@ -117,8 +117,9 @@ ShaderOutputs ShaderCompilerModule::CompileSlangToBlob(RHI_BACKEND desiredBacken
         //SLANG_RETURN_ON_FAIL(result);
     }
 
+    int targetIndex = static_cast<int>(desiredBackendToCompile);
     ShaderOutputs shaderOutputs{};
-    for (SlangInt targetIndex = 0; targetIndex < RHI_BACKEND::COUNT; ++targetIndex)
+    //for (SlangInt targetIndex = 0; targetIndex < RHI_BACKEND::COUNT; ++targetIndex)
     {
         Slang::ComPtr<slang::IBlob> blob;
         {
@@ -132,7 +133,7 @@ ShaderOutputs ShaderCompilerModule::CompileSlangToBlob(RHI_BACKEND desiredBacken
             //SLANG_RETURN_ON_FAIL(result);
         }
 
-        shaderOutputs.blobs[targetIndex] = blob;
+        shaderOutputs.blob = blob;
     }
 
     return shaderOutputs;

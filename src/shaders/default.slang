@@ -66,7 +66,7 @@ uniform RWStructuredBuffer<VSOutput> RWVertexOutput;
 [numthreads(1,1,1)]
 void cpu_VSMain(uint3 tid : SV_DispatchThreadID)
 {
-    RWVertexOutput[tid.x] = VertexImpl(RVertexInput[tid.x]);
+    //RWVertexOutput[tid.x] = VertexImpl(RVertexInput[tid.x]);
 }
 
 uniform StructuredBuffer<VSOutput> RPixelInput;
@@ -76,5 +76,5 @@ uniform RWStructuredBuffer<float4> RWPixelOutput;
 [numthreads(1,1,1)]
 void cpu_PSMain(uint3 tid : SV_DispatchThreadID)
 {
-    RWPixelOutput[tid.x] = PixelImpl(RPixelInput[tid.x]);
+    //RWPixelOutput[tid.x] = PixelImpl(RPixelInput[tid.x]);
 }

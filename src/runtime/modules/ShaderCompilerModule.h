@@ -16,7 +16,7 @@ using Microsoft::WRL::ComPtr;
 
 struct ShaderOutputs
 {
-    ComPtr<slang::IBlob> blobs[RHI_BACKEND::COUNT];
+    ComPtr<slang::IBlob> blob;
     //ComPtr<slang::IBlob> VS[RHI_BACKEND::COUNT];
     //ComPtr<slang::IBlob> PS[RHI_BACKEND::COUNT];
     //ComPtr<slang::IBlob> CS[RHI_BACKEND::COUNT];

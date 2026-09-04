@@ -138,8 +138,8 @@ EditorLayer::EditorLayer(const std::string& name)
 
     rhi::GraphicsPipelineDesc pipelineDesc{};
     const int backendIndex = static_cast<int>(pGfxContext->GetRHIBackend());
-    pipelineDesc.VS = rhi::RHIShader(vsOut.blobs[backendIndex].Get());
-    pipelineDesc.PS = rhi::RHIShader(psOut.blobs[backendIndex].Get());
+    pipelineDesc.VS = rhi::RHIShader(vsOut.blob.Get());
+    pipelineDesc.PS = rhi::RHIShader(psOut.blob.Get());
 
     // TODO
     // Testing cpu-rasterization path by hard-coding the vertex/pixel ops
