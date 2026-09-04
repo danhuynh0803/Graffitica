@@ -3,15 +3,24 @@
 #include <vector>
 #include "rhi/rasterizer_state.h"
 #include "rhi/resource.h"
+#include <slang/slang-gfx.h>
+//#include <wrl.h>
 
 namespace gr::rhi
 {
+//using Microsoft::WRL::ComPtr;
 
 struct RHIShader
 {
+    RHIShader() = default;
+    RHIShader(slang::IBlob* blob)
+      : pShaderByteCode(blob->getBufferPointer()), byteCodeLength(blob->getBufferSize())
+    {}
+    RHIShader(void* pInShaderByteCode, U32 inByteCodeLength)
+      : pShaderByteCode(pInShaderByteCode), byteCodeLength(inByteCodeLength)
+    {}
     // On CPU RHI, this will be fn pointer to shader functions
     const void* pShaderFn;
-
     const void* pShaderByteCode;
     U32 byteCodeLength;
 };

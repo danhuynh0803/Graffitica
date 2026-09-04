@@ -49,7 +49,7 @@ ShaderCompilerModule::ShaderCompilerModule()
     mGlobalSession->createSession(sessionDesc, mSession.writeRef());
 }
 
-ShaderOutputs ShaderCompilerModule::CompileSlangToBlob(const char* filePath, const char* entryPointName)
+ShaderOutputs ShaderCompilerModule::CompileSlangToBlob(RHI_BACKEND desiredBackendToCompile, const char* filePath, const char* entryPointName)
 {
     assert(mGlobalSession != nullptr);
     assert(mSession != nullptr);
@@ -71,17 +71,10 @@ ShaderOutputs ShaderCompilerModule::CompileSlangToBlob(const char* filePath, con
     }
 
     // Finding entry points
-    Slang::ComPtr<slang::IEntryPoint> vsEntryPoint;
-    module->findEntryPointByName("VSMain", vsEntryPoint.writeRef());
-    if (!vsEntryPoint) {
+    Slang::ComPtr<slang::IEntryPoint> entryPoint;
+    module->findEntryPointByName(entryPointName, entryPoint.writeRef());
+    if (!entryPoint) {
         throw std::runtime_error("Failed to load vs entrypoint");
-        return {};
-    }
-
-    Slang::ComPtr<slang::IEntryPoint> psEntryPoint;
-    module->findEntryPointByName("PSMain", psEntryPoint.writeRef());
-    if (!psEntryPoint) {
-        throw std::runtime_error("Failed to load fs entrypoint");
         return {};
     }
 
@@ -93,11 +86,8 @@ ShaderOutputs ShaderCompilerModule::CompileSlangToBlob(const char* filePath, con
     // the composition, so we will record the relative ordering of the entry
     // points here as we add them.
     int entryPointCount = 0;
-    int vertexEntryPointIndex = entryPointCount++;
-    componentTypes.push_back(vsEntryPoint);
-
-    int fragmentEntryPointIndex = entryPointCount++;
-    componentTypes.push_back(psEntryPoint);
+    int entryPointIndex = entryPointCount++;
+    componentTypes.push_back(entryPoint);
 
     // Actually creating the composite component type is a single operation
     // on the Slang session, but the operation could potentially fail if
@@ -130,41 +120,19 @@ ShaderOutputs ShaderCompilerModule::CompileSlangToBlob(const char* filePath, con
     ShaderOutputs shaderOutputs{};
     for (SlangInt targetIndex = 0; targetIndex < RHI_BACKEND::COUNT; ++targetIndex)
     {
-        //auto gpuVaryingsType = mSession->findTypeByName("PSInputGPU");
-        //auto cpuVaryingsType = mSession->findTypeByName("PSInputCPU");
-
-        // For GPU target:
-        //request->setTypeNameForGlobalGenericParameter("TVaryings", gpuVaryingsType);
-
-        // For CPU target:
-        //request->setTypeNameForGlobalGenericParameter("TVaryings", cpuVaryingsType);
-
-        Slang::ComPtr<slang::IBlob> vsBlob;
+        Slang::ComPtr<slang::IBlob> blob;
         {
             Slang::ComPtr<slang::IBlob> diagnosticsBlob;
             SlangResult result = linkedProgram->getEntryPointCode(
-                vertexEntryPointIndex,
+                entryPointIndex,
                 targetIndex,
-                vsBlob.writeRef(),
+                blob.writeRef(),
                 diagnosticsBlob.writeRef());
             DiagnoseIfNeeded(diagnosticsBlob);
             //SLANG_RETURN_ON_FAIL(result);
         }
 
-        Slang::ComPtr<slang::IBlob> psBlob;
-        {
-            Slang::ComPtr<slang::IBlob> diagnosticsBlob;
-            SlangResult result = linkedProgram->getEntryPointCode(
-                fragmentEntryPointIndex,
-                targetIndex,
-                psBlob.writeRef(),
-                diagnosticsBlob.writeRef());
-            DiagnoseIfNeeded(diagnosticsBlob);
-            //SLANG_RETURN_ON_FAIL(result);
-        }
-
-        shaderOutputs.VS[targetIndex] = vsBlob;
-        shaderOutputs.PS[targetIndex] = psBlob;
+        shaderOutputs.blobs[targetIndex] = blob;
     }
 
     return shaderOutputs;

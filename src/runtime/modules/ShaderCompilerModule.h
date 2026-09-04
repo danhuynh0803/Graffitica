@@ -16,9 +16,10 @@ using Microsoft::WRL::ComPtr;
 
 struct ShaderOutputs
 {
-    ComPtr<slang::IBlob> VS[RHI_BACKEND::COUNT];
-    ComPtr<slang::IBlob> PS[RHI_BACKEND::COUNT];
-    ComPtr<slang::IBlob> CS[RHI_BACKEND::COUNT];
+    ComPtr<slang::IBlob> blobs[RHI_BACKEND::COUNT];
+    //ComPtr<slang::IBlob> VS[RHI_BACKEND::COUNT];
+    //ComPtr<slang::IBlob> PS[RHI_BACKEND::COUNT];
+    //ComPtr<slang::IBlob> CS[RHI_BACKEND::COUNT];
 };
 
 class ShaderCompilerModule
@@ -26,7 +27,9 @@ class ShaderCompilerModule
 public:
     ShaderCompilerModule();
 
-    ShaderOutputs CompileSlangToBlob(const char* filePath, const char* entryPoint);
+    ShaderOutputs CompileSlangToBlob(RHI_BACKEND desiredBackendToCompile, const char* filePath, const char* entryPointName);
+
+    //ShaderOutputs CompileSlangToBlob(const char* filePath, const char* entryPoint);
     //static Microsoft::WRL::ComPtr<ID3DBlob> CompileSlangToDXIL(const char* filePath, const char* entryPoint, slang::Stage stage);
     //static std::vector<UINT8> CompileSlangToSPIRV(const char* filePath, const char* entryPoint, slang::Stage stage);
     //static std::vector<UINT8> CompileSlangTo(const char* filePath, const char* entryPoint, slang::Stage stage);

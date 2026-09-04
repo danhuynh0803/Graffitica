@@ -156,9 +156,9 @@ struct RHIContext
             static_cast<TRHIBackend*>(p)->TransitionResource(cmdlist, resource, oldState, newState);
         };
 
-        //pfnDispatch = [](void* p, RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ) {
-        //    static_cast<TRHIBackend*>(p)->Dispatch(cmdlist, groupCountX, groupCountY, groupCountZ);
-        //};
+        pfnDispatch = [](void* p, RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ) {
+            static_cast<TRHIBackend*>(p)->Dispatch(cmdlist, groupCountX, groupCountY, groupCountZ);
+        };
         //
         //pfnDispatchRays = [](void* p, RHICommandList& cmdlist, U32 width, U32 height, U32 depth) {
         //    static_cast<TRHIBackend*>(p)->DispatchRays(cmdlist, width, height, depth);

@@ -125,14 +125,21 @@ EditorLayer::EditorLayer(const std::string& name)
 
     // Pipeline creation
     std::string shaderDir = "shaders/";
-    auto compiledOutputs = gShaderCompilerModule.CompileSlangToBlob((shaderDir + "default.slang").c_str(), "VSMain");
+
+    // TODO slang cpu compilation only supports compute
+    // maybe look into spirv cross and reflections later to get a true VS/PS shader-style code workflow to work on CPU rhi?
+    ShaderOutputs vsOut = (pGfxContext->GetRHIBackend() != RHI_BACKEND::CPU)
+        ? gShaderCompilerModule.CompileSlangToBlob(pGfxContext->GetRHIBackend(), (shaderDir + "default.slang").c_str(), "VSMain")
+        : gShaderCompilerModule.CompileSlangToBlob(pGfxContext->GetRHIBackend(), (shaderDir + "default.slang").c_str(), "cpu_VSMain");
+    
+    ShaderOutputs psOut = (pGfxContext->GetRHIBackend() != RHI_BACKEND::CPU)
+        ? gShaderCompilerModule.CompileSlangToBlob(pGfxContext->GetRHIBackend(), (shaderDir + "default.slang").c_str(), "PSMain")
+        : gShaderCompilerModule.CompileSlangToBlob(pGfxContext->GetRHIBackend(), (shaderDir + "default.slang").c_str(), "cpu_PSMain");
+
     rhi::GraphicsPipelineDesc pipelineDesc{};
-    // TODO create helper to simplify
     const int backendIndex = static_cast<int>(pGfxContext->GetRHIBackend());
-    pipelineDesc.VS.pShaderByteCode = compiledOutputs.VS[backendIndex]->getBufferPointer();
-    pipelineDesc.VS.byteCodeLength  = compiledOutputs.VS[backendIndex]->getBufferSize();
-    pipelineDesc.PS.pShaderByteCode = compiledOutputs.PS[backendIndex]->getBufferPointer();
-    pipelineDesc.PS.byteCodeLength  = compiledOutputs.PS[backendIndex]->getBufferSize();
+    pipelineDesc.VS = rhi::RHIShader(vsOut.blobs[backendIndex].Get());
+    pipelineDesc.PS = rhi::RHIShader(psOut.blobs[backendIndex].Get());
 
     // TODO
     // Testing cpu-rasterization path by hard-coding the vertex/pixel ops
