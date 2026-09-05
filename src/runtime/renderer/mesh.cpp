@@ -152,7 +152,7 @@ Mesh::Mesh(const char* file_name)
                     face.push_back(vidx);
                 }
             }
-
+            m_Indices.append_range(face);
             m_Faces.push_back(face);
         }
     }

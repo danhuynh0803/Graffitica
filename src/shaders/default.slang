@@ -1,25 +1,34 @@
+
+cbuffer CameraData : register(b0)
+{
+    float4x4 view;
+    float4x4 proj;
+    float4x4 viewProj;
+}
+
 struct PSInput
 {
     float4 position : SV_POSITION;
-    float4 color : COLOR;
-    float3 normal : NORMAL;
-    float2 uv : TEXCOORD;
+    //float4 color : COLOR;
+    //float3 normal : NORMAL;
+    //float2 uv : TEXCOORD;
 };
 
 [shader("vertex")]
-PSInput VSMain(float4 position : POSITION, float4 color : COLOR) //, float3 normal : NORMAL, float2 uv : TEXCOORD)
+PSInput VSMain(float4 position : POSITION) //, float4 color : COLOR) , float3 normal : NORMAL, float2 uv : TEXCOORD)
 {
     PSInput result;
 
-    result.position = float4(position.xyz, 1.0);
-    result.color = color; //float4(1.0, 0.0, 1.0, 1.0);
+    result.position = mul(viewProj, float4(position.xyz, 1.0));
+    //result.color = color; //float4(1.0, 0.0, 1.0, 1.0);
     return result;
 }
 
 [shader("fragment")]
 float4 PSMain(PSInput input) : SV_TARGET
 {
-    return input.color; //* float4(1.0, 0.0, 1.0f, 1.0f);
+    //return input.color; //
+    return float4(1.0, 0.0, 1.0f, 1.0f);
 }
 
 //======================================================================================
@@ -46,7 +55,7 @@ VSOutput VertexImpl(VSInput input)
 {
     VSOutput o;
     o.position = float4(input.position, 1.0);
-    o.color = input.color;
+    //o.color = input.color;
     // TODO
     //o.normal = input.normal;
     //o.uv = input.uv;
@@ -56,7 +65,7 @@ VSOutput VertexImpl(VSInput input)
 
 float4 PixelImpl(VSOutput input)
 {
-    return input.color;
+    return float4(1,0,1,1); //input.color;
 }
 
 uniform StructuredBuffer<VSInput> RVertexInput;

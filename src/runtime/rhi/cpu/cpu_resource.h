@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cpu_command_list.h"
+#include "rhi/resource.h"
 
 namespace gr::rhi
 {

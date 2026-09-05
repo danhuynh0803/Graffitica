@@ -54,6 +54,7 @@ namespace
     TextureHandle gDepthBufferHndl;
     BufferHandle gVertexBuffer;
     BufferHandle gIndexBuffer;
+    BufferHandle gCameraConstantBuffer;
     rhi::GraphicsPipelineHandle gPipelineHandle;
 
     struct Vertex
@@ -97,23 +98,35 @@ EditorLayer::EditorLayer(const std::string& name)
     gCmdlist = pRHI->CreateCommandList(rhi::CommandListType::GRAPHICS);
 
     BufferDesc bufferDesc{
-        .sizeInBytes = sizeof(triangleVertices),
-        .strideInBytes = sizeof(Vertex),
+        //.sizeInBytes = sizeof(triangleVertices),
+        //.dataSrc = triangleVertices,
+        .sizeInBytes = sizeof(model.m_MeshData->GetVertices()[0]) * model.m_MeshData->GetVertices().size(),
+        .strideInBytes = sizeof(model.m_MeshData->GetVertices()[0]),
         .usageFlags = 0,
-        .dataSrc = triangleVertices,
+        .dataSrc = (void*)model.m_MeshData->GetVertices().data(),
         .eResourceType = BufferResourceType::VertexBuffer
     };
     gVertexBuffer = pRHI->CreateBuffer(bufferDesc);
     
     BufferDesc indexDesc{
-        .sizeInBytes = sizeof(quadIndices),
+        .sizeInBytes = sizeof(model.m_MeshData->GetIndices()[0]) * model.m_MeshData->GetIndices().size(),
         .strideInBytes = sizeof(U16),
         .usageFlags = 0, // TODO
-        .dataSrc = quadIndices,
+        .dataSrc = (void*)model.m_MeshData->GetIndices().data(),
         .eResourceType = BufferResourceType::IndexBuffer,
         .eFormat = rhi::GrFormat::R16_UINT
     };
     gIndexBuffer = pRHI->CreateBuffer(indexDesc);
+
+    BufferDesc cbufferDesc{
+        .sizeInBytes = sizeof(model.m_MeshData->GetIndices()[0]) * model.m_MeshData->GetIndices().size(),
+        .strideInBytes = sizeof(U16),
+        .usageFlags = 0, // TODO
+        .dataSrc = (void*)model.m_MeshData->GetIndices().data(),
+        .eResourceType = BufferResourceType::ConstantBuffer,
+        .eFormat = rhi::GrFormat::R16_UINT
+    };
+    gCameraConstantBuffer = pRHI->CreateBuffer(cbufferDesc);
 
     TextureDesc targetDesc {
         .width = pSwapchain->GetWidth(),
@@ -140,6 +153,11 @@ EditorLayer::EditorLayer(const std::string& name)
     const int backendIndex = static_cast<int>(pGfxContext->GetRHIBackend());
     pipelineDesc.VS = rhi::RHIShader(vsOut.blob.Get());
     pipelineDesc.PS = rhi::RHIShader(psOut.blob.Get());
+
+    // compute rhi pipeline test
+    //ShaderOutputs csOut = gShaderCompilerModule.CompileSlangToBlob(pGfxContext->GetRHIBackend(), (shaderDir + "compute.slang").c_str(), "CSMain");
+    //rhi::ComputePipelineDesc computeDesc{};
+    //computeDesc.CS = rhi::RHIShader(csOut.blob.Get());
 
     // TODO
     // Testing cpu-rasterization path by hard-coding the vertex/pixel ops
@@ -174,7 +192,7 @@ EditorLayer::EditorLayer(const std::string& name)
         .semanticIndex = 0,
         .format = rhi::GrFormat::R32G32B32_SFLOAT,
         .inputSlot = 0,
-        .alignedByteOffset = offsetof(Vertex, position),
+        .alignedByteOffset = 0, //offsetof(Vertex, position),
         .inputSlotClass = rhi::InputClass::PER_VERTEX,
         .instanceDataStepRate = 0
     };
@@ -209,7 +227,7 @@ EditorLayer::EditorLayer(const std::string& name)
         .instanceDataStepRate = 0
     };
 
-    pipelineDesc.inputLayoutStates = { position, color, normal, uv };
+    pipelineDesc.inputLayoutStates = { position }; //, color, normal, uv };
 
     // TODO test layout later when textures and cbs are added
     // would prefer to get vk rhi up first to test before the
