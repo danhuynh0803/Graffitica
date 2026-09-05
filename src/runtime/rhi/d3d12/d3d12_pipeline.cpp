@@ -1,6 +1,8 @@
+#include <directx/d3d12.h>
 #include "d3d12_graphics_context.h"
 #include "d3d12_pipeline.h"
 #include "d3d12_util.h"
+#include "d3d12_rhi.h"
 
 namespace gr::rhi
 {
@@ -18,10 +20,9 @@ inline D3D12_INPUT_CLASSIFICATION ToD3D12InputClassification(InputClass i)
     }
 }
 
-D3D12GraphicsPipeline::D3D12GraphicsPipeline(ID3D12Device* pDevice, const GraphicsPipelineDesc& desc)
+D3D12GraphicsPipeline::D3D12GraphicsPipeline(D3D12_RHI* pRHI, const GraphicsPipelineDesc& desc)
 {
-    //auto ctx = D3D12GraphicsContext::GetInstance();
-    //auto device = ctx->GetRHIContext()->CastRHI<D3D12_RHI>()->GetDevice();
+    auto pDevice = pRHI->GetDevice();
 
     UINT8* pVertexShaderBytecode = nullptr;
     UINT8* pPixelShaderBytecode = nullptr;

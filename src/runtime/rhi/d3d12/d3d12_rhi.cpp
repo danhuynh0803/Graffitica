@@ -169,7 +169,7 @@ D3D12_RHI::D3D12_RHI()
     // 2. We need to generate the view on the selected heap
     // 3. Then we reference the view via an index
     
-    D3D12TextureResource res(GetDevice(), desc);
+    D3D12TextureResource res(this, desc);
     switch (desc.eResourceType)
     {
     case DescriptorResourceType::ShaderResource:

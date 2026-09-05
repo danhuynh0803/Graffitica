@@ -43,8 +43,9 @@ public:
 
     [[nodiscard]] U32 Allocate(const TResourceDesc& desc)
     {
-        // TODO Choose to pass device as param or just have the d3d12 objects query it?
-        TResource resource(m_RHIInstance->GetDevice(), desc);
+        // Gfx api backends will usually need access to other backend objects
+        // in order to create the desired resource
+        TResource resource(m_RHIInstance, desc);
         U32 handle;
         if (!m_FreeList.empty())
         {
@@ -55,7 +56,7 @@ public:
         else
         {
             handle = m_Cache.size();
-            m_Cache.emplace_back(m_RHIInstance->GetDevice(), desc);
+            m_Cache.emplace_back(m_RHIInstance, desc);
         }
         return handle;
     }

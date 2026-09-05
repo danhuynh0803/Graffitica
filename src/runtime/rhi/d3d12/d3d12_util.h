@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <wrl/wrappers/corewrappers.h>
 #include <string>
+#include "rhi/resource.h"
 
 namespace gr::rhi
 {

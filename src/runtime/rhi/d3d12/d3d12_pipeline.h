@@ -7,6 +7,8 @@
 
 namespace gr::rhi
 {
+class D3D12_RHI;
+
 using Microsoft::WRL::ComPtr;
 
 struct D3D12PipelineKey
@@ -54,7 +56,7 @@ struct ConvertToKey
 class D3D12GraphicsPipeline
 {
 public:
-    D3D12GraphicsPipeline(ID3D12Device* pDevice, const GraphicsPipelineDesc& desc);
+    D3D12GraphicsPipeline(D3D12_RHI* pRHI, const GraphicsPipelineDesc& desc);
     D3D12GraphicsPipeline(const D3D12PipelineKey& key);
     ~D3D12GraphicsPipeline() = default;
     D3D12_GRAPHICS_PIPELINE_STATE_DESC GetDesc() const { return m_D3D12PipelineStateDesc; }
