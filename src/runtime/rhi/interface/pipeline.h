@@ -58,6 +58,16 @@ struct DescriptorSetBinding
     ShaderStageFlagBits stageFlags;
 };
 
+struct RHIRootSignature
+{
+    //RHIRootSignature(const std::vector<DescriptorSetBinding>& descriptorSetBindings)
+    //{
+    //}
+
+private:
+    void* pNativeRootSig;
+};
+
 struct PipelineLayout
 {
     std::vector<DescriptorSetBinding> descriptorSetBindings;

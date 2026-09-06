@@ -232,13 +232,15 @@ EditorLayer::EditorLayer(const std::string& name)
     // TODO test layout later when textures and cbs are added
     // would prefer to get vk rhi up first to test before the
     // design incurs more tech debt somewhere
-    //std::vector<rhi::DescriptorSetBinding> setBindings(3);
-    //setBindings[0] = rhi::DescriptorSetBinding{
-    //    .binding = 0,
-    //    .descriptorType=DescriptorResourceType::ConstantBuffer,
-    //    .descriptorCount = 1,
-    //    .stageFlags=rhi::ShaderStageFlagBits::ALL_GRAPHICS
-    //};
+    std::vector<rhi::DescriptorSetBinding> setBindings(1);
+    setBindings[0] = rhi::DescriptorSetBinding{
+        .binding = 0,
+        .descriptorType=DescriptorResourceType::ConstantBuffer,
+        .descriptorCount = 1,
+        .stageFlags=rhi::ShaderStageFlagBits::VERTEX_BIT
+    };
+
+    pipelineDesc.pipelineLayout.descriptorSetBindings = setBindings;
 
     gPipelineHandle = pRHI->CreateGraphicsPipeline(pipelineDesc);
 }

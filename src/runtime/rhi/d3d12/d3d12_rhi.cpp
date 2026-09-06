@@ -162,7 +162,7 @@ D3D12_RHI::D3D12_RHI()
 {
     GR_TRACE_START(SYS_RHI);
 
-    auto& heap = GetDescriptorHeap(desc.eResourceType);
+    auto heap = GetDescriptorHeap(desc.eResourceType);
     
     // TODO: convoluted steps due to separation of classes
     // 1. ID3D12Resource is first created and referenced from D3D12TextureResource
@@ -173,13 +173,13 @@ D3D12_RHI::D3D12_RHI()
     switch (desc.eResourceType)
     {
     case DescriptorResourceType::ShaderResource:
-        res.srvIndex = heap.CreateViewFromHeap(res.pResource.Get());
+        res.srvIndex = heap->CreateViewFromHeap(res.pResource.Get());
         break;
     case DescriptorResourceType::RenderTarget:
-        res.rtvIndex = heap.CreateViewFromHeap(res.pResource.Get());
+        res.rtvIndex = heap->CreateViewFromHeap(res.pResource.Get());
         break;
     case DescriptorResourceType::DepthStencil:
-        res.dsvIndex = heap.CreateViewFromHeap(res.pResource.Get());
+        res.dsvIndex = heap->CreateViewFromHeap(res.pResource.Get());
         break;
     default:
         throw std::runtime_error("ResourceFormat is not valid");
@@ -192,7 +192,7 @@ TextureHandle D3D12_RHI::CreateTexture(ComPtr<ID3D12Resource> extResource, Descr
 {
     GR_TRACE_START(SYS_RHI);
 
-    auto& heap = GetDescriptorHeap(eResourceType);
+    auto heap = GetDescriptorHeap(eResourceType);
     // TODO: convoluted steps due to separation of classes
     // 1. ID3D12Resource is first created and referenced from D3D12TextureResource
     // 2. We need to generate the view on the selected heap
@@ -203,13 +203,13 @@ TextureHandle D3D12_RHI::CreateTexture(ComPtr<ID3D12Resource> extResource, Descr
     switch (eResourceType)
     {
     case DescriptorResourceType::ShaderResource:
-        res.srvIndex = heap.CreateViewFromHeap(res.pResource.Get());
+        res.srvIndex = heap->CreateViewFromHeap(res.pResource.Get());
         break;
     case DescriptorResourceType::RenderTarget:
-        res.rtvIndex = heap.CreateViewFromHeap(res.pResource.Get());
+        res.rtvIndex = heap->CreateViewFromHeap(res.pResource.Get());
         break;
     case DescriptorResourceType::DepthStencil:
-        res.dsvIndex = heap.CreateViewFromHeap(res.pResource.Get());
+        res.dsvIndex = heap->CreateViewFromHeap(res.pResource.Get());
         break;
     default:
         throw std::runtime_error("ResourceFormat is not valid");
@@ -360,8 +360,36 @@ void D3D12_RHI::SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer
     GR_TRACE_START(SYS_RHI);
     auto pCmdlist = GetNativeCommandList(cmdlist);
 
-    auto& res = m_BufferPool->Get(indexBufferHandle);
+    const auto& res = m_BufferPool->Get(indexBufferHandle);
     pCmdlist->IASetIndexBuffer(&res.m_View.indexBufferView);
+}
+
+void D3D12_RHI::SetDescriptorTable(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, BufferHandle bufferHandle, U32 bindIndex)
+{
+    auto pCmdlist = GetNativeCommandList(cmdlist);
+
+    //const auto& res = m_BufferPool->Get(bufferHandle);
+    const auto& cbvHeap = GetDescriptorHeap(DescriptorResourceType::ConstantBuffer);
+
+    if (eBindPoint == PipelineBindPoint::Graphics)
+        pCmdlist->SetGraphicsRootDescriptorTable(bindIndex, cbvHeap->GetNative()->GetGPUDescriptorHandleForHeapStart());
+    else if (eBindPoint == PipelineBindPoint::Compute)
+        pCmdlist->SetComputeRootDescriptorTable(bindIndex, cbvHeap->GetNative()->GetGPUDescriptorHandleForHeapStart());
+}
+
+void D3D12_RHI::SetDescriptorHeaps(RHICommandList& cmdlist, const std::vector<DescriptorResourceType>& descriptorTypesToBind)
+{
+    // TODO should update this to bind the heap resource directly and not use the resource type
+    // but since the RHI owns the heaps, this save the step from getting the heap reference
+    // and also I didn't create an RHI-HeapResource abstraction yet
+    auto pCmdlist = GetNativeCommandList(cmdlist);
+
+    ID3D12DescriptorHeap* ppHeaps[static_cast<U32>(DescriptorResourceType::COUNT)];
+
+    for (int i = 0; i < descriptorTypesToBind.size(); ++i)
+        ppHeaps[i] = GetDescriptorHeap(descriptorTypesToBind[i])->GetNative();
+
+    pCmdlist->SetDescriptorHeaps(descriptorTypesToBind.size(), ppHeaps);
 }
 
 void D3D12_RHI::SetPipeline(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, U64 pipelineHandle)
@@ -401,11 +429,11 @@ void D3D12_RHI::SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureH
     {
         auto& resource = m_TexturePool->Get(views[i]);
 
-        auto& rtvHeap = GetDescriptorHeap(DescriptorResourceType::RenderTarget);
+        auto rtvHeap = GetDescriptorHeap(DescriptorResourceType::RenderTarget);
         CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(
-            rtvHeap.GetStartHandle(),
+            rtvHeap->GetStartHandle(),
             resource.rtvIndex,
-            rtvHeap.GetDescriptorSize()
+            rtvHeap->GetDescriptorSize()
         );
 
         nativeViews.push_back(descriptorHandle);
@@ -424,11 +452,11 @@ void D3D12_RHI::ClearColor(RHICommandList& cmdlist, TextureHandle handle, const 
     auto nativeCmdList = pCmdlist->GetRawCommandList();
     const float clearColor[] = { color.r, color.g, color.b, color.a };
 
-    auto& rtvHeap = GetDescriptorHeap(DescriptorResourceType::RenderTarget);
+    auto rtvHeap = GetDescriptorHeap(DescriptorResourceType::RenderTarget);
     CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(
-        rtvHeap.GetStartHandle(),
+        rtvHeap->GetStartHandle(),
         resource.rtvIndex,
-        rtvHeap.GetDescriptorSize()
+        rtvHeap->GetDescriptorSize()
     );
     nativeCmdList->ClearRenderTargetView(descriptorHandle, clearColor, 0, nullptr);
 }

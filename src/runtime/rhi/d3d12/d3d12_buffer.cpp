@@ -57,8 +57,9 @@ D3D12BufferResource::D3D12BufferResource(D3D12_RHI* pRHI, const BufferDesc& desc
     {
         D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
         cbvDesc.BufferLocation = pResource->GetGPUVirtualAddress();
-        cbvDesc.SizeInBytes = desc.sizeInBytes; // must be 256‑byte aligned
-        // TODO: require CBV heap reference
+        cbvDesc.SizeInBytes = desc.sizeInBytes; // Reminder must be 256‑byte aligned
+        auto heap = pRHI->GetDescriptorHeap(DescriptorResourceType::ConstantBuffer);
+        m_View.constantBufferHeapBindIdx = heap->CreateConstantBufferViewFromHeap(cbvDesc);
         break;
     }
 

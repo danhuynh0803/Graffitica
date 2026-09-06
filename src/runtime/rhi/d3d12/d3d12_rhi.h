@@ -40,7 +40,7 @@ public:
     [[nodiscard]] ID3D12Device1* GetDevice() const { return m_Device.Get(); }
     [[nodiscard]] ComPtr<ID3D12CommandQueue> GetCommandQueue() const { return m_CommandQueue; }
     [[nodiscard]] ComPtr<ID3D12CommandAllocator> GetGraphicsCommandAllocator() const { return m_GraphicsCommandAllocator; }
-    [[nodiscard]] D3D12DescriptorHeap& GetDescriptorHeap(DescriptorResourceType eType) { return m_DescriptorHeaps[static_cast<I32>(eType)]; }
+    [[nodiscard]] D3D12DescriptorHeap* GetDescriptorHeap(DescriptorResourceType eType) { return &(m_DescriptorHeaps[static_cast<I32>(eType)]); }
     [[nodiscard]] const FeatureSupportData& GetFeatureSupportData() const { return m_FeatureSupportData; }
 
     [[nodiscard]] BufferHandle CreateBuffer(const BufferDesc& desc);
@@ -66,6 +66,11 @@ public:
     void SetScissor(RHICommandList& cmdlist, const Rect2D& desc);
     void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[]);
     void SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer);
+    // RHI owns the descriptor heaps so we just specify the types of the heaps we wish to bind
+    void SetDescriptorTable(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, BufferHandle bufferHandle, U32 bindIndex);
+    void SetDescriptorHeaps(RHICommandList& cmdlist, const std::vector<DescriptorResourceType>& descriptorTypesToBind);
+    //void SetConstantBuffer(RHICommandList& cmdlist, BufferHandle bufferHandle, U32 bindIndex);
+    //void SetResourceHeaps(RHICommandList& cmdlist, const std::vector<DescriptorResourceType>& descriptorTypesToBind);
     void SetPipeline(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, U64 pipelineHandle);
     void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[]);
     void ClearColor(RHICommandList& cmdlist, TextureHandle handle, const vec4f& color);

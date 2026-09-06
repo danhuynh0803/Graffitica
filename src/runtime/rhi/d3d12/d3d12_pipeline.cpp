@@ -29,6 +29,15 @@ D3D12GraphicsPipeline::D3D12GraphicsPipeline(D3D12_RHI* pRHI, const GraphicsPipe
     UINT vertexShaderSize = 0;
     UINT pixelShaderSize = 0;
 
+    D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
+    // This is the highest version the sample supports. If CheckFeatureSupport succeeds, the HighestVersion returned will not be greater than this.
+    featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+
+    if (FAILED(pDevice->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
+    {
+        featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
+    }
+
     std::vector<D3D12_INPUT_ELEMENT_DESC> inputElementDescs {};
     inputElementDescs.reserve(desc.inputLayoutStates.size());
     for (const auto& input : desc.inputLayoutStates)
@@ -57,14 +66,20 @@ D3D12GraphicsPipeline::D3D12GraphicsPipeline(D3D12_RHI* pRHI, const GraphicsPipe
     else
     {
         const U32 bindingsSize = desc.pipelineLayout.descriptorSetBindings.size();
+        std::vector<CD3DX12_DESCRIPTOR_RANGE1> ranges(bindingsSize);
+        
         std::vector<CD3DX12_ROOT_PARAMETER1> rootParameters(bindingsSize);
+
+        rootParameters[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_VERTEX);
+
         for (U32 i = 0; i < bindingsSize; ++i)
         {
             const auto& grRootParam = desc.pipelineLayout.descriptorSetBindings[i];
             switch (grRootParam.descriptorType)
             {
             case DescriptorResourceType::ConstantBuffer:
-                //rootParameters[i].InitAsConstantBufferView()
+                ranges[i].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+                rootParameters[i].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_VERTEX);
                 break;
             case DescriptorResourceType::ShaderResource:
                 //rootParameters[i].InitAsDescriptorTable(
@@ -78,14 +93,17 @@ D3D12GraphicsPipeline::D3D12GraphicsPipeline(D3D12_RHI* pRHI, const GraphicsPipe
             }
         }
 
-        //CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        //rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-        //
-        //// Generate RootSignature
-        //ComPtr<ID3DBlob> signature;
-        //ComPtr<ID3DBlob> error;
-        //ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, featureData.HighestVersion, &signature, &error));
-        //ThrowIfFailed(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
+        D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+        CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
+        rootSignatureDesc.Init_1_1(rootParameters.size(), rootParameters.data(), 1, nullptr, rootSignatureFlags);
+        
+        // Generate RootSignature
+        ComPtr<ID3DBlob> signature;
+        ComPtr<ID3DBlob> error;
+        ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, featureData.HighestVersion, &signature, &error));
+        ThrowIfFailed(pDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_D3D12RootSignature)));
+        // TOOD
         //NAME_D3D12_OBJECT(m_D3D12RootSignature);
     }
 
