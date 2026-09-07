@@ -45,7 +45,11 @@ namespace
     rhi::RHIContext* pRHI;
     rhi::RHICommandList gCmdlist;
     TextureHandle gDepthBufferHndl;
-    BufferHandle gVertexBuffer;
+    BufferHandle positionVB;
+    BufferHandle colorVB;
+    BufferHandle normalVB;
+    BufferHandle texcoordVB;
+
     BufferHandle gIndexBuffer;
     BufferHandle gCameraConstantBuffer;
     rhi::GraphicsPipelineHandle gPipelineHandle;
@@ -113,6 +117,12 @@ EditorLayer::EditorLayer(const std::string& name)
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+    std::vector<vec4f> randomColors;
+    randomColors.reserve(model->GetVertices().size());
+    for (int i = 0; i < model->GetVertices().size(); ++i)
+    {
+        randomColors.emplace_back(dis(gen), dis(gen), dis(gen), 1.0f);
+    }
 
     pGfxContext = rhi::IGraphicsContext::GetInstance();
     pSwapchain = pGfxContext->GetSwapchain();
@@ -120,15 +130,42 @@ EditorLayer::EditorLayer(const std::string& name)
     pRHI = pGfxContext->GetRHIContext();
     gCmdlist = pRHI->CreateCommandList(rhi::CommandListType::GRAPHICS);
 
-    BufferDesc ModelDesc{
+    BufferDesc positionDesc{
         .sizeInBytes = sizeof(model->GetVertices()[0]) * model->GetVertices().size(),
         .strideInBytes = sizeof(model->GetVertices()[0]),
         .usageFlags = 0,
         .dataSrc = (void*)model->GetVertices().data(),
         .eResourceType = BufferResourceType::VertexBuffer
     };
-    gVertexBuffer = pRHI->CreateBuffer(ModelDesc);
+    positionVB = pRHI->CreateBuffer(positionDesc);
     
+    BufferDesc colorDesc{
+        .sizeInBytes = sizeof(randomColors[0]) * randomColors.size(),
+        .strideInBytes = sizeof(randomColors[0]),
+        .usageFlags = 0,
+        .dataSrc = randomColors.data(),
+        .eResourceType = BufferResourceType::VertexBuffer
+    };
+    colorVB = pRHI->CreateBuffer(colorDesc);
+
+    BufferDesc normalDesc{
+        .sizeInBytes = sizeof(model->GetNormals()[0]) * model->GetNormals().size(),
+        .strideInBytes = sizeof(model->GetNormals()[0]),
+        .usageFlags = 0,
+        .dataSrc = (void*)model->GetNormals().data(),
+        .eResourceType = BufferResourceType::VertexBuffer
+    };
+    normalVB = pRHI->CreateBuffer(normalDesc);
+
+    BufferDesc texcoordDesc{
+        .sizeInBytes = sizeof(model->GetTexCoords()[0]) * model->GetTexCoords().size(),
+        .strideInBytes = sizeof(model->GetTexCoords()[0]),
+        .usageFlags = 0,
+        .dataSrc = (void*)model->GetTexCoords().data(),
+        .eResourceType = BufferResourceType::VertexBuffer
+    };
+    texcoordVB = pRHI->CreateBuffer(texcoordDesc);
+
     BufferDesc ModelIndexDesc{
         .sizeInBytes = sizeof(model->GetIndices()[0]) * model->GetIndices().size(),
         .strideInBytes = sizeof(U16),
@@ -164,7 +201,6 @@ EditorLayer::EditorLayer(const std::string& name)
     
     // Pipeline creation
     std::string shaderDir = "shaders/";
-
     // TODO slang cpu compilation only supports compute
     // maybe look into spirv cross and reflections later to get a true VS/PS shader-style code workflow to work on CPU rhi?
     ShaderOutputs vsOut = (pGfxContext->GetRHIBackend() != RHI_BACKEND::CPU)
@@ -179,11 +215,6 @@ EditorLayer::EditorLayer(const std::string& name)
     const int backendIndex = static_cast<int>(pGfxContext->GetRHIBackend());
     pipelineDesc.VS = rhi::RHIShader(vsOut.blob.Get());
     pipelineDesc.PS = rhi::RHIShader(psOut.blob.Get());
-
-    // compute rhi pipeline test
-    //ShaderOutputs csOut = gShaderCompilerModule.CompileSlangToBlob(pGfxContext->GetRHIBackend(), (shaderDir + "compute.slang").c_str(), "CSMain");
-    //rhi::ComputePipelineDesc computeDesc{};
-    //computeDesc.CS = rhi::RHIShader(csOut.blob.Get());
 
     // TODO
     // Testing cpu-rasterization path by hard-coding the vertex/pixel ops
@@ -227,8 +258,8 @@ EditorLayer::EditorLayer(const std::string& name)
         .eInputType = rhi::InputType::COLOR,
         .semanticIndex = 0,
         .format = rhi::GrFormat::R32G32B32A32_SFLOAT,
-        .inputSlot = 0,
-        .alignedByteOffset = offsetof(Vertex, color),
+        .inputSlot = 1,
+        .alignedByteOffset = 0, //offsetof(Vertex, color),
         .inputSlotClass = rhi::InputClass::PER_VERTEX,
         .instanceDataStepRate = 0
     };
@@ -237,8 +268,8 @@ EditorLayer::EditorLayer(const std::string& name)
         .eInputType = rhi::InputType::NORMAL,
         .semanticIndex = 0,
         .format = rhi::GrFormat::R32G32B32_SFLOAT,
-        .inputSlot = 0,
-        .alignedByteOffset = offsetof(Vertex, normal),
+        .inputSlot = 2,
+        .alignedByteOffset = 0, //offsetof(Vertex, normal),
         .inputSlotClass = rhi::InputClass::PER_VERTEX,
         .instanceDataStepRate = 0
     };
@@ -247,8 +278,8 @@ EditorLayer::EditorLayer(const std::string& name)
         .eInputType = rhi::InputType::TEXCOORD,
         .semanticIndex = 0,
         .format = rhi::GrFormat::R32G32_SFLOAT,
-        .inputSlot = 0,
-        .alignedByteOffset = offsetof(Vertex, uv),
+        .inputSlot = 3,
+        .alignedByteOffset = 0, //offsetof(Vertex, uv),
         .inputSlotClass = rhi::InputClass::PER_VERTEX,
         .instanceDataStepRate = 0
     };
@@ -269,6 +300,11 @@ EditorLayer::EditorLayer(const std::string& name)
     pipelineDesc.pipelineLayout.descriptorSetBindings = setBindings;
 
     gPipelineHandle = pRHI->CreateGraphicsPipeline(pipelineDesc);
+
+    // compute rhi pipeline test
+    //ShaderOutputs csOut = gShaderCompilerModule.CompileSlangToBlob(pGfxContext->GetRHIBackend(), (shaderDir + "compute.slang").c_str(), "CSMain");
+    //rhi::ComputePipelineDesc computeDesc{};
+    //computeDesc.CS = rhi::RHIShader(csOut.blob.Get());
 }
 
 void EditorLayer::OnUpdate(double dt)
@@ -323,11 +359,11 @@ void EditorLayer::OnUpdate(double dt)
     pRHI->SetViewport(gCmdlist, viewportDesc);
     pRHI->SetScissor(gCmdlist, scissorRect);
     pRHI->SetPipeline(gCmdlist, rhi::PipelineBindPoint::Graphics, gPipelineHandle);
-    pRHI->SetVertexBuffers(gCmdlist, 1, &gVertexBuffer);
+    
+    BufferHandle vertexBuffers[] = { positionVB, colorVB, normalVB, texcoordVB };
+    pRHI->SetVertexBuffers(gCmdlist, sizeof(vertexBuffers) / sizeof(vertexBuffers[0]), vertexBuffers);
     pRHI->SetIndexBuffer(gCmdlist, gIndexBuffer);
     
-    // Simple quad test
-    //pRHI->DrawIndexedInstanced(gCmdlist, sizeof(quadIndices) / sizeof(quadIndices[0]), 1, 0, 0, 0);
     pRHI->DrawIndexedInstanced(gCmdlist, model->GetIndices().size(), 1, 0, 0, 0);
 
     pRHI->EndRenderPass(gCmdlist);

@@ -406,8 +406,13 @@ void D3D12_RHI::SetPipeline(RHICommandList& cmdlist, PipelineBindPoint eBindPoin
         // where the rootsig can be set upfront for all pipelines.
         // TODO Reminder to revisit after pipeline library and RG impl is complete
         pCmdlist->SetGraphicsRootSignature(res.m_D3D12RootSignature.Get());
-        // TODO hard code cbv set commands to test cbuffers
-        ID3D12DescriptorHeap* ppHeaps[] = { GetDescriptorHeap(DescriptorResourceType::ConstantBuffer)->GetNative() };
+        // Bind all shader resource heaps to the pipeline
+        // TODO eventually have a dedicated upload heap to update subresource data
+        // only a CBV/SRV/UAV heap and sampler heaps can be bound to the pipeline
+        ID3D12DescriptorHeap* ppHeaps[] = {
+            GetDescriptorHeap(DescriptorResourceType::ConstantBuffer)->GetNative(),
+            GetDescriptorHeap(DescriptorResourceType::Sampler)->GetNative()
+        };
         pCmdlist->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
         pCmdlist->SetGraphicsRootDescriptorTable(0, GetDescriptorHeap(DescriptorResourceType::ConstantBuffer)->GetNative()->GetGPUDescriptorHandleForHeapStart());
         pCmdlist->SetPipelineState(res.m_D3D12PipelineState.Get());
