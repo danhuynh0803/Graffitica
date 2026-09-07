@@ -30,18 +30,11 @@ namespace gr
 
 namespace
 {
-    // DH TODO rhi abstraction - for testing purposes, we can switch between cpu and gpu contexts here
     rhi::IGraphicsContext* pGfxContext = nullptr;
-    //rhi::CPUGraphicsContext* pGfxContext = nullptr;
     rhi::ISwapchain* pSwapchain = nullptr;
-    //rhi::CPUSwapchain* pSwapchain = nullptr;
-    //rhi::d3d12::D3D12GraphicsContext* gfxContext = nullptr;
-    //rhi::d3d12::D3D12Swapchain* swapchain = nullptr;
 
-    Buffer model{
-        .m_MeshData = std::make_shared<Mesh>("../assets/models/african_head.obj"),
-        //.m_MeshData = std::make_shared<Mesh>("../assets/models/xyzrgb_dragon.obj"),
-    };
+    std::shared_ptr<Mesh> model = std::make_shared<Mesh>("../assets/models/african_head.obj");
+    //model = std::make_shared<Mesh>("../assets/models/xyzrgb_dragon.obj"),
 
     gr::Camera gCamera({ 0,0,5 }, { 0,0,0 });
     std::vector<rhi::Framebuffer> gPresentFrameBuffers;
@@ -67,6 +60,16 @@ namespace
         vec2f uv;
     };
 
+    struct alignas(256) CameraData
+    {
+        mat44 view;
+        mat44 projection;
+        mat44 viewProjection;
+    } gCameraData;
+}
+
+namespace Debug
+{
     Vertex triangleVertices[] =
     {
         { { -0.5f,  0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
@@ -81,12 +84,24 @@ namespace
         0, 2, 3,
     };
 
-    struct alignas(256) CameraData
-    {
-        mat44 view;
-        mat44 projection;
-        mat44 viewProjection;
-    } gCameraData;
+    BufferDesc QuadBufferDesc{
+        // Simple quad test
+        .sizeInBytes = sizeof(triangleVertices),
+        .strideInBytes = sizeof(Vertex),
+        .usageFlags = 0,
+        .dataSrc = triangleVertices,
+        .eResourceType = BufferResourceType::VertexBuffer
+    };
+
+    BufferDesc indexDesc{
+        // Quad test
+        .sizeInBytes = sizeof(quadIndices),
+        .strideInBytes = sizeof(U16),
+        .usageFlags = 0, // TODO
+        .dataSrc = quadIndices,
+        .eResourceType = BufferResourceType::IndexBuffer,
+        .eFormat = rhi::GrFormat::R16_UINT
+    };
 }
 
 EditorLayer::EditorLayer(const std::string& name)
@@ -105,39 +120,20 @@ EditorLayer::EditorLayer(const std::string& name)
     pRHI = pGfxContext->GetRHIContext();
     gCmdlist = pRHI->CreateCommandList(rhi::CommandListType::GRAPHICS);
 
-    BufferDesc QuadBufferDesc{
-        // Simple quad test
-        .sizeInBytes = sizeof(triangleVertices),
-        .strideInBytes = sizeof(Vertex),
-        .usageFlags = 0,
-        .dataSrc = triangleVertices,
-        .eResourceType = BufferResourceType::VertexBuffer
-    };
-
     BufferDesc ModelDesc{
-        .sizeInBytes = sizeof(model.m_MeshData->GetVertices()[0]) * model.m_MeshData->GetVertices().size(),
-        .strideInBytes = sizeof(model.m_MeshData->GetVertices()[0]),
+        .sizeInBytes = sizeof(model->GetVertices()[0]) * model->GetVertices().size(),
+        .strideInBytes = sizeof(model->GetVertices()[0]),
         .usageFlags = 0,
-        .dataSrc = (void*)model.m_MeshData->GetVertices().data(),
+        .dataSrc = (void*)model->GetVertices().data(),
         .eResourceType = BufferResourceType::VertexBuffer
     };
     gVertexBuffer = pRHI->CreateBuffer(ModelDesc);
     
-    BufferDesc indexDesc{
-        // Quad test
-        .sizeInBytes = sizeof(quadIndices),
-        .strideInBytes = sizeof(U16),
-        .usageFlags = 0, // TODO
-        .dataSrc = quadIndices,
-        .eResourceType = BufferResourceType::IndexBuffer,
-        .eFormat = rhi::GrFormat::R16_UINT
-    };
-
     BufferDesc ModelIndexDesc{
-        .sizeInBytes = sizeof(model.m_MeshData->GetIndices()[0]) * model.m_MeshData->GetIndices().size(),
+        .sizeInBytes = sizeof(model->GetIndices()[0]) * model->GetIndices().size(),
         .strideInBytes = sizeof(U16),
         .usageFlags = 0, // TODO
-        .dataSrc = (void*)model.m_MeshData->GetIndices().data(),
+        .dataSrc = (void*)model->GetIndices().data(),
         .eResourceType = BufferResourceType::IndexBuffer,
         .eFormat = rhi::GrFormat::R16_UINT
     };
@@ -149,8 +145,12 @@ EditorLayer::EditorLayer(const std::string& name)
         .usageFlags = 0, // TODO
         .dataSrc = nullptr,
         .eResourceType = BufferResourceType::ConstantBuffer,
-        //.eFormat = rhi::GrFormat::R16_UINT
+        // TODO some params are unused for constant buffers, but the struct is shared with other buffer types,
+        // so maybe split to specialized BufferDesc for each type later, but for now just leave the unused params as is
+        //.eFormat = rhi::GrFormat::R16_UINT 
     };
+    // TODO return the buffer reference instead of handle, so that the user can call SetData on it directly
+    // to redesign what we can do with the RHIBufferResource later
     gCameraConstantBuffer = pRHI->CreateBuffer(cbufferDesc);
     pCameraConstantBuffer = pRHI->GetResource(gCameraConstantBuffer);
 
@@ -212,7 +212,7 @@ EditorLayer::EditorLayer(const std::string& name)
     };
     pipelineDesc.PS.pShaderFn = ps;
     
-
+    // TODO simplify the input layout state fields
     rhi::InputLayoutState position{
         .eInputType = rhi::InputType::POSITION,
         .semanticIndex = 0,
@@ -253,7 +253,7 @@ EditorLayer::EditorLayer(const std::string& name)
         .instanceDataStepRate = 0
     };
 
-    pipelineDesc.inputLayoutStates = { position }; //, color, normal, uv };
+    pipelineDesc.inputLayoutStates = { position, color, normal, uv };
 
     // TODO test layout later when textures and cbs are added
     // would prefer to get vk rhi up first to test before the
@@ -328,7 +328,7 @@ void EditorLayer::OnUpdate(double dt)
     
     // Simple quad test
     //pRHI->DrawIndexedInstanced(gCmdlist, sizeof(quadIndices) / sizeof(quadIndices[0]), 1, 0, 0, 0);
-    pRHI->DrawIndexedInstanced(gCmdlist, model.m_MeshData->GetIndices().size(), 1, 0, 0, 0);
+    pRHI->DrawIndexedInstanced(gCmdlist, model->GetIndices().size(), 1, 0, 0, 0);
 
     pRHI->EndRenderPass(gCmdlist);
 

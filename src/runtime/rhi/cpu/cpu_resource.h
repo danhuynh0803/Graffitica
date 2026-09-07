@@ -10,7 +10,7 @@ class CPUBufferResource : public RHIBufferResource
 {
 public:
     CPUBufferResource() = delete;
-    //~CPUBufferResource() = default;
+    ~CPUBufferResource() = default;
 
     CPUBufferResource([[maybeunused]] void*, const BufferDesc& desc)
         : m_SizeInBytes(desc.sizeInBytes), m_StrideInBytes(desc.strideInBytes),

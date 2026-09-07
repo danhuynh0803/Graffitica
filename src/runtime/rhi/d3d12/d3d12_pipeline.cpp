@@ -20,6 +20,22 @@ inline D3D12_INPUT_CLASSIFICATION ToD3D12InputClassification(InputClass i)
     }
 }
 
+inline D3D12_SHADER_VISIBILITY ToD3D12ShaderVisibility(ShaderStageFlagBits stage)
+{
+    switch (stage)
+    {
+    case ShaderStageFlagBits::VERTEX_BIT:
+        return D3D12_SHADER_VISIBILITY_VERTEX;
+    case ShaderStageFlagBits::PIXEL_BIT:
+        return D3D12_SHADER_VISIBILITY_PIXEL;
+    case ShaderStageFlagBits::ALL_GRAPHICS:
+        return D3D12_SHADER_VISIBILITY_ALL;
+    default:
+        throw std::runtime_error("Invalid ShaderStageFlagBits");
+    }
+}
+
+
 D3D12GraphicsPipeline::D3D12GraphicsPipeline(D3D12_RHI* pRHI, const GraphicsPipelineDesc& desc)
 {
     auto pDevice = pRHI->GetDevice();
@@ -70,8 +86,6 @@ D3D12GraphicsPipeline::D3D12GraphicsPipeline(D3D12_RHI* pRHI, const GraphicsPipe
         
         std::vector<CD3DX12_ROOT_PARAMETER1> rootParameters(bindingsSize);
 
-        rootParameters[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_VERTEX);
-
         for (U32 i = 0; i < bindingsSize; ++i)
         {
             const auto& grRootParam = desc.pipelineLayout.descriptorSetBindings[i];
@@ -79,14 +93,15 @@ D3D12GraphicsPipeline::D3D12GraphicsPipeline(D3D12_RHI* pRHI, const GraphicsPipe
             {
             case DescriptorResourceType::ConstantBuffer:
                 ranges[i].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
-                rootParameters[i].InitAsDescriptorTable(1, &ranges[i], D3D12_SHADER_VISIBILITY_VERTEX);
+                rootParameters[i].InitAsDescriptorTable(1, &ranges[i], ToD3D12ShaderVisibility(grRootParam.stageFlags));
                 break;
             case DescriptorResourceType::ShaderResource:
-                //rootParameters[i].InitAsDescriptorTable(
+                //ranges[i].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+                //rootParameters[i].InitAsDescriptorTable(1, &ranges[i], ToD3D12ShaderVisibility(grRootParam.stageFlags));
                 break;
             case DescriptorResourceType::UnorderedAccess:
-                //rootParameters[i].InitAsUnorderedAccessView
-                break;
+                //ranges[i].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+                //rootParameters[i].InitAsDescriptorTable(1, &ranges[i], ToD3D12ShaderVisibility(grRootParam.stageFlags));                break;
             default:
                 // log
                 break;
