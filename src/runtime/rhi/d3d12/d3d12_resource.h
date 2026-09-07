@@ -11,6 +11,7 @@
 namespace gr::rhi
 {
 
+
 using Microsoft::WRL::ComPtr;
 
 class D3D12DescriptorHeap
@@ -24,9 +25,17 @@ public:
         D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
         heapDesc.NumDescriptors = heapSize;
         heapDesc.Type = ToD3D12DescriptorHeapType(eType);
-        heapDesc.Flags = (eType == DescriptorResourceType::ShaderResource || eType == DescriptorResourceType::Sampler)
-            ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
-            : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+        switch (eType)
+        {
+        // Mark cb,srv, uav, and sampler descriptor heaps as shader visible
+        case DescriptorResourceType::ConstantBuffer:
+        case DescriptorResourceType::ShaderResource:
+        case DescriptorResourceType::UnorderedAccess:
+        case DescriptorResourceType::Sampler:
+            heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+            break;
+        }
+
         ThrowIfFailed(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&pDescriptorHeap)));
         m_DescriptorSize = device->GetDescriptorHandleIncrementSize(heapDesc.Type);
     }
@@ -34,7 +43,7 @@ public:
     [[nodiscard]] U32 CreateConstantBufferViewFromHeap(const D3D12_CONSTANT_BUFFER_VIEW_DESC& desc)
     {
         // Only allow the shader resource descriptor heap to create constant buffer views
-        assert(m_HeapType == DescriptorResourceType::ShaderResource);
+        assert(m_HeapType == DescriptorResourceType::ConstantBuffer);
         m_pDevice->CreateConstantBufferView(&desc, GetCurrentOffsetHandle());
         U32 heapIdx = m_CurrentOffset;
         m_CurrentOffset++; // Increment heap handle to avoid overwriting past-views

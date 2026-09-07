@@ -253,6 +253,11 @@ public:
         // no-op
     }
 
+    CPUBufferResource* GetResource(BufferHandle handle)
+    {
+        return &m_BufferPool->Get(handle);
+    }
+
     // TODO: Expose for quick testing
     //CPUBufferResourcePool& GetBufferPool() { return m_BufferPool; }
     //CPUTextureResourcePool& GetTexturePool() { return m_TexturePool; }

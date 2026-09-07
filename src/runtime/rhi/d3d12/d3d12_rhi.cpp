@@ -224,11 +224,11 @@ TextureHandle D3D12_RHI::ImportTexture(D3D12TextureResource&& resource)
     return m_TexturePool->Import(std::move(resource));
 }
 
-D3D12BufferResource D3D12_RHI::GetBuffer(BufferHandle handle)
-{
-    GR_TRACE_START(SYS_RHI);
-    return m_BufferPool->Get(handle);
-}
+//D3D12BufferResource D3D12_RHI::GetBuffer(BufferHandle handle)
+//{
+//    GR_TRACE_START(SYS_RHI);
+//    return m_BufferPool->Get(handle);
+//}
 
 [[nodiscard]] D3D12TextureResource& D3D12_RHI::GetTexture(TextureHandle handle)
 {
@@ -406,6 +406,10 @@ void D3D12_RHI::SetPipeline(RHICommandList& cmdlist, PipelineBindPoint eBindPoin
         // where the rootsig can be set upfront for all pipelines.
         // TODO Reminder to revisit after pipeline library and RG impl is complete
         pCmdlist->SetGraphicsRootSignature(res.m_D3D12RootSignature.Get());
+        // TODO hard code cbv set commands to test cbuffers
+        ID3D12DescriptorHeap* ppHeaps[] = { GetDescriptorHeap(DescriptorResourceType::ConstantBuffer)->GetNative() };
+        pCmdlist->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+        pCmdlist->SetGraphicsRootDescriptorTable(0, GetDescriptorHeap(DescriptorResourceType::ConstantBuffer)->GetNative()->GetGPUDescriptorHandleForHeapStart());
         pCmdlist->SetPipelineState(res.m_D3D12PipelineState.Get());
         pCmdlist->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 

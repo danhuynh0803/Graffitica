@@ -6,11 +6,11 @@
 namespace gr::rhi
 {
 
-class CPUBufferResource
+class CPUBufferResource : public RHIBufferResource
 {
 public:
     CPUBufferResource() = delete;
-    ~CPUBufferResource() = default;
+    //~CPUBufferResource() = default;
 
     CPUBufferResource([[maybeunused]] void*, const BufferDesc& desc)
         : m_SizeInBytes(desc.sizeInBytes), m_StrideInBytes(desc.strideInBytes),
@@ -78,6 +78,11 @@ public:
             other.m_StrideInBytes = 0;
         }
         return *this;
+    }
+
+    virtual void SetData(const void* data, size_t size) override
+    {
+        memcpy(m_Data.data(), data, size);
     }
 
     void* Map() { return m_Data.data(); }

@@ -43,6 +43,7 @@ public:
 
     [[nodiscard]] U32 Allocate(const TResourceDesc& desc)
     {
+        // Pass RHI Instance
         // Gfx api backends will usually need access to other backend objects
         // in order to create the desired resource
         TResource resource(m_RHIInstance, desc);
@@ -51,12 +52,12 @@ public:
         {
             handle = m_FreeList.back();
             m_FreeList.pop_back();
-            m_Cache[handle] = resource;
+            m_Cache[handle] = std::move(resource);
         }
         else
         {
             handle = m_Cache.size();
-            m_Cache.emplace_back(m_RHIInstance, desc);
+            m_Cache.push_back(std::move(resource));
         }
         return handle;
     }

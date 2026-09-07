@@ -43,7 +43,7 @@ namespace
         //.m_MeshData = std::make_shared<Mesh>("../assets/models/xyzrgb_dragon.obj"),
     };
 
-    gr::Camera gCamera({ 0,0,1 }, { 0,0,0 });
+    gr::Camera gCamera({ 0,0,5 }, { 0,0,0 });
     std::vector<rhi::Framebuffer> gPresentFrameBuffers;
 
     CameraController gCameraController(&gCamera);
@@ -56,6 +56,7 @@ namespace
     BufferHandle gIndexBuffer;
     BufferHandle gCameraConstantBuffer;
     rhi::GraphicsPipelineHandle gPipelineHandle;
+    RHIBufferResource* pCameraConstantBuffer;
 
     struct Vertex
     {
@@ -79,6 +80,13 @@ namespace
         0, 1, 2,
         0, 2, 3,
     };
+
+    struct alignas(256) CameraData
+    {
+        mat44 view;
+        mat44 projection;
+        mat44 viewProjection;
+    } gCameraData;
 }
 
 EditorLayer::EditorLayer(const std::string& name)
@@ -97,18 +105,35 @@ EditorLayer::EditorLayer(const std::string& name)
     pRHI = pGfxContext->GetRHIContext();
     gCmdlist = pRHI->CreateCommandList(rhi::CommandListType::GRAPHICS);
 
-    BufferDesc bufferDesc{
-        //.sizeInBytes = sizeof(triangleVertices),
-        //.dataSrc = triangleVertices,
+    BufferDesc QuadBufferDesc{
+        // Simple quad test
+        .sizeInBytes = sizeof(triangleVertices),
+        .strideInBytes = sizeof(Vertex),
+        .usageFlags = 0,
+        .dataSrc = triangleVertices,
+        .eResourceType = BufferResourceType::VertexBuffer
+    };
+
+    BufferDesc ModelDesc{
         .sizeInBytes = sizeof(model.m_MeshData->GetVertices()[0]) * model.m_MeshData->GetVertices().size(),
         .strideInBytes = sizeof(model.m_MeshData->GetVertices()[0]),
         .usageFlags = 0,
         .dataSrc = (void*)model.m_MeshData->GetVertices().data(),
         .eResourceType = BufferResourceType::VertexBuffer
     };
-    gVertexBuffer = pRHI->CreateBuffer(bufferDesc);
+    gVertexBuffer = pRHI->CreateBuffer(ModelDesc);
     
     BufferDesc indexDesc{
+        // Quad test
+        .sizeInBytes = sizeof(quadIndices),
+        .strideInBytes = sizeof(U16),
+        .usageFlags = 0, // TODO
+        .dataSrc = quadIndices,
+        .eResourceType = BufferResourceType::IndexBuffer,
+        .eFormat = rhi::GrFormat::R16_UINT
+    };
+
+    BufferDesc ModelIndexDesc{
         .sizeInBytes = sizeof(model.m_MeshData->GetIndices()[0]) * model.m_MeshData->GetIndices().size(),
         .strideInBytes = sizeof(U16),
         .usageFlags = 0, // TODO
@@ -116,17 +141,18 @@ EditorLayer::EditorLayer(const std::string& name)
         .eResourceType = BufferResourceType::IndexBuffer,
         .eFormat = rhi::GrFormat::R16_UINT
     };
-    gIndexBuffer = pRHI->CreateBuffer(indexDesc);
+    gIndexBuffer = pRHI->CreateBuffer(ModelIndexDesc);
 
     BufferDesc cbufferDesc{
-        .sizeInBytes = sizeof(model.m_MeshData->GetIndices()[0]) * model.m_MeshData->GetIndices().size(),
-        .strideInBytes = sizeof(U16),
+        .sizeInBytes = sizeof(CameraData),
+        .strideInBytes = 0,
         .usageFlags = 0, // TODO
-        .dataSrc = (void*)model.m_MeshData->GetIndices().data(),
+        .dataSrc = nullptr,
         .eResourceType = BufferResourceType::ConstantBuffer,
-        .eFormat = rhi::GrFormat::R16_UINT
+        //.eFormat = rhi::GrFormat::R16_UINT
     };
     gCameraConstantBuffer = pRHI->CreateBuffer(cbufferDesc);
+    pCameraConstantBuffer = pRHI->GetResource(gCameraConstantBuffer);
 
     TextureDesc targetDesc {
         .width = pSwapchain->GetWidth(),
@@ -135,7 +161,7 @@ EditorLayer::EditorLayer(const std::string& name)
         .eResourceType = DescriptorResourceType::DepthStencil
     };
     //gDepthBufferHndl = pRHI->CreateTexture(targetDesc);
-
+    
     // Pipeline creation
     std::string shaderDir = "shaders/";
 
@@ -251,6 +277,11 @@ void EditorLayer::OnUpdate(double dt)
 
     gCameraController.OnUpdate(static_cast<float>(dt));
 
+    gCameraData.view = gCamera.GetView();
+    gCameraData.projection = gCamera.GetPerspectiveProjection(45, (float)pSwapchain->GetWidth() / pSwapchain->GetHeight(), 0.01, 1000.0f);
+    gCameraData.viewProjection =  gCameraData.projection * gCameraData.view;
+    pCameraConstantBuffer->SetData(&gCameraData, sizeof(CameraData));
+
     auto backBufferHndl = pSwapchain->GetCurrentFrameResourceHandle();
     
     ViewportDesc viewportDesc{
@@ -295,7 +326,9 @@ void EditorLayer::OnUpdate(double dt)
     pRHI->SetVertexBuffers(gCmdlist, 1, &gVertexBuffer);
     pRHI->SetIndexBuffer(gCmdlist, gIndexBuffer);
     
-    pRHI->DrawIndexedInstanced(gCmdlist, sizeof(quadIndices) / sizeof(U16), 1, 0, 0, 0);
+    // Simple quad test
+    //pRHI->DrawIndexedInstanced(gCmdlist, sizeof(quadIndices) / sizeof(quadIndices[0]), 1, 0, 0, 0);
+    pRHI->DrawIndexedInstanced(gCmdlist, model.m_MeshData->GetIndices().size(), 1, 0, 0, 0);
 
     pRHI->EndRenderPass(gCmdlist);
 

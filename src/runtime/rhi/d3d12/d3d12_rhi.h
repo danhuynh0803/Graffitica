@@ -42,12 +42,12 @@ public:
     [[nodiscard]] ComPtr<ID3D12CommandAllocator> GetGraphicsCommandAllocator() const { return m_GraphicsCommandAllocator; }
     [[nodiscard]] D3D12DescriptorHeap* GetDescriptorHeap(DescriptorResourceType eType) { return &(m_DescriptorHeaps[static_cast<I32>(eType)]); }
     [[nodiscard]] const FeatureSupportData& GetFeatureSupportData() const { return m_FeatureSupportData; }
-
+    [[nodiscard]] D3D12BufferResource* GetResource(BufferHandle handle) { return &m_BufferPool->Get(handle); }
     [[nodiscard]] BufferHandle CreateBuffer(const BufferDesc& desc);
     [[nodiscard]] TextureHandle CreateTexture(const TextureDesc& desc);
     [[nodiscard]] TextureHandle CreateTexture(ComPtr<ID3D12Resource> extResource, DescriptorResourceType eResourceType);
     [[nodiscard]] TextureHandle ImportTexture(D3D12TextureResource&& resource);
-    [[nodiscard]] D3D12BufferResource GetBuffer(BufferHandle handle);
+    //[[nodiscard]] D3D12BufferResource GetBuffer(BufferHandle handle);
     [[nodiscard]] D3D12TextureResource& GetTexture(TextureHandle handle);
     [[nodiscard]] RHICommandList CreateCommandList(CommandListType type);
 

@@ -32,6 +32,8 @@ struct RHIContext
     GraphicsPipelineHandle (*pfnCreateGraphicsPipeline)(void*, const GraphicsPipelineDesc&);
     ComputePipelineHandle  (*pfnCreateComputePipeline)(void*, const ComputePipelineDesc&);
 
+    RHIBufferResource* (*pfnGetResource)(void*, BufferHandle);
+
     // Command Recording
     RHICommandList (*pfnCreateCommandList)(void*, CommandListType);
     void (*pfnBeginRecording)(void*, RHICommandList&);
@@ -90,6 +92,10 @@ struct RHIContext
 
         pfnCreateComputePipeline = [](void* p, const ComputePipelineDesc& desc) -> ComputePipelineHandle {
             return static_cast<TRHIBackend*>(p)->CreateComputePipeline(desc);
+        };
+
+        pfnGetResource = [](void* p, BufferHandle handle) -> RHIBufferResource* {
+            return static_cast<TRHIBackend*>(p)->GetResource(handle);
         };
 
         pfnCreateCommandList = [](void* p, CommandListType type) -> RHICommandList {
@@ -316,6 +322,12 @@ struct RHIContext
     {
         GR_TRACE_START(SYS_RHI)
         pfnWaitForQueueCompletion(pInstance, pQueue, pFence);
+    }
+
+    inline RHIBufferResource* GetResource(BufferHandle handle)
+    {
+        GR_TRACE_START(SYS_RHI)
+        return pfnGetResource(pInstance, handle);
     }
 };
 

@@ -79,7 +79,7 @@ D3D12GraphicsPipeline::D3D12GraphicsPipeline(D3D12_RHI* pRHI, const GraphicsPipe
             {
             case DescriptorResourceType::ConstantBuffer:
                 ranges[i].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
-                rootParameters[i].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_VERTEX);
+                rootParameters[i].InitAsDescriptorTable(1, &ranges[i], D3D12_SHADER_VISIBILITY_VERTEX);
                 break;
             case DescriptorResourceType::ShaderResource:
                 //rootParameters[i].InitAsDescriptorTable(
@@ -96,7 +96,7 @@ D3D12GraphicsPipeline::D3D12GraphicsPipeline(D3D12_RHI* pRHI, const GraphicsPipe
         D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        rootSignatureDesc.Init_1_1(rootParameters.size(), rootParameters.data(), 1, nullptr, rootSignatureFlags);
+        rootSignatureDesc.Init_1_1(rootParameters.size(), rootParameters.data(), 0, nullptr, rootSignatureFlags);
         
         // Generate RootSignature
         ComPtr<ID3DBlob> signature;

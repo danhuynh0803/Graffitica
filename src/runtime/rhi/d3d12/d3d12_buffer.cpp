@@ -8,12 +8,9 @@ namespace gr::rhi
 
 D3D12BufferResource::D3D12BufferResource(D3D12_RHI* pRHI, const BufferDesc& desc)
     : m_SizeInBytes(desc.sizeInBytes),
-      m_StrideInBytes(desc.strideInBytes)
+      m_StrideInBytes(desc.strideInBytes),
+      m_DataBegin(nullptr)
 {
-    // Keep CPU copy
-    m_Data.resize(desc.sizeInBytes);
-    memcpy(m_Data.data(), desc.dataSrc, desc.sizeInBytes);
-
     // Describe buffer
     const auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(desc.sizeInBytes);
 
@@ -32,11 +29,18 @@ D3D12BufferResource::D3D12BufferResource(D3D12_RHI* pRHI, const BufferDesc& desc
     );
 
     // Upload data
-    U8* pDataBegin = nullptr;
-    CD3DX12_RANGE readRange(0, 0); // CPU won't read
-    ThrowIfFailed(pResource->Map(0, &readRange, reinterpret_cast<void**>(&pDataBegin)));
-    memcpy(pDataBegin, desc.dataSrc, desc.sizeInBytes);
-    pResource->Unmap(0, nullptr);
+    if (desc.dataSrc != nullptr && desc.sizeInBytes > 0)
+    {
+        // Keep CPU copy
+        m_Data.resize(desc.sizeInBytes);
+        memcpy(m_Data.data(), desc.dataSrc, desc.sizeInBytes);
+
+        U8* pDataBegin = nullptr;
+        CD3DX12_RANGE readRange(0, 0); // CPU won't read
+        ThrowIfFailed(pResource->Map(0, &readRange, reinterpret_cast<void**>(&pDataBegin)));
+        memcpy(pDataBegin, desc.dataSrc, desc.sizeInBytes);
+        pResource->Unmap(0, nullptr);
+    }
 
     // Initialize buffer views
     switch (desc.eResourceType)

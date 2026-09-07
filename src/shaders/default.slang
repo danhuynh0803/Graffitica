@@ -20,6 +20,7 @@ PSInput VSMain(float4 position : POSITION) //, float4 color : COLOR) , float3 no
     PSInput result;
 
     result.position = mul(viewProj, float4(position.xyz, 1.0));
+    //result.position = float4(position.xyz, 1.0);
     //result.color = color; //float4(1.0, 0.0, 1.0, 1.0);
     return result;
 }
@@ -28,7 +29,8 @@ PSInput VSMain(float4 position : POSITION) //, float4 color : COLOR) , float3 no
 float4 PSMain(PSInput input) : SV_TARGET
 {
     //return input.color; //
-    return float4(1.0, 0.0, 1.0f, 1.0f);
+    //return float4(1.0, 0.0, 1.0f, 1.0f);
+    return input.position;
 }
 
 //======================================================================================

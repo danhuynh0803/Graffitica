@@ -5,6 +5,12 @@
 #include "rhi/formats.h"
 #include "developer/profiler/profiler.h"
 
+struct MappableResource
+{
+    virtual void* Map() = 0;
+    virtual void  Unmap() = 0;
+};
+
 enum class BufferResourceType : U8
 {
     VertexBuffer = 0,
@@ -70,6 +76,16 @@ struct BufferDesc
     void* dataSrc;
     BufferResourceType eResourceType;
     gr::rhi::GrFormat eFormat; // Used for a subset of buffers (e.g. index)
+};
+
+class RHIBufferResource
+{
+public:
+    virtual ~RHIBufferResource() = default;
+    virtual void SetData(const void* data, size_t size) = 0;
+    //virtual size_t GetSize() const = 0;
+private:
+    //void* pNativeBufferResource;
 };
 
 /*
