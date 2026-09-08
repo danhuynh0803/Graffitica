@@ -81,12 +81,13 @@ enum class PipelineBindPoint
 
 struct GraphicsPipelineDesc
 {
-    RasterizerState rasterizerState;
-    DepthStencilState depthStencilState;
-    PipelineLayout pipelineLayout;
+    RasterizerState* pRasterizerState;
+    DepthStencilState* pDepthStencilState;
+    PipelineLayout* pPipelineLayout;
     std::vector<InputLayoutState> inputLayoutStates;
-    RHIShader VS;
-    RHIShader PS;
+    SamplerDesc* pSamplerDesc;
+    RHIShader* pVS;
+    RHIShader* pPS;
 };
 
 struct ComputePipelineDesc

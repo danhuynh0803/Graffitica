@@ -37,6 +37,8 @@ public:
 
 private:
     Microsoft::WRL::ComPtr<ID3D12Resource> pResource = nullptr;
+    D3D12_STATIC_SAMPLER_DESC samplerDesc{};
+
     D3D12_RESOURCE_STATES currentState{};
 
     I32 srvIndex = -1;

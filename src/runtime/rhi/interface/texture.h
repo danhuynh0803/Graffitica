@@ -36,16 +36,16 @@ enum class GrComparisonFunc : uint8_t
 
 struct SamplerDesc
 {
-    GrFilter filter;
-    GrAddressMode addressU;
-    GrAddressMode addressV;
-    GrAddressMode addressW;
-    float mipLODBias;
-    U32 maxAnisotropy;
-    GrComparisonFunc comparisonFunc;
-    float borderColor[4];
-    float minLOD;
-    float maxLOD;
+    GrFilter filter = GrFilter::LINEAR;
+    GrAddressMode addressU = GrAddressMode::REPEAT;
+    GrAddressMode addressV = GrAddressMode::REPEAT;
+    GrAddressMode addressW = GrAddressMode::REPEAT;
+    float mipLODBias = 0.0f;
+    U32 maxAnisotropy = 1;
+    GrComparisonFunc comparisonFunc = GrComparisonFunc::ALWAYS;
+    float borderColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    float minLOD = 0.0f;
+    float maxLOD = FLT_MAX;
 };
 
 }

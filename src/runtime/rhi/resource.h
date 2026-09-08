@@ -99,7 +99,7 @@ struct TextureDesc
     U32 height;
     gr::rhi::GrFormat eFormat;
     DescriptorResourceType eResourceType;
-    gr::rhi::SamplerDesc samplerDesc;
+    gr::rhi::SamplerDesc* pSamplerDesc;
 };
 
 struct RHITextureResource

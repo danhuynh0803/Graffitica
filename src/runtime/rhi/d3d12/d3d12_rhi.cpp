@@ -184,6 +184,12 @@ D3D12_RHI::D3D12_RHI()
     default:
         throw std::runtime_error("ResourceFormat is not valid");
     }
+
+    // Generate sampler if specified in the desc
+    if (desc.pSamplerDesc)
+    {
+        
+    }
     
     return m_TexturePool->Import(std::move(res));
 }
