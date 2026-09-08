@@ -4,6 +4,7 @@
 #include "core/types.h"
 #include "rhi/formats.h"
 #include "developer/profiler/profiler.h"
+#include "rhi/interface/Texture.h"
 
 struct MappableResource
 {
@@ -98,6 +99,7 @@ struct TextureDesc
     U32 height;
     gr::rhi::GrFormat eFormat;
     DescriptorResourceType eResourceType;
+    SamplerDesc samplerDesc;
 };
 
 struct RHITextureResource
