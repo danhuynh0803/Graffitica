@@ -22,3 +22,6 @@
 [submodule "external/xxHash"]
 	path = external/xxHash
 	url = https://github.com/Cyan4973/xxHash.git
+[submodule "external/fastgltf"]
+	path = external/fastgltf
+	url = https://github.com/spnda/fastgltf.git
