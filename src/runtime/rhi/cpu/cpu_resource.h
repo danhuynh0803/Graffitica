@@ -106,8 +106,8 @@ struct CPUTextureResource
       : m_Width(desc.width),
         m_Height(desc.height),
         m_Format(desc.eFormat),
-        m_FormatSize(ConvertFormatToByteSize(desc.eFormat)),
-        m_Data(m_Width * m_Height * ConvertFormatToByteSize(desc.eFormat))
+        m_FormatSize(FormatToByteSize(desc.eFormat)),
+        m_Data(m_Width * m_Height * FormatToByteSize(desc.eFormat))
     {
     }
 

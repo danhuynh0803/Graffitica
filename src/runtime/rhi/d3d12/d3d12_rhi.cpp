@@ -127,6 +127,11 @@ D3D12_RHI::D3D12_RHI()
 
     ThrowIfFailed(m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_CommandQueue)));
     ThrowIfFailed(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_GraphicsCommandAllocator)));
+    // Backend commandlist used just upload heap copies and resource allocations
+    ThrowIfFailed(m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                              m_GraphicsCommandAllocator.Get(), nullptr,
+                                              IID_PPV_ARGS(&m_CommandList)));
+    m_CommandList->Close();
 
     // Allocate one heap for each DescriptorHeap type: srv, rtv, dsv, samplers
     // For now lets just use hardcode of 1000 for heapsize
@@ -173,7 +178,9 @@ D3D12_RHI::D3D12_RHI()
     switch (desc.eResourceType)
     {
     case DescriptorResourceType::ShaderResource:
-        res.srvIndex = heap->CreateViewFromHeap(res.pResource.Get());
+        // Disable this since ShaderResource objects are now created in D3D12TextureResource constructor
+        // Planning to remove this anyway per the above note
+        //res.srvIndex = heap->CreateViewFromHeap(res.pResource.Get());
         break;
     case DescriptorResourceType::RenderTarget:
         res.rtvIndex = heap->CreateViewFromHeap(res.pResource.Get());
@@ -415,12 +422,19 @@ void D3D12_RHI::SetPipeline(RHICommandList& cmdlist, PipelineBindPoint eBindPoin
         // Bind all shader resource heaps to the pipeline
         // TODO eventually have a dedicated upload heap to update subresource data
         // only a CBV/SRV/UAV heap and sampler heaps can be bound to the pipeline
+
+        // TODO hardcoding the camera cbuffer handle for testing
+        const auto& cbuffer = m_BufferPool->Get(5);
+        pCmdlist->SetGraphicsRootConstantBufferView(0, cbuffer.pResource->GetGPUVirtualAddress());
+
         ID3D12DescriptorHeap* ppHeaps[] = {
-            GetDescriptorHeap(DescriptorResourceType::ConstantBuffer)->GetNative(),
-            GetDescriptorHeap(DescriptorResourceType::Sampler)->GetNative()
+            //GetDescriptorHeap(DescriptorResourceType::ConstantBuffer)->GetNative(),
+            GetDescriptorHeap(DescriptorResourceType::ShaderResource)->GetNative(),
+            //GetDescriptorHeap(DescriptorResourceType::Sampler)->GetNative()
         };
         pCmdlist->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-        pCmdlist->SetGraphicsRootDescriptorTable(0, GetDescriptorHeap(DescriptorResourceType::ConstantBuffer)->GetNative()->GetGPUDescriptorHandleForHeapStart());
+        //pCmdlist->SetGraphicsRootDescriptorTable(0, GetDescriptorHeap(DescriptorResourceType::ConstantBuffer)->GetNative()->GetGPUDescriptorHandleForHeapStart());
+        pCmdlist->SetGraphicsRootDescriptorTable(1, GetDescriptorHeap(DescriptorResourceType::ShaderResource)->GetNative()->GetGPUDescriptorHandleForHeapStart());
         pCmdlist->SetPipelineState(res.m_D3D12PipelineState.Get());
         pCmdlist->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 

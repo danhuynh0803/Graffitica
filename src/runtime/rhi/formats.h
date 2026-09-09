@@ -91,8 +91,7 @@ enum class GrFormat : uint32_t
     COUNT
 };
 
-
-inline U32 ConvertFormatToByteSize(GrFormat format)
+inline U32 FormatToByteSize(GrFormat format)
 {
     switch (format)
     {

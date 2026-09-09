@@ -14,6 +14,9 @@ struct PSInput
     float2 uv : TEXCOORD;
 };
 
+Texture2D gTexture : register(t0);
+SamplerState gSamplerLinear : register(s0);
+
 [shader("vertex")]
 PSInput VSMain(float4 position : POSITION, float4 color : COLOR, float3 normal : NORMAL, float2 uv : TEXCOORD)
 {
@@ -30,10 +33,13 @@ PSInput VSMain(float4 position : POSITION, float4 color : COLOR, float3 normal :
 [shader("fragment")]
 float4 PSMain(PSInput input) : SV_TARGET
 {
-    //return input.color;
-    return float4(input.uv, 0.0, 1.0);
+    return gTexture.Sample(gSamplerLinear, input.uv);
 }
 
+
+//======================================================================================
+//======================================================================================
+//======================================================================================
 //======================================================================================
 // CPU compute part
 

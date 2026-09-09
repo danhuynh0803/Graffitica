@@ -81,13 +81,19 @@ public:
     void TransitionResource(RHICommandList& cmdlist, TextureHandle handle, ResourceState oldState, ResourceState newState);
     void Present(D3D12Swapchain* pSwapchain);
 
-    void WaitForQueueCompletion(void* pQueue, void* pFence);
+    // Not passing a queue or fence will prompt usage of the backend queue and fence resources
+    // We'd mostly be using the backend queue, but have the flexibility to use different fences
+    void WaitForQueueCompletion(void* pQueue = nullptr, void* pFence = nullptr);
+
+    friend class D3D12TextureResource;
 
 private:
     FeatureSupportData m_FeatureSupportData;
     ComPtr<ID3D12Device1> m_Device;
     ComPtr<ID3D12CommandQueue> m_CommandQueue;
     ComPtr<ID3D12CommandAllocator> m_GraphicsCommandAllocator;
+    // Backend command list used specifically for upload heaps and other resource allocation related tasks
+    ComPtr<ID3D12GraphicsCommandList1> m_CommandList;
 
     U32 m_MaxHeapSize = 1000;
     // reference it using the DescriptorResourceType indices

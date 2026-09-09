@@ -302,9 +302,9 @@ void CPUCommandList::DrawIndexedInstancedImpl(U32 indexCount, U32 instanceCount,
     const int topologyIncrement = 3;
     
     const U32 positionOffset = inputState[0].alignedByteOffset;
-    const U32 positionSizeInBytes = ConvertFormatToByteSize(inputState[0].format);
+    const U32 positionSizeInBytes = FormatToByteSize(inputState[0].format);
     const U32 colorOffset = inputState[1].alignedByteOffset;
-    const U32 colorSizeInBytes = ConvertFormatToByteSize(inputState[1].format);
+    const U32 colorSizeInBytes = FormatToByteSize(inputState[1].format);
     const U32 vertexStride = vb->m_StrideInBytes;
 
     // Per instance - TODO

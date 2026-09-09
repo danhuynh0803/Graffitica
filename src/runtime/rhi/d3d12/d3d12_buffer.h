@@ -12,6 +12,9 @@ class D3D12_RHI;
 
 using Microsoft::WRL::ComPtr;
 
+// ------------------------------------------------------------
+// Construct new buffer (supported types atm - vertex, index, constant)
+// ------------------------------------------------------------
 class D3D12BufferResource final : public RHIBufferResource
 {
 public:

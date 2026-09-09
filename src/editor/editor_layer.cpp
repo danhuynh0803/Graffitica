@@ -106,6 +106,42 @@ namespace Debug
         .eResourceType = BufferResourceType::IndexBuffer,
         .eFormat = rhi::GrFormat::R16_UINT
     };
+
+    constexpr std::vector<UINT8> GenerateDebugTextureData(U32 width, U32 height, U32 formatSize)
+    {
+        const UINT rowPitch = width * formatSize;
+        const UINT cellPitch = rowPitch >> 3;        // The width of a cell in the checkboard texture.
+        const UINT cellHeight = width >> 3;    // The height of a cell in the checkerboard texture.
+        const UINT textureSize = rowPitch * height;
+
+        std::vector<UINT8> data(textureSize);
+        UINT8* pData = &data[0];
+
+        for (UINT n = 0; n < textureSize; n += formatSize)
+        {
+            UINT x = n % rowPitch;
+            UINT y = n / rowPitch;
+            UINT i = x / cellPitch;
+            UINT j = y / cellHeight;
+
+            if (i % 2 == j % 2)
+            {
+                pData[n] = 0x00;        // R
+                pData[n + 1] = 0x00;    // G
+                pData[n + 2] = 0x00;    // B
+                pData[n + 3] = 0xff;    // A
+            }
+            else
+            {
+                pData[n] = 0xff;        // R
+                pData[n + 1] = 0xff;    // G
+                pData[n + 2] = 0xff;    // B
+                pData[n + 3] = 0xff;    // A
+            }
+        }
+
+        return data;
+    }
 }
 
 EditorLayer::EditorLayer(const std::string& name)
@@ -198,6 +234,17 @@ EditorLayer::EditorLayer(const std::string& name)
         .eResourceType = DescriptorResourceType::DepthStencil
     };
     //gDepthBufferHndl = pRHI->CreateTexture(targetDesc);
+
+    TextureDesc checkerTexDesc{
+        .width = pSwapchain->GetWidth(),
+        .height = pSwapchain->GetHeight(),
+        .eFormat = rhi::GrFormat::R8G8B8A8_UNORM,
+        .eResourceType = DescriptorResourceType::ShaderResource
+    };
+    checkerTexDesc.pSamplerDesc = nullptr;
+    auto debugTextureDataVec = Debug::GenerateDebugTextureData(checkerTexDesc.width, checkerTexDesc.height, FormatToByteSize(rhi::GrFormat::R8G8B8A8_UNORM));
+    checkerTexDesc.pDataSrc = debugTextureDataVec.data();
+    TextureHandle checkerTexture = pRHI->CreateTexture(checkerTexDesc);
     
     // Pipeline creation
     std::string shaderDir = "shaders/";
@@ -284,17 +331,29 @@ EditorLayer::EditorLayer(const std::string& name)
         .instanceDataStepRate = 0
     };
 
+    // Use default linear,repeat sampler
+    rhi::SamplerDesc samplerDesc {};
+    pipelineDesc.pSamplerDesc = &samplerDesc;
+
     pipelineDesc.inputLayoutStates = { position, color, normal, uv };
 
     // TODO test layout later when textures and cbs are added
     // would prefer to get vk rhi up first to test before the
     // design incurs more tech debt somewhere
-    std::vector<rhi::DescriptorSetBinding> setBindings(1);
+    std::vector<rhi::DescriptorSetBinding> setBindings(2);
+    // camera CBV
     setBindings[0] = rhi::DescriptorSetBinding{
         .binding = 0,
         .descriptorType=DescriptorResourceType::ConstantBuffer,
         .descriptorCount = 1,
         .stageFlags=rhi::ShaderStageFlagBits::VERTEX_BIT
+    };
+    // Bindless SRV/Texture heap
+    setBindings[1] = rhi::DescriptorSetBinding{
+        .binding = 1,
+        .descriptorType = DescriptorResourceType::ShaderResource,
+        .descriptorCount = 1,
+        .stageFlags = rhi::ShaderStageFlagBits::PIXEL_BIT
     };
 
     pipelineDesc.pipelineLayout.descriptorSetBindings = setBindings;

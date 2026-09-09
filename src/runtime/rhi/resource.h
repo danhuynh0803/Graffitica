@@ -100,6 +100,7 @@ struct TextureDesc
     gr::rhi::GrFormat eFormat;
     DescriptorResourceType eResourceType;
     gr::rhi::SamplerDesc* pSamplerDesc;
+    U8* pDataSrc;
 };
 
 struct RHITextureResource

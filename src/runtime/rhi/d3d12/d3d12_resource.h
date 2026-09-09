@@ -42,9 +42,17 @@ public:
 
     [[nodiscard]] U32 CreateConstantBufferViewFromHeap(const D3D12_CONSTANT_BUFFER_VIEW_DESC& desc)
     {
-        // Only allow the shader resource descriptor heap to create constant buffer views
+        // Only allow the shader pResource descriptor heap to create constant buffer views
         assert(m_HeapType == DescriptorResourceType::ConstantBuffer);
         m_pDevice->CreateConstantBufferView(&desc, GetCurrentOffsetHandle());
+        U32 heapIdx = m_CurrentOffset;
+        m_CurrentOffset++; // Increment heap handle to avoid overwriting past-views
+        return heapIdx;
+    }
+
+    [[nodiscard]] U32 CreateShaderResourceViewFromHeap(ID3D12Resource* pResource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc)
+    {
+        m_pDevice->CreateShaderResourceView(pResource, &desc, GetCurrentOffsetHandle());
         U32 heapIdx = m_CurrentOffset;
         m_CurrentOffset++; // Increment heap handle to avoid overwriting past-views
         return heapIdx;
@@ -68,7 +76,7 @@ public:
 
     [[nodiscard]] U32 CreateViewFromHeap(ID3D12Resource* resource)
     {
-        // Higher level code should identify the resource's type first
+        // Higher level code should identify the pResource's type first
         // this function then is called from the appropriate DescriptorHeap,
         // hence why we can reliably call the correct Create*View call from
         // the DescriptorHeap itself
