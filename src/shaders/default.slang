@@ -33,7 +33,10 @@ PSInput VSMain(float4 position : POSITION, float4 color : COLOR, float3 normal :
 [shader("fragment")]
 float4 PSMain(PSInput input) : SV_TARGET
 {
-    return gTexture.Sample(gSamplerLinear, input.uv);
+    float4 tex = gTexture.Sample(gSamplerLinear, input.uv);
+    float4 col = input.color;
+    float4 depth = float4(input.position.z, input.position.z, input.position.z, 1.0);
+    return col;
 }
 
 

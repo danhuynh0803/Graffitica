@@ -233,7 +233,7 @@ EditorLayer::EditorLayer(const std::string& name)
         .eFormat = rhi::GrFormat::D32_SFLOAT,
         .eResourceType = DescriptorResourceType::DepthStencil
     };
-    //gDepthBufferHndl = pRHI->CreateTexture(targetDesc);
+    gDepthBufferHndl = pRHI->CreateTexture(targetDesc);
 
     TextureDesc checkerTexDesc{
         .width = pSwapchain->GetWidth(),
@@ -346,7 +346,7 @@ EditorLayer::EditorLayer(const std::string& name)
         .binding = 0,
         .descriptorType=DescriptorResourceType::ConstantBuffer,
         .descriptorCount = 1,
-        .stageFlags=rhi::ShaderStageFlagBits::VERTEX_BIT
+        .stageFlags=rhi::ShaderStageFlagBits::ALL_GRAPHICS
     };
     // Bindless SRV/Texture heap
     setBindings[1] = rhi::DescriptorSetBinding{
@@ -355,6 +355,12 @@ EditorLayer::EditorLayer(const std::string& name)
         .descriptorCount = 1,
         .stageFlags = rhi::ShaderStageFlagBits::PIXEL_BIT
     };
+
+    rhi::DepthStencilState dsState {};
+    dsState.depthEnable = true;
+    dsState.depthFunc = rhi::GrComparisonFunc::LESS;
+    dsState.depthWriteMask = rhi::GrDepthWriteMask::WriteAll;
+    pipelineDesc.depthStencilState = dsState;
 
     pipelineDesc.pipelineLayout.descriptorSetBindings = setBindings;
 
@@ -398,6 +404,8 @@ void EditorLayer::OnUpdate(double dt)
     // TODO later replace with RenderGraph/RenderPass
     pRHI->BeginRecording(gCmdlist);
 
+    // TODO begin renderpass should handle the clearing
+    // but still keep flexibility of separate clear commands
     pRHI->BeginRenderPass(gCmdlist, 
     {
         .numColorAttachments = 1,
@@ -407,12 +415,12 @@ void EditorLayer::OnUpdate(double dt)
 
     pRHI->TransitionResource(gCmdlist, backBufferHndl, ResourceState::Present, ResourceState::RenderTarget);
 
-    pRHI->SetRenderTargets(gCmdlist, 1, &backBufferHndl);
+    pRHI->SetRenderTargets(gCmdlist, 1, &backBufferHndl, gDepthBufferHndl);
 
     //pRHI->ClearColor(gCmdlist, backBufferHndl, { .4, .5, .7, 1.0 });
     pRHI->ClearColor(gCmdlist, backBufferHndl, { .7, .7, .7, 1.0 });
 
-    //pRHI->ClearDepth(gCmdlist, gDepthBufferHndl, 1.0f);
+    pRHI->ClearDepth(gCmdlist, gDepthBufferHndl, 1.0f);
     // TODO Separate rootsig/pipelinelayout setting from SetPipeline call
     //m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
     pRHI->SetViewport(gCmdlist, viewportDesc);

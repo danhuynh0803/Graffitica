@@ -3,6 +3,7 @@
 #include <string>
 #include "core/types.h"
 #include "formats.h"
+#include "rhi/resource.h"
 
 namespace gr::rhi
 {
@@ -33,17 +34,17 @@ enum class DEPTH_COMPARISON_FUNC
     COMPARISON_FUNC_ALWAYS = 8
 };
 
-enum class DEPTH_WRITE_MASK
+enum class GrDepthWriteMask
 {
-    DEPTH_WRITE_MASK_ZERO = 0,
-    DEPTH_WRITE_MASK_ALL = 1
+    WriteZero = 0,
+    WriteAll = 1
 };
 
 // TODO remove/rename to DepthStencilState
 struct DepthStencilDesc
 {
     bool                    depthEnable;
-    DEPTH_WRITE_MASK        depthWriteMask;
+    GrDepthWriteMask        depthWriteMask;
     DEPTH_COMPARISON_FUNC   depthFunc;
     bool                    stencilEnable;
     U8                      stencilReadMask;
@@ -57,8 +58,8 @@ struct DepthStencilDesc
 struct DepthStencilState
 {
     bool                    depthEnable;
-    DEPTH_WRITE_MASK        depthWriteMask;
-    DEPTH_COMPARISON_FUNC   depthFunc;
+    GrDepthWriteMask        depthWriteMask;
+    GrComparisonFunc        depthFunc;
     bool                    stencilEnable;
     U8                      stencilReadMask;
     U8                      stencilWriteMask;

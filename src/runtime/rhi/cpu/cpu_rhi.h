@@ -183,11 +183,11 @@ public:
         pCmdlist->m_GraphicsPipeline = &m_GraphicsPipelinePool->Get(pipelineHandle);
     }
 
-    void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[])
+    void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[], TextureHandle dsv)
     {
         GR_TRACE_START(SYS_RHI);
         auto pCmdlist = GetNativeCommandList(cmdlist);
-        pCmdlist->m_Commands.emplace_back(SetRenderTargetsCmd{numViews, views});
+        pCmdlist->m_Commands.emplace_back(SetRenderTargetsCmd{numViews, views, dsv});
     }
     
     void ClearColor(RHICommandList& cmdlist, TextureHandle handle, const vec4f& color)

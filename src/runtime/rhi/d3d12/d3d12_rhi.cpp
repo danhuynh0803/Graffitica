@@ -183,10 +183,10 @@ D3D12_RHI::D3D12_RHI()
         //res.srvIndex = heap->CreateViewFromHeap(res.pResource.Get());
         break;
     case DescriptorResourceType::RenderTarget:
-        res.rtvIndex = heap->CreateViewFromHeap(res.pResource.Get());
+        res.rtvIndex = heap->CreateRenderTargetViewFromHeap(res.pResource.Get());
         break;
     case DescriptorResourceType::DepthStencil:
-        res.dsvIndex = heap->CreateViewFromHeap(res.pResource.Get());
+        res.dsvIndex = heap->CreateDepthStencilViewFromHeap(res.pResource.Get());
         break;
     default:
         throw std::runtime_error("ResourceFormat is not valid");
@@ -216,13 +216,13 @@ TextureHandle D3D12_RHI::CreateTexture(ComPtr<ID3D12Resource> extResource, Descr
     switch (eResourceType)
     {
     case DescriptorResourceType::ShaderResource:
-        res.srvIndex = heap->CreateViewFromHeap(res.pResource.Get());
+        //res.srvIndex = heap->CreateShaderResourceViewFromHeap(res.pResource.Get());
         break;
     case DescriptorResourceType::RenderTarget:
-        res.rtvIndex = heap->CreateViewFromHeap(res.pResource.Get());
+        res.rtvIndex = heap->CreateRenderTargetViewFromHeap(res.pResource.Get());
         break;
     case DescriptorResourceType::DepthStencil:
-        res.dsvIndex = heap->CreateViewFromHeap(res.pResource.Get());
+        res.dsvIndex = heap->CreateDepthStencilViewFromHeap(res.pResource.Get());
         break;
     default:
         throw std::runtime_error("ResourceFormat is not valid");
@@ -430,10 +430,9 @@ void D3D12_RHI::SetPipeline(RHICommandList& cmdlist, PipelineBindPoint eBindPoin
         ID3D12DescriptorHeap* ppHeaps[] = {
             //GetDescriptorHeap(DescriptorResourceType::ConstantBuffer)->GetNative(),
             GetDescriptorHeap(DescriptorResourceType::ShaderResource)->GetNative(),
-            //GetDescriptorHeap(DescriptorResourceType::Sampler)->GetNative()
+            GetDescriptorHeap(DescriptorResourceType::Sampler)->GetNative()
         };
         pCmdlist->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-        //pCmdlist->SetGraphicsRootDescriptorTable(0, GetDescriptorHeap(DescriptorResourceType::ConstantBuffer)->GetNative()->GetGPUDescriptorHandleForHeapStart());
         pCmdlist->SetGraphicsRootDescriptorTable(1, GetDescriptorHeap(DescriptorResourceType::ShaderResource)->GetNative()->GetGPUDescriptorHandleForHeapStart());
         pCmdlist->SetPipelineState(res.m_D3D12PipelineState.Get());
         pCmdlist->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -446,7 +445,7 @@ void D3D12_RHI::SetPipeline(RHICommandList& cmdlist, PipelineBindPoint eBindPoin
     // else if RT, etc
 }
 
-void D3D12_RHI::SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[])
+void D3D12_RHI::SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[], TextureHandle depthStencilView)
 {
     GR_TRACE_START(SYS_RHI);
     auto nativeCmdList = GetNativeCommandList(cmdlist);
@@ -468,8 +467,16 @@ void D3D12_RHI::SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureH
         nativeViews.push_back(descriptorHandle);
     }
 
+    auto& dsv = m_TexturePool->Get(depthStencilView);
+    const auto& dsvHeap = GetDescriptorHeap(DescriptorResourceType::DepthStencil);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE depthHandle(
+        dsvHeap->GetStartHandle(),
+        dsv.dsvIndex,
+        dsvHeap->GetDescriptorSize()
+    );
+
     // TODO Group with RenderPass Desc to set both Color and DepthStencil targetss
-    nativeCmdList->OMSetRenderTargets(numViews, nativeViews.data(), FALSE, nullptr);
+    nativeCmdList->OMSetRenderTargets(numViews, nativeViews.data(), FALSE, &depthHandle);
 }
 
 void D3D12_RHI::ClearColor(RHICommandList& cmdlist, TextureHandle handle, const vec4f& color)
@@ -493,8 +500,17 @@ void D3D12_RHI::ClearColor(RHICommandList& cmdlist, TextureHandle handle, const 
 void D3D12_RHI::ClearDepth(RHICommandList& cmdlist, TextureHandle handle, float clearDepth)
 {
     GR_TRACE_START(SYS_RHI);
-    D3D12CommandList* pCmdlist = static_cast<D3D12CommandList*>(cmdlist.pNativeCmdList.get());
+    auto pCmdList = GetNativeCommandList(cmdlist);
+
     auto& resource = m_TexturePool->Get(handle);
+
+    const auto& dsvHeap = GetDescriptorHeap(DescriptorResourceType::DepthStencil);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE depthHandle(
+        dsvHeap->GetStartHandle(),
+        resource.dsvIndex,
+        dsvHeap->GetDescriptorSize()
+    );
+    pCmdList->ClearDepthStencilView(depthHandle, D3D12_CLEAR_FLAG_DEPTH, clearDepth, 0, 0, nullptr);
 }
 
 void D3D12_RHI::DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)

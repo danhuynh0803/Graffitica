@@ -47,7 +47,7 @@ struct RHIContext
     // Binding cmds
     void (*pfnSetViewport)(void*, RHICommandList& cmdlist, const ViewportDesc& desc);
     void (*pfnSetScissor)(void*, RHICommandList& cmdlist, const Rect2D& rect);
-    void (*pfnSetRenderTargets)(void*, RHICommandList& cmdlist, U32 numViews, TextureHandle[]);
+    void (*pfnSetRenderTargets)(void*, RHICommandList& cmdlist, U32 numViews, TextureHandle[], TextureHandle);
     void (*pfnSetVertexBuffers)(void*, RHICommandList& cmdlist, U32 numViews, BufferHandle[]);
     void (*pfnSetIndexBuffer)(void*, RHICommandList& cmdlist, BufferHandle);
     void (*pfnSetPipeline)(void*, RHICommandList& cmdlist, PipelineBindPoint eBindPoint, U64 handle);
@@ -130,8 +130,8 @@ struct RHIContext
             static_cast<TRHIBackend*>(p)->SetScissor(cmdlist, rect);
         };
 
-        pfnSetRenderTargets = [](void* p, RHICommandList& cmdlist, U32 numViews, TextureHandle views[]) {
-            static_cast<TRHIBackend*>(p)->SetRenderTargets(cmdlist, numViews, views);
+        pfnSetRenderTargets = [](void* p, RHICommandList& cmdlist, U32 numViews, TextureHandle views[], TextureHandle depthStencileView) {
+            static_cast<TRHIBackend*>(p)->SetRenderTargets(cmdlist, numViews, views, depthStencileView);
         };
 
         pfnSetVertexBuffers = [](void* p, RHICommandList& cmdlist, U32 numViews, BufferHandle views[]) {
@@ -239,10 +239,10 @@ struct RHIContext
         pfnExecuteCommandList(pInstance, cmdlist);
     }
 
-    inline void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[])
+    inline void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[], TextureHandle depthStencilView)
     {
         GR_TRACE_START(SYS_RHI);
-        pfnSetRenderTargets(pInstance, cmdlist, numViews, views);
+        pfnSetRenderTargets(pInstance, cmdlist, numViews, views, depthStencilView);
     }
 
     inline void SetViewport(RHICommandList& cmdlist, const ViewportDesc& desc)

@@ -72,7 +72,7 @@ public:
     //void SetConstantBuffer(RHICommandList& cmdlist, BufferHandle bufferHandle, U32 bindIndex);
     //void SetResourceHeaps(RHICommandList& cmdlist, const std::vector<DescriptorResourceType>& descriptorTypesToBind);
     void SetPipeline(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, U64 pipelineHandle);
-    void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[]);
+    void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[], TextureHandle depthStencilView);
     void ClearColor(RHICommandList& cmdlist, TextureHandle handle, const vec4f& color);
     void ClearDepth(RHICommandList& cmdlist, TextureHandle handle, float clearDepth);
     void DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation);

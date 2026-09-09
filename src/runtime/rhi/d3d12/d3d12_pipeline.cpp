@@ -93,7 +93,7 @@ D3D12GraphicsPipeline::D3D12GraphicsPipeline(D3D12_RHI* pRHI, const GraphicsPipe
             {
             case DescriptorResourceType::ConstantBuffer:
                 ranges[i].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
-                rootParameters[i].InitAsConstantBufferView(0, 0, D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC, D3D12_SHADER_VISIBILITY_ALL);
+                rootParameters[i].InitAsConstantBufferView(0, 0, D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC, ToD3D12ShaderVisibility(grRootParam.stageFlags));
                 break;
             case DescriptorResourceType::ShaderResource:
                 ranges[i].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
@@ -154,8 +154,12 @@ D3D12GraphicsPipeline::D3D12GraphicsPipeline(D3D12_RHI* pRHI, const GraphicsPipe
     // TODO just keep the following state, but reminder to incorporate state from desc
     psoDesc.RasterizerState = rsDesc;
     psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-    psoDesc.DepthStencilState.DepthEnable = FALSE;
-    psoDesc.DepthStencilState.StencilEnable = FALSE;
+
+    const auto& dsState = desc.depthStencilState;
+    psoDesc.DepthStencilState.DepthEnable = dsState.depthEnable;
+    psoDesc.DepthStencilState.StencilEnable = dsState.stencilEnable;
+    psoDesc.DepthStencilState.DepthFunc = ToD3D12ComparisonFunc(dsState.depthFunc);
+    psoDesc.DepthStencilState.DepthWriteMask = ToD3D12DepthWriteMask(dsState.depthWriteMask);
     psoDesc.SampleMask = UINT_MAX;
     psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     psoDesc.NumRenderTargets = 1;

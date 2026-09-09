@@ -20,7 +20,7 @@ D3D12TextureResource::D3D12TextureResource(D3D12_RHI* pRHI, const TextureDesc& d
     textureDesc.Format = ToDXGIFormat(desc.eFormat);
     textureDesc.Width = desc.width;
     textureDesc.Height = desc.height;
-    textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+    textureDesc.Flags = IsDepthStencilFormat(desc.eFormat) ? D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL : D3D12_RESOURCE_FLAG_NONE;
     textureDesc.DepthOrArraySize = 1;
     textureDesc.SampleDesc.Count = 1;
     textureDesc.SampleDesc.Quality = 0;

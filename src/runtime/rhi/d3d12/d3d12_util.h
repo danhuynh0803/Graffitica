@@ -3,10 +3,95 @@
 #include <stdexcept>
 #include <wrl/wrappers/corewrappers.h>
 #include <string>
-#include "rhi/resource.h"
+#include "rhi/rhi_enums.h"
+#include "rhi/rasterizer_state.h"
+
+// Assign a name to the object to aid with debugging.
+#if defined(_DEBUG) || defined(DBG)
+inline void SetName(ID3D12Object* pObject, LPCWSTR name)
+{
+    pObject->SetName(name);
+}
+inline void SetNameIndexed(ID3D12Object* pObject, LPCWSTR name, UINT index)
+{
+    WCHAR fullName[50];
+    if (swprintf_s(fullName, L"%s[%u]", name, index) > 0)
+    {
+        pObject->SetName(fullName);
+    }
+}
+#else
+inline void SetName(ID3D12Object*, LPCWSTR)
+{
+}
+inline void SetNameIndexed(ID3D12Object*, LPCWSTR, UINT)
+{
+}
+#endif
+
+// Naming helper for ComPtr<T>.
+// Assigns the name of the variable as the name of the object.
+// The indexed variant will include the index in the name of the object.
+#define NAME_D3D12_OBJECT(x) SetName((x).Get(), L#x)
+#define NAME_D3D12_OBJECT_INDEXED(x, n) SetNameIndexed((x)[n].Get(), L#x, n)
 
 namespace gr::rhi
 {
+
+inline D3D12_DEPTH_WRITE_MASK ToD3D12DepthWriteMask(GrDepthWriteMask mask)
+{
+    switch (mask)
+    {
+    case GrDepthWriteMask::WriteZero:
+        return D3D12_DEPTH_WRITE_MASK_ZERO;
+    case GrDepthWriteMask::WriteAll:
+        return D3D12_DEPTH_WRITE_MASK_ALL;
+    default:
+        return D3D12_DEPTH_WRITE_MASK_ALL; // fallback
+    }
+}
+
+static const D3D12_COMPARISON_FUNC kComparisonLUT[] =
+{
+    D3D12_COMPARISON_FUNC_NEVER,
+    D3D12_COMPARISON_FUNC_LESS,
+    D3D12_COMPARISON_FUNC_EQUAL,
+    D3D12_COMPARISON_FUNC_LESS_EQUAL,
+    D3D12_COMPARISON_FUNC_GREATER,
+    D3D12_COMPARISON_FUNC_NOT_EQUAL,
+    D3D12_COMPARISON_FUNC_GREATER_EQUAL,
+    D3D12_COMPARISON_FUNC_ALWAYS
+};
+
+inline D3D12_COMPARISON_FUNC ToD3D12ComparisonFunc(GrComparisonFunc func)
+{
+    return kComparisonLUT[static_cast<uint8_t>(func)];
+}
+
+//inline D3D12_COMPARISON_FUNC ToD3D12ComparisonFunc(GrComparisonFunc func)
+//{
+//    switch (func)
+//    {
+//    case GrComparisonFunc::NEVER:
+//        return D3D12_COMPARISON_FUNC_NEVER;
+//    case GrComparisonFunc::LESS:
+//        return D3D12_COMPARISON_FUNC_LESS;
+//    case GrComparisonFunc::EQUAL:
+//        return D3D12_COMPARISON_FUNC_EQUAL;
+//    case GrComparisonFunc::LESS_EQUAL:
+//        return D3D12_COMPARISON_FUNC_LESS_EQUAL;
+//    case GrComparisonFunc::GREATER:
+//        return D3D12_COMPARISON_FUNC_GREATER;
+//    case GrComparisonFunc::NOT_EQUAL:
+//        return D3D12_COMPARISON_FUNC_NOT_EQUAL;
+//    case GrComparisonFunc::GREATER_EQUAL:
+//        return D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+//    case GrComparisonFunc::ALWAYS:
+//        return D3D12_COMPARISON_FUNC_ALWAYS;
+//    default:
+//        return D3D12_COMPARISON_FUNC_ALWAYS; // safe fallback
+//    }
+//}
 
 inline D3D12_DESCRIPTOR_HEAP_TYPE ToD3D12DescriptorHeapType(DescriptorResourceType eType)
     {

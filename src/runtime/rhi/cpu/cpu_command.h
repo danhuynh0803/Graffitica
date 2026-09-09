@@ -33,6 +33,7 @@ struct SetRenderTargetsCmd
     //std::vector<TextureHandle> targets;
     U32 numViews;
     TextureHandle* targets;
+    TextureHandle depthStencil;
 };
 
 struct DrawIndexedInstancedCmd
