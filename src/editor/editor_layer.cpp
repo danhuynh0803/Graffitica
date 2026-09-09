@@ -24,6 +24,7 @@
 #include "rhi/interface/command_list.h"
 #include "rhi/interface/rhi.h"
 #include "modules/ShaderCompilerModule.h"
+#include "util/image_util.h"
 
 namespace gr
 {
@@ -74,38 +75,71 @@ namespace
 
 namespace Debug
 {
-    Vertex triangleVertices[] =
+    std::vector<vec3f> positions =
     {
-        { { -0.5f,  0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
-        { { -0.5f, -0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f } },
-        { {  0.5f, -0.5f, 0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f } },
-        { {  0.5f,  0.5f, 0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f } },
+        { -0.5f,  0.5f, 0.5f },
+        { -0.5f, -0.5f, 0.5f },
+        {  0.5f, -0.5f, 0.5f },
+        {  0.5f,  0.5f, 0.5f },
     };
 
-    U16 quadIndices[] =
+    std::vector<vec4f> colors =
+    {
+        { 1.f, 0.f, 0.f, 1.f },
+        { 0.f, 1.f, 0.f, 1.f },
+        { 0.f, 0.f, 1.f, 1.f },
+        { 0.f, 1.f, 1.f, 1.f },
+    };
+
+    std::vector<vec3f> normals =
+    {
+        { 0.0f, 0.0f, 1.0f },
+        { 0.0f, 0.0f, 1.0f },
+        { 0.0f, 0.0f, 1.0f },
+        { 0.0f, 0.0f, 1.0f },
+    };
+
+    std::vector<vec2f> texCoords =
+    {
+        { 0.0f, 0.0f },
+        { 0.0f, 1.0f },
+        { 1.0f, 1.0f },
+        { 1.0f, 0.0f },
+    };
+
+    std::vector<U16> indices =
     {
         0, 1, 2,
         0, 2, 3,
     };
 
-    BufferDesc QuadBufferDesc{
-        // Simple quad test
-        .sizeInBytes = sizeof(triangleVertices),
-        .strideInBytes = sizeof(Vertex),
-        .usageFlags = 0,
-        .dataSrc = triangleVertices,
-        .eResourceType = BufferResourceType::VertexBuffer
-    };
+    template <typename TVector>
+    BufferDesc CreateBufferDescFromVector(const std::vector<TVector>& vec, BufferResourceType eType)
+    {
+        return BufferDesc{
+            .sizeInBytes = sizeof(vec[0]) * vec.size(),
+            .strideInBytes = sizeof(vec[0]),
+            .usageFlags = 0,
+            .dataSrc = (void*)vec.data(),
+            .eResourceType = eType
+        };
+    }
 
     BufferDesc indexDesc{
-        // Quad test
-        .sizeInBytes = sizeof(quadIndices),
-        .strideInBytes = sizeof(U16),
+        .sizeInBytes = sizeof(indices[0]) * indices.size(),
+        .strideInBytes = sizeof(indices[0]),
         .usageFlags = 0, // TODO
-        .dataSrc = quadIndices,
+        .dataSrc = (void*)indices.data(),
         .eResourceType = BufferResourceType::IndexBuffer,
         .eFormat = rhi::GrFormat::R16_UINT
     };
+
+    BufferDesc positionDesc = CreateBufferDescFromVector<vec3f>(positions, BufferResourceType::VertexBuffer);
+    BufferDesc colorDesc = CreateBufferDescFromVector<vec4f>(colors, BufferResourceType::VertexBuffer);
+    BufferDesc normalDesc = CreateBufferDescFromVector<vec3f>(normals, BufferResourceType::VertexBuffer);
+    BufferDesc texcoordDesc = CreateBufferDescFromVector<vec2f>(texCoords, BufferResourceType::VertexBuffer);
+
+    BufferHandle positionVB, colorVB, normalVB, texcoordVB, indexBuffer;
 
     constexpr std::vector<UINT8> GenerateDebugTextureData(U32 width, U32 height, U32 formatSize)
     {
@@ -165,6 +199,12 @@ EditorLayer::EditorLayer(const std::string& name)
     
     pRHI = pGfxContext->GetRHIContext();
     gCmdlist = pRHI->CreateCommandList(rhi::CommandListType::GRAPHICS);
+
+    Debug::positionVB    = pRHI->CreateBuffer(Debug::positionDesc);
+    Debug::colorVB       = pRHI->CreateBuffer(Debug::colorDesc);
+    Debug::normalVB      = pRHI->CreateBuffer(Debug::normalDesc);
+    Debug::texcoordVB    = pRHI->CreateBuffer(Debug::texcoordDesc);
+    Debug::indexBuffer   = pRHI->CreateBuffer(Debug::indexDesc);
 
     BufferDesc positionDesc{
         .sizeInBytes = sizeof(model->GetVertices()[0]) * model->GetVertices().size(),
@@ -227,25 +267,27 @@ EditorLayer::EditorLayer(const std::string& name)
     gCameraConstantBuffer = pRHI->CreateBuffer(cbufferDesc);
     pCameraConstantBuffer = pRHI->GetResource(gCameraConstantBuffer);
 
-    TextureDesc targetDesc {
+    TextureDesc depthDesc {
         .width = pSwapchain->GetWidth(),
         .height = pSwapchain->GetHeight(),
         .eFormat = rhi::GrFormat::D32_SFLOAT,
         .eResourceType = DescriptorResourceType::DepthStencil
     };
-    gDepthBufferHndl = pRHI->CreateTexture(targetDesc);
+    gDepthBufferHndl = pRHI->CreateTexture(depthDesc);
 
+    ImageData imageData("../assets/uv-checker-map.png");
     TextureDesc checkerTexDesc{
-        .width = pSwapchain->GetWidth(),
-        .height = pSwapchain->GetHeight(),
+        .width = (U32)imageData.width,
+        .height = (U32)imageData.height,
         .eFormat = rhi::GrFormat::R8G8B8A8_UNORM,
         .eResourceType = DescriptorResourceType::ShaderResource
     };
     checkerTexDesc.pSamplerDesc = nullptr;
-    auto debugTextureDataVec = Debug::GenerateDebugTextureData(checkerTexDesc.width, checkerTexDesc.height, FormatToByteSize(rhi::GrFormat::R8G8B8A8_UNORM));
-    checkerTexDesc.pDataSrc = debugTextureDataVec.data();
+    //auto debugTextureDataVec = Debug::GenerateDebugTextureData(checkerTexDesc.width, checkerTexDesc.height, FormatToByteSize(rhi::GrFormat::R8G8B8A8_UNORM));
+    checkerTexDesc.pDataSrc = imageData.pData;
     TextureHandle checkerTexture = pRHI->CreateTexture(checkerTexDesc);
-    
+
+
     // Pipeline creation
     std::string shaderDir = "shaders/";
     // TODO slang cpu compilation only supports compute
@@ -427,11 +469,15 @@ void EditorLayer::OnUpdate(double dt)
     pRHI->SetScissor(gCmdlist, scissorRect);
     pRHI->SetPipeline(gCmdlist, rhi::PipelineBindPoint::Graphics, gPipelineHandle);
     
-    BufferHandle vertexBuffers[] = { positionVB, colorVB, normalVB, texcoordVB };
+    //BufferHandle vertexBuffers[] = { positionVB, colorVB, normalVB, texcoordVB };
+    //pRHI->SetVertexBuffers(gCmdlist, sizeof(vertexBuffers) / sizeof(vertexBuffers[0]), vertexBuffers);
+    //pRHI->SetIndexBuffer(gCmdlist, gIndexBuffer);
+    //pRHI->DrawIndexedInstanced(gCmdlist, model->GetIndices().size(), 1, 0, 0, 0);
+
+    BufferHandle vertexBuffers[] = { Debug::positionVB, Debug::colorVB, Debug::normalVB, Debug::texcoordVB };
     pRHI->SetVertexBuffers(gCmdlist, sizeof(vertexBuffers) / sizeof(vertexBuffers[0]), vertexBuffers);
-    pRHI->SetIndexBuffer(gCmdlist, gIndexBuffer);
-    
-    pRHI->DrawIndexedInstanced(gCmdlist, model->GetIndices().size(), 1, 0, 0, 0);
+    pRHI->SetIndexBuffer(gCmdlist, Debug::indexBuffer);
+    pRHI->DrawIndexedInstanced(gCmdlist, Debug::indices.size(), 1, 0, 0, 0);
 
     pRHI->EndRenderPass(gCmdlist);
 

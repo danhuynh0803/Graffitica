@@ -424,7 +424,7 @@ void D3D12_RHI::SetPipeline(RHICommandList& cmdlist, PipelineBindPoint eBindPoin
         // only a CBV/SRV/UAV heap and sampler heaps can be bound to the pipeline
 
         // TODO hardcoding the camera cbuffer handle for testing
-        const auto& cbuffer = m_BufferPool->Get(5);
+        const auto& cbuffer = m_BufferPool->Get(10);
         pCmdlist->SetGraphicsRootConstantBufferView(0, cbuffer.pResource->GetGPUVirtualAddress());
 
         ID3D12DescriptorHeap* ppHeaps[] = {
