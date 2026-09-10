@@ -377,19 +377,6 @@ void D3D12_RHI::SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer
     pCmdlist->IASetIndexBuffer(&res.m_View.indexBufferView);
 }
 
-void D3D12_RHI::SetDescriptorTable(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, BufferHandle bufferHandle, U32 bindIndex)
-{
-    auto pCmdlist = GetNativeCommandList(cmdlist);
-
-    //const auto& res = m_BufferPool->Get(bufferHandle);
-    const auto& cbvHeap = GetDescriptorHeap(DescriptorResourceType::ConstantBuffer);
-
-    if (eBindPoint == PipelineBindPoint::Graphics)
-        pCmdlist->SetGraphicsRootDescriptorTable(bindIndex, cbvHeap->GetNative()->GetGPUDescriptorHandleForHeapStart());
-    else if (eBindPoint == PipelineBindPoint::Compute)
-        pCmdlist->SetComputeRootDescriptorTable(bindIndex, cbvHeap->GetNative()->GetGPUDescriptorHandleForHeapStart());
-}
-
 void D3D12_RHI::SetDescriptorHeaps(RHICommandList& cmdlist, const std::vector<DescriptorResourceType>& descriptorTypesToBind)
 {
     // TODO should update this to bind the heap resource directly and not use the resource type
@@ -404,6 +391,32 @@ void D3D12_RHI::SetDescriptorHeaps(RHICommandList& cmdlist, const std::vector<De
 
     pCmdlist->SetDescriptorHeaps(descriptorTypesToBind.size(), ppHeaps);
 }
+
+void D3D12_RHI::SetDescriptorTable(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, BufferHandle handle, U32 bindIndex)
+{
+    auto pCmdlist = GetNativeCommandList(cmdlist);
+    const auto& cbuffer = m_BufferPool->Get(handle);
+
+    if (eBindPoint == PipelineBindPoint::Graphics)
+        pCmdlist->SetGraphicsRootConstantBufferView(bindIndex, cbuffer.pResource->GetGPUVirtualAddress());
+    else if (eBindPoint == PipelineBindPoint::Compute)
+        pCmdlist->SetComputeRootConstantBufferView(bindIndex, cbuffer.pResource->GetGPUVirtualAddress());
+
+    // TODO: revisit this later to differentiate using a descriptor table or a root constant buffer view
+    // maybe just create a separate function for rootconstantbufferview flexibility
+    //const auto& cbvHeap = GetDescriptorHeap();
+    //    pCmdlist->SetGraphicsRootDescriptorTable(bindIndex, cbvHeap->GetNative()->GetGPUDescriptorHandleForHeapStart());
+    //    pCmdlist->SetComputeRootDescriptorTable(bindIndex, cbvHeap->GetNative()->GetGPUDescriptorHandleForHeapStart());
+}
+
+//void D3D12_RHI::SetConstantBuffer(RHICommandList& cmdlist, BufferHandle bufferHandle, U32 bindIndex)
+//{
+//    auto pCmdlist = GetNativeCommandList(cmdlist);
+//    const auto& cbuffer = m_BufferPool->Get(bufferHandle);
+//    //const auto& cbvHeap = GetDescriptorHeap(DescriptorResourceType::ConstantBuffer);
+//    //pCmdlist->SetGraphicsRootDescriptorTable(bindIndex, cbvHeap->GetNative()->GetGPUDescriptorHandleForHeapStart());
+//    pCmdlist->SetGraphicsRootConstantBufferView(bindIndex, cbuffer.pResource->GetGPUVirtualAddress());
+//}
 
 void D3D12_RHI::SetPipeline(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, U64 pipelineHandle)
 {
@@ -423,12 +436,7 @@ void D3D12_RHI::SetPipeline(RHICommandList& cmdlist, PipelineBindPoint eBindPoin
         // TODO eventually have a dedicated upload heap to update subresource data
         // only a CBV/SRV/UAV heap and sampler heaps can be bound to the pipeline
 
-        // TODO hardcoding the camera cbuffer handle for testing
-        const auto& cbuffer = m_BufferPool->Get(10);
-        pCmdlist->SetGraphicsRootConstantBufferView(0, cbuffer.pResource->GetGPUVirtualAddress());
-
         ID3D12DescriptorHeap* ppHeaps[] = {
-            //GetDescriptorHeap(DescriptorResourceType::ConstantBuffer)->GetNative(),
             GetDescriptorHeap(DescriptorResourceType::ShaderResource)->GetNative(),
             GetDescriptorHeap(DescriptorResourceType::Sampler)->GetNative()
         };

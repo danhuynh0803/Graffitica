@@ -69,6 +69,7 @@ public:
     // RHI owns the descriptor heaps so we just specify the types of the heaps we wish to bind
     void SetDescriptorTable(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, BufferHandle bufferHandle, U32 bindIndex);
     void SetDescriptorHeaps(RHICommandList& cmdlist, const std::vector<DescriptorResourceType>& descriptorTypesToBind);
+    void SetConstantBuffer(RHICommandList& cmdlist, BufferHandle bufferHandle, U32 bindIndex);
     //void SetConstantBuffer(RHICommandList& cmdlist, BufferHandle bufferHandle, U32 bindIndex);
     //void SetResourceHeaps(RHICommandList& cmdlist, const std::vector<DescriptorResourceType>& descriptorTypesToBind);
     void SetPipeline(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, U64 pipelineHandle);

@@ -189,6 +189,12 @@ public:
         auto pCmdlist = GetNativeCommandList(cmdlist);
         pCmdlist->m_Commands.emplace_back(SetRenderTargetsCmd{numViews, views, dsv});
     }
+
+    void SetDescriptorTable(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, BufferHandle bufferHandle, U32 bindIndex)
+    {
+        GR_TRACE_START(SYS_RHI);
+        // TODO
+    }
     
     void ClearColor(RHICommandList& cmdlist, TextureHandle handle, const vec4f& color)
     {

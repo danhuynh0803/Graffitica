@@ -25,6 +25,7 @@
 #include "rhi/interface/rhi.h"
 #include "modules/ShaderCompilerModule.h"
 #include "util/image_util.h"
+#include "util/gltf_util.h"
 
 namespace gr
 {
@@ -34,8 +35,10 @@ namespace
     rhi::IGraphicsContext* pGfxContext = nullptr;
     rhi::ISwapchain* pSwapchain = nullptr;
 
-    std::shared_ptr<Mesh> model = std::make_shared<Mesh>("../assets/models/african_head.obj");
+    //std::shared_ptr<Mesh> model = std::make_shared<Mesh>("../assets/models/african_head.obj");
     //model = std::make_shared<Mesh>("../assets/models/xyzrgb_dragon.obj"),
+    const std::string gModelPath("../assets/gltf/2.0/");
+    std::shared_ptr<MeshData> model = std::make_shared<MeshData>(LoadGLTFMesh(gModelPath + "BoxTextured/glTF/BoxTextured.gltf"));
 
     gr::Camera gCamera({ 0,0,5 }, { 0,0,0 });
     std::vector<rhi::Framebuffer> gPresentFrameBuffers;
@@ -187,12 +190,6 @@ EditorLayer::EditorLayer(const std::string& name)
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<float> dis(0.0f, 1.0f);
-    std::vector<vec4f> randomColors;
-    randomColors.reserve(model->GetVertices().size());
-    for (int i = 0; i < model->GetVertices().size(); ++i)
-    {
-        randomColors.emplace_back(dis(gen), dis(gen), dis(gen), 1.0f);
-    }
 
     pGfxContext = rhi::IGraphicsContext::GetInstance();
     pSwapchain = pGfxContext->GetSwapchain();
@@ -207,48 +204,39 @@ EditorLayer::EditorLayer(const std::string& name)
     Debug::indexBuffer   = pRHI->CreateBuffer(Debug::indexDesc);
 
     BufferDesc positionDesc{
-        .sizeInBytes = sizeof(model->GetVertices()[0]) * model->GetVertices().size(),
-        .strideInBytes = sizeof(model->GetVertices()[0]),
+        .sizeInBytes = sizeof(float) * model->positions.size(),
+        .strideInBytes = sizeof(float) * 3,
         .usageFlags = 0,
-        .dataSrc = (void*)model->GetVertices().data(),
+        .dataSrc = (void*)model->positions.data(),
         .eResourceType = BufferResourceType::VertexBuffer
     };
     positionVB = pRHI->CreateBuffer(positionDesc);
-    
-    BufferDesc colorDesc{
-        .sizeInBytes = sizeof(randomColors[0]) * randomColors.size(),
-        .strideInBytes = sizeof(randomColors[0]),
-        .usageFlags = 0,
-        .dataSrc = randomColors.data(),
-        .eResourceType = BufferResourceType::VertexBuffer
-    };
-    colorVB = pRHI->CreateBuffer(colorDesc);
 
     BufferDesc normalDesc{
-        .sizeInBytes = sizeof(model->GetNormals()[0]) * model->GetNormals().size(),
-        .strideInBytes = sizeof(model->GetNormals()[0]),
+        .sizeInBytes = sizeof(float) * model->normals.size(),
+        .strideInBytes = sizeof(float) * 3,
         .usageFlags = 0,
-        .dataSrc = (void*)model->GetNormals().data(),
+        .dataSrc = (void*)model->normals.data(),
         .eResourceType = BufferResourceType::VertexBuffer
     };
     normalVB = pRHI->CreateBuffer(normalDesc);
 
     BufferDesc texcoordDesc{
-        .sizeInBytes = sizeof(model->GetTexCoords()[0]) * model->GetTexCoords().size(),
-        .strideInBytes = sizeof(model->GetTexCoords()[0]),
+        .sizeInBytes = sizeof(float) * model->uvs.size(),
+        .strideInBytes = sizeof(float) * 2,
         .usageFlags = 0,
-        .dataSrc = (void*)model->GetTexCoords().data(),
+        .dataSrc = (void*)model->uvs.data(),
         .eResourceType = BufferResourceType::VertexBuffer
     };
     texcoordVB = pRHI->CreateBuffer(texcoordDesc);
 
     BufferDesc ModelIndexDesc{
-        .sizeInBytes = sizeof(model->GetIndices()[0]) * model->GetIndices().size(),
-        .strideInBytes = sizeof(U16),
+        .sizeInBytes = sizeof(U32) * model->indices.size(),
+        .strideInBytes = sizeof(U32),
         .usageFlags = 0, // TODO
-        .dataSrc = (void*)model->GetIndices().data(),
+        .dataSrc = (void*)model->indices.data(),
         .eResourceType = BufferResourceType::IndexBuffer,
-        .eFormat = rhi::GrFormat::R16_UINT
+        .eFormat = rhi::GrFormat::R32_UINT
     };
     gIndexBuffer = pRHI->CreateBuffer(ModelIndexDesc);
 
@@ -468,11 +456,12 @@ void EditorLayer::OnUpdate(double dt)
     pRHI->SetViewport(gCmdlist, viewportDesc);
     pRHI->SetScissor(gCmdlist, scissorRect);
     pRHI->SetPipeline(gCmdlist, rhi::PipelineBindPoint::Graphics, gPipelineHandle);
-    
+    pRHI->SetDescriptorTable(gCmdlist, rhi::PipelineBindPoint::Graphics, gCameraConstantBuffer, 0);
+
     BufferHandle vertexBuffers[] = { positionVB, colorVB, normalVB, texcoordVB };
     pRHI->SetVertexBuffers(gCmdlist, sizeof(vertexBuffers) / sizeof(vertexBuffers[0]), vertexBuffers);
     pRHI->SetIndexBuffer(gCmdlist, gIndexBuffer);
-    pRHI->DrawIndexedInstanced(gCmdlist, model->GetIndices().size(), 1, 0, 0, 0);
+    pRHI->DrawIndexedInstanced(gCmdlist, model->indices.size(), 1, 0, 0, 0);
 
     // =======================================================================
     // Uncomment to Draw the debug quad (TODO move to debug utilities later)
