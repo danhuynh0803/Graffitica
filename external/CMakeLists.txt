@@ -40,6 +40,8 @@ add_subdirectory(xxHash/build/cmake xxhash_build EXCLUDE_FROM_ALL)
 
 add_subdirectory(stb)
 
+add_subdirectory(fastgltf)
+
 set(AGILITY_SDK_VER 1.619.2)
 set(AGILITY_SDK_DIR ${CMAKE_SOURCE_DIR}/external/D3D12AgilitySDK/${AGILITY_SDK_VER}/bin/x64/)
 set(OUTPUT_DIR ${CMAKE_BINARY_DIR}/D3D12/)
