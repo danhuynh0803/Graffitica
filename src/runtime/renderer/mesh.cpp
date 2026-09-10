@@ -7,7 +7,6 @@
 #include "mesh.h"
 #include <filesystem>
 
-
 // TODO mesh loader lib
 Mesh::Mesh(const char* file_name)
     : m_Verts(),

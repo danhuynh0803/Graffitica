@@ -469,15 +469,18 @@ void EditorLayer::OnUpdate(double dt)
     pRHI->SetScissor(gCmdlist, scissorRect);
     pRHI->SetPipeline(gCmdlist, rhi::PipelineBindPoint::Graphics, gPipelineHandle);
     
-    //BufferHandle vertexBuffers[] = { positionVB, colorVB, normalVB, texcoordVB };
-    //pRHI->SetVertexBuffers(gCmdlist, sizeof(vertexBuffers) / sizeof(vertexBuffers[0]), vertexBuffers);
-    //pRHI->SetIndexBuffer(gCmdlist, gIndexBuffer);
-    //pRHI->DrawIndexedInstanced(gCmdlist, model->GetIndices().size(), 1, 0, 0, 0);
-
-    BufferHandle vertexBuffers[] = { Debug::positionVB, Debug::colorVB, Debug::normalVB, Debug::texcoordVB };
+    BufferHandle vertexBuffers[] = { positionVB, colorVB, normalVB, texcoordVB };
     pRHI->SetVertexBuffers(gCmdlist, sizeof(vertexBuffers) / sizeof(vertexBuffers[0]), vertexBuffers);
-    pRHI->SetIndexBuffer(gCmdlist, Debug::indexBuffer);
-    pRHI->DrawIndexedInstanced(gCmdlist, Debug::indices.size(), 1, 0, 0, 0);
+    pRHI->SetIndexBuffer(gCmdlist, gIndexBuffer);
+    pRHI->DrawIndexedInstanced(gCmdlist, model->GetIndices().size(), 1, 0, 0, 0);
+
+    // =======================================================================
+    // Uncomment to Draw the debug quad (TODO move to debug utilities later)
+    // =======================================================================
+    //BufferHandle vertexBuffers[] = { Debug::positionVB, Debug::colorVB, Debug::normalVB, Debug::texcoordVB };
+    //pRHI->SetVertexBuffers(gCmdlist, sizeof(vertexBuffers) / sizeof(vertexBuffers[0]), vertexBuffers);
+    //pRHI->SetIndexBuffer(gCmdlist, Debug::indexBuffer);
+    //pRHI->DrawIndexedInstanced(gCmdlist, Debug::indices.size(), 1, 0, 0, 0);
 
     pRHI->EndRenderPass(gCmdlist);
 

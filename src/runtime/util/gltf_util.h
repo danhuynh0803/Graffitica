@@ -8,83 +8,85 @@
 #include <filesystem>
 #include <iostream>
 
-namespace fg = fastgltf;
-
-void LoadGltfModel(const std::filesystem::path& path)
+// Helper structure to hold D3D12-ready mesh data
+struct MeshData
 {
-    // Path to your model
-    std::filesystem::path path = "model.glb";
+    std::vector<uint32_t> indices;
+    std::vector<float> positions;
+    std::vector<float> normals;
+    std::vector<float> uvs;
+};
 
-    // Configure options
-    fg::Parser parser;
-    fg::GltfDataBuffer dataBuffer;
+MeshData LoadGLTFMesh(const std::filesystem::path& path)
+{
+    MeshData outMesh;
 
-    // Load file into memory
-    auto loadResult = fg::readFile(path, &dataBuffer);
-    if (loadResult != fg::Error::None) {
-        std::cerr << "Failed to read glTF file\n";
-        return -1;
+    // Initialize fastgltf parser
+    fastgltf::Parser parser;
+
+    // Configure options (e.g., load external buffers automatically)
+    constexpr auto options = fastgltf::Options::LoadExternalBuffers;
+
+    auto data = fastgltf::GltfDataBuffer::FromPath(path);
+    if (data.error() != fastgltf::Error::None) {
+        std::cerr << "Failed to load glTF file data.\n";
+        return outMesh;
     }
 
-    // Parse glTF
-    auto asset = parser.loadGltf(
-        &dataBuffer,
-        path.parent_path(),
-        fg::Options::LoadExternalBuffers | fg::Options::DecomposeNodeMatrices
-    );
-
-    if (asset.error() != fg::Error::None) {
-        std::cerr << "Failed to parse glTF\n";
-        return -1;
+    auto asset = parser.loadGltf(data.get(), path.parent_path(), options);
+    if (asset.error() != fastgltf::Error::None) {
+        std::cerr << "Failed to parse glTF: " << fastgltf::to_underlying(asset.error()) << "\n";
+        return outMesh;
     }
 
-    fg::Asset& gltf = asset.get();
+    // Grab the first primitive of the first mesh for simplification
+    if (asset->meshes.empty() || asset->meshes[0].primitives.empty()) return outMesh;
 
-    // Iterate meshes
-    for (auto& mesh : gltf.meshes) {
-        for (auto& prim : mesh.primitives) {
+    const auto& primitive = asset->meshes[0].primitives[0];
 
-            // --- Index buffer ---
-            if (prim.indicesAccessor.has_value()) {
-                const fg::Accessor& indexAcc = gltf.accessors[*prim.indicesAccessor];
-                const fg::BufferView& indexView = gltf.bufferViews[indexAcc.bufferView.value()];
-                const fg::Buffer& indexBuf = gltf.buffers[indexView.buffer.value()];
+    // --- 1. Extract Indices ---
+    if (primitive.indicesAccessor.has_value()) {
+        const auto& accessor = asset->accessors[primitive.indicesAccessor.value()];
+        outMesh.indices.reserve(accessor.count);
 
-                const uint8_t* indexData = indexBuf.data.data() + indexView.byteOffset + indexAcc.byteOffset;
-                size_t indexCount = indexAcc.count;
-
-                // Example: cast to uint32_t if needed
-                // const uint32_t* indices = reinterpret_cast<const uint32_t*>(indexData);
-            }
-
-            // --- Vertex attributes ---
-            for (auto& [semantic, accessorIndex] : prim.attributes) {
-                const fg::Accessor& acc = gltf.accessors[accessorIndex];
-                const fg::BufferView& view = gltf.bufferViews[acc.bufferView.value()];
-                const fg::Buffer& buf = gltf.buffers[view.buffer.value()];
-
-                const uint8_t* vertexData = buf.data.data() + view.byteOffset + acc.byteOffset;
-                size_t vertexCount = acc.count;
-
-                // Example: POSITION
-                if (semantic == fg::Attribute::Position) {
-                    // float3 positions
-                    // const float* pos = reinterpret_cast<const float*>(vertexData);
-                }
-
-                // Example: NORMAL
-                if (semantic == fg::Attribute::Normal) {
-                    // float3 normals
-                }
-
-                // Example: TEXCOORD_0
-                if (semantic == fg::Attribute::TexCoord0) {
-                    // float2 uvs
-                }
-            }
-        }
+        fastgltf::iterateAccessor<uint32_t>(asset.get(), accessor, [&](uint32_t index) {
+            outMesh.indices.push_back(index);
+            });
     }
 
-    std::cout << "Loaded glTF successfully\n";
-    return 0;
+    // --- 2. Extract Vertex Positions ---
+    auto posAttribute = primitive.findAttribute("POSITION");
+    if (posAttribute != primitive.attributes.end()) {
+        const auto& accessor = asset->accessors[posAttribute->accessorIndex];
+        outMesh.positions.reserve(accessor.count * 3); // 3 floats per position
+
+        fastgltf::iterateAccessor<fastgltf::math::f32vec3>(asset.get(), accessor, [&](fastgltf::math::f32vec3 pos) {
+            outMesh.positions.push_back(pos.x());
+            outMesh.positions.push_back(pos.y());
+            outMesh.positions.push_back(pos.z());
+            });
+    }
+
+    // --- 3. Extract Vertex Normals ---
+    auto normalAttribute = primitive.findAttribute("NORMAL");
+    if (normalAttribute != primitive.attributes.end()) {
+        const auto& accessor = asset->accessors[normalAttribute->accessorIndex];
+        fastgltf::iterateAccessor<fastgltf::math::f32vec3>(asset.get(), accessor, [&](fastgltf::math::f32vec3 normal) {
+            outMesh.normals.push_back(normal.x());
+            outMesh.normals.push_back(normal.y());
+            outMesh.normals.push_back(normal.z());
+            });
+    }
+
+    // --- 4. Extract Vertex UVs ---
+    auto uvAttribute = primitive.findAttribute("TEXCOORD_0");
+    if (uvAttribute != primitive.attributes.end()) {
+        const auto& accessor = asset->accessors[uvAttribute->accessorIndex];
+        fastgltf::iterateAccessor<fastgltf::math::f32vec2>(asset.get(), accessor, [&](fastgltf::math::f32vec2 uv) {
+            outMesh.uvs.push_back(uv.x());
+            outMesh.uvs.push_back(uv.y());
+            });
+    }
+
+    return outMesh;
 }
