@@ -9,7 +9,6 @@ cbuffer CameraData : register(b0)
 struct PSInput
 {
     float4 position : SV_POSITION;
-    float4 color : COLOR;
     float3 normal : NORMAL;
     float2 uv : TEXCOORD;
 };
@@ -18,12 +17,11 @@ Texture2D gTexture : register(t0);
 SamplerState gSamplerLinear : register(s0);
 
 [shader("vertex")]
-PSInput VSMain(float4 position : POSITION, float4 color : COLOR, float3 normal : NORMAL, float2 uv : TEXCOORD)
+PSInput VSMain(float4 position : POSITION, float3 normal : NORMAL, float2 uv : TEXCOORD)
 {
     PSInput o;
 
     o.position = mul(viewProj, float4(position.xyz, 1.0));
-    o.color = color; //float4(1.0, 0.0, 1.0, 1.0);
     o.normal = normal;
     o.uv = uv;
 
@@ -34,12 +32,7 @@ PSInput VSMain(float4 position : POSITION, float4 color : COLOR, float3 normal :
 float4 PSMain(PSInput input) : SV_TARGET
 {
     float4 tex = gTexture.Sample(gSamplerLinear, input.uv);
-    float4 col = input.color;
-    float4 depth = float4(input.position.z, input.position.z, input.position.z, 1.0);
-
-    return float4(input.uv % 1.0, 0, 1);
-    //return col;
-    //return tex;
+    return tex;
 }
 
 

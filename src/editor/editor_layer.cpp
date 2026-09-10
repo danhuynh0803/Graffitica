@@ -331,21 +331,11 @@ EditorLayer::EditorLayer(const std::string& name)
         .instanceDataStepRate = 0
     };
 
-    rhi::InputLayoutState color{
-        .eInputType = rhi::InputType::COLOR,
-        .semanticIndex = 0,
-        .format = rhi::GrFormat::R32G32B32A32_SFLOAT,
-        .inputSlot = 1,
-        .alignedByteOffset = 0, //offsetof(Vertex, color),
-        .inputSlotClass = rhi::InputClass::PER_VERTEX,
-        .instanceDataStepRate = 0
-    };
-
     rhi::InputLayoutState normal{
         .eInputType = rhi::InputType::NORMAL,
         .semanticIndex = 0,
         .format = rhi::GrFormat::R32G32B32_SFLOAT,
-        .inputSlot = 2,
+        .inputSlot = 1,
         .alignedByteOffset = 0, //offsetof(Vertex, normal),
         .inputSlotClass = rhi::InputClass::PER_VERTEX,
         .instanceDataStepRate = 0
@@ -355,7 +345,7 @@ EditorLayer::EditorLayer(const std::string& name)
         .eInputType = rhi::InputType::TEXCOORD,
         .semanticIndex = 0,
         .format = rhi::GrFormat::R32G32_SFLOAT,
-        .inputSlot = 3,
+        .inputSlot = 2,
         .alignedByteOffset = 0, //offsetof(Vertex, uv),
         .inputSlotClass = rhi::InputClass::PER_VERTEX,
         .instanceDataStepRate = 0
@@ -365,7 +355,7 @@ EditorLayer::EditorLayer(const std::string& name)
     rhi::SamplerDesc samplerDesc {};
     pipelineDesc.pSamplerDesc = &samplerDesc;
 
-    pipelineDesc.inputLayoutStates = { position, color, normal, uv };
+    pipelineDesc.inputLayoutStates = { position, normal, uv };
 
     // TODO test layout later when textures and cbs are added
     // would prefer to get vk rhi up first to test before the
@@ -458,7 +448,7 @@ void EditorLayer::OnUpdate(double dt)
     pRHI->SetPipeline(gCmdlist, rhi::PipelineBindPoint::Graphics, gPipelineHandle);
     pRHI->SetDescriptorTable(gCmdlist, rhi::PipelineBindPoint::Graphics, gCameraConstantBuffer, 0);
 
-    BufferHandle vertexBuffers[] = { positionVB, colorVB, normalVB, texcoordVB };
+    BufferHandle vertexBuffers[] = { positionVB, normalVB, texcoordVB };
     pRHI->SetVertexBuffers(gCmdlist, sizeof(vertexBuffers) / sizeof(vertexBuffers[0]), vertexBuffers);
     pRHI->SetIndexBuffer(gCmdlist, gIndexBuffer);
     pRHI->DrawIndexedInstanced(gCmdlist, model->indices.size(), 1, 0, 0, 0);
