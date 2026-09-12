@@ -8,14 +8,5 @@
 namespace gr::renderer
 {
 
-class Renderer
-{
-public:
-    void Init();
-    void Draw(const rhi::CommandBuffer& cmd, const Buffer& vb, U32 vertexCount, U32 firstVertex);
-
-private:
-
-};
 
 } // namespace gr::renderer

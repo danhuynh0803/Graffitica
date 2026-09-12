@@ -26,6 +26,7 @@
 #include "modules/ShaderCompilerModule.h"
 #include "util/image_util.h"
 #include "util/gltf_util.h"
+#include "renderer/RenderGraphBuilder.h"
 
 namespace gr
 {
@@ -58,6 +59,8 @@ namespace
     BufferHandle gCameraConstantBuffer;
     rhi::GraphicsPipelineHandle gPipelineHandle;
     RHIBufferResource* pCameraConstantBuffer;
+
+    std::unique_ptr<RenderGraphBuilder> pRenderGraphBuilder;
 
     struct Vertex
     {
@@ -390,6 +393,8 @@ EditorLayer::EditorLayer(const std::string& name)
     //ShaderOutputs csOut = gShaderCompilerModule.CompileSlangToBlob(pGfxContext->GetRHIBackend(), (shaderDir + "compute.slang").c_str(), "CSMain");
     //rhi::ComputePipelineDesc computeDesc{};
     //computeDesc.CS = rhi::RHIShader(csOut.blob.Get());
+
+    pRenderGraphBuilder = std::make_unique<RenderGraphBuilder>(pRHI);
 }
 
 void EditorLayer::OnUpdate(double dt)

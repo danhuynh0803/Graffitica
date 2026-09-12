@@ -2,6 +2,7 @@
 #include <vector>
 #include "rhi/rasterizer_state.h"
 #include "rhi/resource.h"
+#include "rhi/interface/rhi.h"
 #include "RenderGraphPass.h"
 
 namespace gr
@@ -10,6 +11,8 @@ namespace gr
 class RenderGraphBuilder
 {
 public:
+    RenderGraphBuilder(rhi::RHIContext* pRHI) : m_pRHI(pRHI) {}
+
     void AddPass(const char* passName, const PassDesc& passDesc);
     void Compile();
     void Execute();
@@ -19,7 +22,7 @@ public:
 
 private:
     std::vector<RenderGraphPass> m_RenderPasses;
-    //rhi::RHIFunctionTable* m_RHI;
+    rhi::RHIContext* m_pRHI;
 };
 
 } // namespace gr

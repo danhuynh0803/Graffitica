@@ -1,24 +1,34 @@
 #pragma once
 
+#include <string>
 #include "rhi/rasterizer_state.h"
 
 namespace gr
 {
 
-struct PassDesc
+struct RenderGraphResource
 {
-    // TODO
+    std::string name;
+    enum class Type
+    {
+        Texture,
+        Buffer,
+        Unknown
+    } type;
 };
 
-class RenderGraphPass
+struct PassDesc
 {
-public:
-    //void SetShaderState(ShaderHandle handle);
-    //void SetDepthStencilState(const DepthStencilDesc& desc);
-    //void SetRasterizerState(const RasterizerState& desc);
+    std::string name;
+    std::vector<TextureHandle> reads;
+    std::vector<TextureHandle> writes;
+};
 
-private:
-
+struct RenderGraphPass
+{
+    std::string name;
+    PassDesc desc;
+    // TODO - add more fields for resources, etc.
 };
 
 } // namespace gr

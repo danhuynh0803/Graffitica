@@ -5,8 +5,20 @@
 #include "util/math/matrix.h"
 #include "rhi/resource.h"
 
-// for testing api
+struct MeshAttributes
+{
+    std::vector<uint32_t> indices;
+    std::vector<float> positions;
+    std::vector<float> normals;
+    std::vector<float> uvs;
+    // TODO additional attrib later
+    // bitangents
+    // blendweights + indices
+    // colors
+};
 
+
+// for testing api
 struct SimpleMesh
 {
     std::vector<vec3f> m_Positions;
