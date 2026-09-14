@@ -96,15 +96,19 @@ class EntityRegistry
 public:
     EntityHandle CreateEntity()
     {
+        const EntityHandle e = m_NextEntityHandle;
         // Entity will start with no components
-        m_EntityToKey[m_NextEntityHandle] = ArchetypeKey{ 0 };
+        auto& emptyArch = m_KeyToArchetype[EmptyArchetypeKey];
+
+        m_Locations.insert({e, { EmptyArchetypeKey, emptyArch.m_Entities.size()} });
+        MoveEntity(e, EmptyArchetypeKey);
         return m_NextEntityHandle++;
     }
 
     template <typename TComponent>
     void AddComponent(EntityHandle e, const TComponent& value)
     {
-        const ArchetypeKey oldSetKey = m_EntityToKey[e];
+        const auto& [oldSetKey, oldIndex] = m_Locations[e];
         ArchetypeKey newSetKey = oldSetKey | TComponent::ID;
 
         if (oldSetKey == newSetKey) {
@@ -114,8 +118,8 @@ public:
         }
 
         // Update entity with the new set key
-        m_EntityToKey[e] = newSetKey;
-        auto& oldArch = m_KeyToArchetype[oldSetKey];
+        //m_EntityToKey[e] = newSetKey;
+        //auto& oldArch = m_KeyToArchetype[oldSetKey];
 
         // Move data to new set
         if (m_KeyToArchetype.count(newSetKey) == 0)
@@ -134,7 +138,7 @@ public:
     template <typename TComponent>
     void RemoveComponent(EntityHandle e)
     {
-        auto& [key, index] = m_Locations[e];
+        auto& [key, index] = m_Locations.at(e);
         // Unset the bit associated with the removed component
         // Note that this depends on the enum flags in component.h using bitset values
         // reminder to self to look there if bugs appear with the Archetype set keys not being distinct
@@ -147,9 +151,9 @@ public:
 private: // helper funcs
     size_t MoveEntity(EntityHandle e, ArchetypeKey newKey)
     {
-        auto& [oldKey, oldIndex] = m_Locations[e];
-        Archetype& src = m_KeyToArchetype[oldKey];
-        Archetype& dst = m_KeyToArchetype[newKey];
+        auto& [oldKey, oldIndex] = m_Locations.at(e);
+        Archetype& src = m_KeyToArchetype.at(oldKey);
+        Archetype& dst = m_KeyToArchetype.at(newKey);
 
         size_t newIndex = dst.AddEntity(e);
         for (auto& [type, srcData] : src.m_ComponentData)
@@ -159,9 +163,9 @@ private: // helper funcs
             // that component's data
             if (!(newKey & type)) continue;
 
-            size_t compSize = src.m_ComponentSize[type];
-            dst.m_ComponentSize[type] = compSize;
-            auto& dstData = dst.m_ComponentData[type];
+            size_t compSize = src.m_ComponentSize.at(type);
+            dst.m_ComponentSize.at(type) = compSize;
+            auto& dstData = dst.m_ComponentData.at(type);
             size_t reqSize = dst.m_Entities.size() * compSize;
             if (dstData.size() < reqSize)
             {
@@ -173,9 +177,9 @@ private: // helper funcs
 
         EntityHandle movedEnt = src.RemoveEntity(oldIndex);
         if (movedEnt) {
-            m_Locations[movedEnt].index = oldIndex;
+            m_Locations.at(movedEnt).index = oldIndex;
         }
-        m_Locations[e] = { newKey, newIndex };
+        m_Locations.insert({e, { newKey, newIndex }});
         return newIndex;
     }
 
@@ -190,7 +194,6 @@ private:
     };
 
     std::unordered_map<EntityHandle, Location> m_Locations;
-    std::unordered_map<EntityHandle, ArchetypeKey> m_EntityToKey;
     std::unordered_map<ArchetypeKey, Archetype> m_KeyToArchetype;
     U64 m_NextEntityHandle = 1; // start at 1, will use 0 as a NULL Entity
 };
