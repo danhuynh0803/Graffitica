@@ -19,15 +19,16 @@ constexpr ArchetypeKey EmptyArchetypeKey = 0;
 class Archetype
 {
 public:
-    ArchetypeKey m_Key = EmptyArchetypeKey;
-
+    Archetype() = default;
+    ~Archetype() = default;
+    Archetype(ArchetypeKey key) : m_Key(key) {}
 
     template <typename TComponent>
     TComponent* GetData()
     {
         const auto& it = m_ComponentData.find(TComponent::ID);
         if (it == m_ComponentData.end() || it->second.empty()) {
-            // TODO add log
+            // TODO add editor log
             return nullptr; // component doesnt exist
         }
         return reinterpret_cast<TComponent*>(it->second.data());
@@ -66,8 +67,9 @@ public:
             // Remove last element post-copy operation
             m_Entities.pop_back();
             for (auto& [type, data] : m_ComponentData)
+            {
                 data.resize(data.size() - m_ComponentSize[type]);
-
+            }
             return movedEntity;
         }
     }
@@ -77,7 +79,11 @@ public:
         return m_ComponentSize.count(componentID) != 0;
     }
 
-private:
+    //friend class EntityRegistry;
+
+//TODO: Disable encapsulation for testing first
+//private:
+    ArchetypeKey m_Key = EmptyArchetypeKey;
     std::vector<EntityHandle> m_Entities;
     std::unordered_map<U32, std::vector<U8>> m_ComponentData;
     // data stored as binary so keep track of the component size
@@ -88,10 +94,15 @@ private:
 class EntityRegistry
 {
 public:
-    EntityHandle CreateEntity();
+    EntityHandle CreateEntity()
+    {
+        // Entity will start with no components
+        m_EntityToKey[m_NextEntityHandle] = ArchetypeKey{ 0 };
+        return m_NextEntityHandle++;
+    }
 
     template <typename TComponent>
-    void AddComponent(EntityHandle e, const TComponent& comp)
+    void AddComponent(EntityHandle e, const TComponent& value)
     {
         const ArchetypeKey oldSetKey = m_EntityToKey[e];
         ArchetypeKey newSetKey = oldSetKey | TComponent::ID;
@@ -104,20 +115,82 @@ public:
 
         // Update entity with the new set key
         m_EntityToKey[e] = newSetKey;
-        auto& set = m_KeyToArchetype[oldSetKey];
+        auto& oldArch = m_KeyToArchetype[oldSetKey];
 
         // Move data to new set
+        if (m_KeyToArchetype.count(newSetKey) == 0)
+        {
+            //m_KeyToArchetype.insert({newSetKey, {});
+        }
+        size_t dstIndex = MoveEntity(e, newSetKey);
+        auto& dstArch = m_KeyToArchetype[newSetKey];
+        dstArch.m_ComponentSize[TComponent::ID] = sizeof(TComponent);
+
+        dstArch.m_ComponentData[TComponent::ID].resize(dstArch.m_Entities.size() * sizeof(TComponent));
+        // Now copy component data to new archetype
+        memcpy(&dstArch.m_ComponentData[TComponent::ID][dstIndex * sizeof(TComponent)], &value, sizeof(TComponent));
     }
 
     template <typename TComponent>
     void RemoveComponent(EntityHandle e)
     {
-
+        auto& [key, index] = m_Locations[e];
+        // Unset the bit associated with the removed component
+        // Note that this depends on the enum flags in component.h using bitset values
+        // reminder to self to look there if bugs appear with the Archetype set keys not being distinct
+        ArchetypeKey newKey = key & ~TComponent::ID;
+        if (newKey != key) {
+            MoveEntity(e, newKey);
+        }
     }
 
+private: // helper funcs
+    size_t MoveEntity(EntityHandle e, ArchetypeKey newKey)
+    {
+        auto& [oldKey, oldIndex] = m_Locations[e];
+        Archetype& src = m_KeyToArchetype[oldKey];
+        Archetype& dst = m_KeyToArchetype[newKey];
+
+        size_t newIndex = dst.AddEntity(e);
+        for (auto& [type, srcData] : src.m_ComponentData)
+        {
+            // Check that the type is not being removed
+            // newKey will not have that bit set, so dont copy over
+            // that component's data
+            if (!(newKey & type)) continue;
+
+            size_t compSize = src.m_ComponentSize[type];
+            dst.m_ComponentSize[type] = compSize;
+            auto& dstData = dst.m_ComponentData[type];
+            size_t reqSize = dst.m_Entities.size() * compSize;
+            if (dstData.size() < reqSize)
+            {
+                dstData.resize(reqSize);
+            }
+            // Copy data of each component to its new position in the new archetype
+            memcpy(&dstData[newIndex * compSize], &srcData[oldIndex * compSize], compSize);
+        }
+
+        EntityHandle movedEnt = src.RemoveEntity(oldIndex);
+        if (movedEnt) {
+            m_Locations[movedEnt].index = oldIndex;
+        }
+        m_Locations[e] = { newKey, newIndex };
+        return newIndex;
+    }
+
+
 private:
+    // Entity handles are packed tightly into their corresponding vecs
+    // so we need to keep track of their positions in those lists
+    // for moving their data around during add/remove ops
+    struct Location {
+        ArchetypeKey key;
+        U64 index;
+    };
+
+    std::unordered_map<EntityHandle, Location> m_Locations;
     std::unordered_map<EntityHandle, ArchetypeKey> m_EntityToKey;
-    std::unordered_map<EntityHandle, size_t> m_EntityToRow;
     std::unordered_map<ArchetypeKey, Archetype> m_KeyToArchetype;
     U64 m_NextEntityHandle = 1; // start at 1, will use 0 as a NULL Entity
 };
