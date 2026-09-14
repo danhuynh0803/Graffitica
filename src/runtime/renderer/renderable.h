@@ -1,5 +1,9 @@
 #pragma once
 
+#include <vector>
+#include "util/math/vector.h"
+#include "material.h"
+
 namespace gr
 {
 

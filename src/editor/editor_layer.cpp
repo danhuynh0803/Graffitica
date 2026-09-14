@@ -28,6 +28,8 @@
 #include "util/gltf_util.h"
 #include "renderer/RenderGraphBuilder.h"
 
+#include "scene/ecs/ecs.h"
+
 namespace gr
 {
 
@@ -42,8 +44,6 @@ namespace
     std::shared_ptr<MeshData> model = std::make_shared<MeshData>(LoadGLTFMesh(gModelPath + "BoxTextured/glTF/BoxTextured.gltf"));
 
     gr::Camera gCamera({ 0,0,5 }, { 0,0,0 });
-    std::vector<rhi::Framebuffer> gPresentFrameBuffers;
-
     CameraController gCameraController(&gCamera);
     ShaderCompilerModule gShaderCompilerModule {};
 
@@ -77,6 +77,8 @@ namespace
         mat44 projection;
         mat44 viewProjection;
     } gCameraData;
+
+    std::unique_ptr<EntityRegistry> pRegistry;
 }
 
 namespace Debug
@@ -395,6 +397,13 @@ EditorLayer::EditorLayer(const std::string& name)
     //computeDesc.CS = rhi::RHIShader(csOut.blob.Get());
 
     pRenderGraphBuilder = std::make_unique<RenderGraphBuilder>(pRHI);
+
+
+    // ECS test code
+    pRegistry = std::make_unique<EntityRegistry>();
+    EntityHandle e1 = pRegistry->CreateEntity();
+    pRegistry->AddComponent<TransformComponent>(e1, {{0.,0.,0.}, {0.,0.,0.}, {1,1,1}});
+
 }
 
 void EditorLayer::OnUpdate(double dt)
