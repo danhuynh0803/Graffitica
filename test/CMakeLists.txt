@@ -39,7 +39,9 @@ endif()
 add_executable(tests
     math/test_vec.cpp
     math/test_matrix.cpp
-    math/perf_vector.cpp
+    # disable since it takes a while to run
+    # TODO separate to a performance based test suite
+    #math/perf_vector.cpp
 
     ecs/test_ecs.cpp
 )
