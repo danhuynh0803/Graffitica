@@ -402,8 +402,10 @@ EditorLayer::EditorLayer(const std::string& name)
     // ECS test code
     pRegistry = std::make_unique<EntityRegistry>();
     EntityHandle e1 = pRegistry->CreateEntity();
-    pRegistry->AddComponent<TransformComponent>(e1, {{0.,0.,0.}, {0.,0.,0.}, {1,1,1}});
+    pRegistry->AddComponent<TransformComponent>(e1, {{1.,0.,0.}, {2.,0.,0.}, {3,1,1}});
+    const auto& transform = pRegistry->GetComponent<TransformComponent>(e1);
 
+    std::cout << transform.position << ", " << transform.rotation << ", " << transform.scale << '\n';
 }
 
 void EditorLayer::OnUpdate(double dt)

@@ -51,8 +51,10 @@ public:
     // This can be achieved by moving the last element to the recently-removed slot.
     EntityHandle RemoveEntity(size_t idx)
     {
-        size_t last = m_Entities.size() - 1;
+        if (m_Entities.size() == 0) return 0;
+
         EntityHandle movedEntity = 0;
+        size_t last = m_Entities.size() - 1;
         if (idx != last)
         {
             movedEntity = m_Entities[last];
@@ -65,6 +67,16 @@ public:
                        m_ComponentSize[type]);
             }
             // Remove last element post-copy operation
+            m_Entities.pop_back();
+            for (auto& [type, data] : m_ComponentData)
+            {
+                data.resize(data.size() - m_ComponentSize[type]);
+            }
+            return movedEntity;
+        }
+        else if (idx == last) // Removing the entity at the end of the list
+        {
+            movedEntity = m_Entities[last];
             m_Entities.pop_back();
             for (auto& [type, data] : m_ComponentData)
             {
@@ -101,14 +113,24 @@ public:
         auto& emptyArch = m_KeyToArchetype[EmptyArchetypeKey];
 
         m_Locations.insert({e, { EmptyArchetypeKey, emptyArch.m_Entities.size()} });
-        MoveEntity(e, EmptyArchetypeKey);
+        //MoveEntity(e, EmptyArchetypeKey);
         return m_NextEntityHandle++;
+    }
+
+    template <typename TComponent>
+    TComponent& GetComponent(EntityHandle e)
+    {
+        const auto& [key, index] = m_Locations.at(e);
+        auto& arch = m_KeyToArchetype.at(key);
+
+        TComponent* data = arch.GetData<TComponent>();
+        return data[index];
     }
 
     template <typename TComponent>
     void AddComponent(EntityHandle e, const TComponent& value)
     {
-        const auto& [oldSetKey, oldIndex] = m_Locations[e];
+        const auto& [oldSetKey, oldIndex] = m_Locations.at(e);
         ArchetypeKey newSetKey = oldSetKey | TComponent::ID;
 
         if (oldSetKey == newSetKey) {
@@ -184,8 +206,10 @@ private: // helper funcs
         EntityHandle movedEnt = src.RemoveEntity(oldIndex);
         if (movedEnt) {
             m_Locations.at(movedEnt).index = oldIndex;
+            m_Locations.at(movedEnt).key = newKey;
+        } else {
+            m_Locations.insert_or_assign(e, Location{newKey, newIndex});
         }
-        m_Locations.insert({e, { newKey, newIndex }});
         return newIndex;
     }
 
