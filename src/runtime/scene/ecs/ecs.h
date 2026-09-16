@@ -124,12 +124,18 @@ public:
         // Move data to new set
         if (m_KeyToArchetype.count(newSetKey) == 0)
         {
-            //m_KeyToArchetype.insert({newSetKey, {});
+            m_KeyToArchetype.insert({ newSetKey, Archetype(newSetKey) });
         }
+
+        // Move entity to new archetype set
+        // while copying all data from their components except for the newly-added component
         size_t dstIndex = MoveEntity(e, newSetKey);
+
+        // Now we prepare to copy the data for the newly-added component
         auto& dstArch = m_KeyToArchetype[newSetKey];
         dstArch.m_ComponentSize[TComponent::ID] = sizeof(TComponent);
-
+        // Increase size of vector by one since dest Arch m_entities size should now include the new entity
+        // So MoveEntity() should always be before this operation
         dstArch.m_ComponentData[TComponent::ID].resize(dstArch.m_Entities.size() * sizeof(TComponent));
         // Now copy component data to new archetype
         memcpy(&dstArch.m_ComponentData[TComponent::ID][dstIndex * sizeof(TComponent)], &value, sizeof(TComponent));
