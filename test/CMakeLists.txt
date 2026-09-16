@@ -40,14 +40,19 @@ add_executable(tests
     math/test_vec.cpp
     math/test_matrix.cpp
     math/perf_vector.cpp
+
+    ecs/test_ecs.cpp
 )
 
 target_include_directories(tests PUBLIC
     ./
     ../src/
+    ../src/runtime/
     Catch2::Catch2WithMain
+    Tracy::TracyClient #include just to resolve header issues from profiler
 )
 
 target_link_libraries(tests PUBLIC
     Catch2::Catch2WithMain
+    Tracy::TracyClient
 )
