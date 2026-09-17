@@ -36,5 +36,11 @@ TEST_CASE("add component", "[ecs-add]")
 
 TEST_CASE("remove component", "[ecs-remove]")
 {
+    EntityRegistry reg;
+    auto e1 = reg.CreateEntity();
+    TransformComponent T1{ A, B, C };
+    reg.AddComponent<TransformComponent>(e1, T1);
 
+    reg.RemoveComponent<TransformComponent>(e1);
+    reg.GetComponent<TransformComponent>(e1);
 }

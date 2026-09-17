@@ -117,8 +117,27 @@ public:
         return m_NextEntityHandle++;
     }
 
+    template <typename... TComponents>
+    [[nodiscard]] std::vector<Archetype*> Query()
+    {
+        std::vector<Archetype*> output {};
+        // Query all available archetypes that match the list of components
+        ArchetypeKey requiredCompKey = (TComponents::ID | ...);
+        for (const auto& [key, arch] : m_KeyToArchetype)
+        {
+            if ((key & requiredCompKey) == requiredCompKey)
+            {
+                output.push_back(&arch);
+            }
+        }
+        // TODO this would return the Archetype, which we'd then iterate through.
+        // Maybe have it return just the components using some tuple
+        //std::vector<std::tuple<
+        return result;
+    }
+
     template <typename TComponent>
-    TComponent& GetComponent(EntityHandle e)
+    [[nodiscard]] TComponent& GetComponent(EntityHandle e)
     {
         const auto& [key, index] = m_Locations.at(e);
         auto& arch = m_KeyToArchetype.at(key);
@@ -126,6 +145,8 @@ public:
         TComponent* data = arch.GetData<TComponent>();
         return data[index];
     }
+
+
 
     template <typename TComponent>
     void AddComponent(EntityHandle e, const TComponent& value)
