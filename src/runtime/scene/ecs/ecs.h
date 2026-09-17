@@ -232,8 +232,8 @@ private: // helper funcs
             if (!(newKey & type)) continue;
 
             size_t compSize = src.m_ComponentSize.at(type);
-            dst.m_ComponentSize.at(type) = compSize;
-            auto& dstData = dst.m_ComponentData.at(type);
+            dst.m_ComponentSize[type] = compSize;
+            auto& dstData = dst.m_ComponentData[type];
             size_t reqSize = dst.m_Entities.size() * compSize;
             if (dstData.size() < reqSize)
             {
@@ -245,7 +245,7 @@ private: // helper funcs
 
         EntityHandle movedEnt = src.RemoveEntity(oldIndex);
         if (movedEnt) {
-            m_Locations.at(movedEnt).index = oldIndex;
+            m_Locations.at(movedEnt).index = newIndex;
             m_Locations.at(movedEnt).key = newKey;
         } else {
             m_Locations.insert_or_assign(e, Location{newKey, newIndex});

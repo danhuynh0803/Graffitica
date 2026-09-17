@@ -39,6 +39,7 @@ struct TransformComponent
 struct RenderableComponent
 {
     static const U32 ID = ComponentFlags::RenderableBit;
+    //MeshAttributes* pMesh;
     MeshAttributes* pMesh;
     Material* pMaterial;
 };

@@ -41,7 +41,7 @@ namespace
     //std::shared_ptr<Mesh> model = std::make_shared<Mesh>("../assets/models/african_head.obj");
     //model = std::make_shared<Mesh>("../assets/models/xyzrgb_dragon.obj"),
     const std::string gModelPath("../assets/gltf/2.0/");
-    std::shared_ptr<MeshData> model = std::make_shared<MeshData>(LoadGLTFMesh(gModelPath + "BoxTextured/glTF/BoxTextured.gltf"));
+    std::shared_ptr<MeshAttributes> model = std::make_shared<MeshAttributes>(LoadGLTFMesh(gModelPath + "BoxTextured/glTF/BoxTextured.gltf"));
 
     gr::Camera gCamera({ 0,0,5 }, { 0,0,0 });
     CameraController gCameraController(&gCamera);
@@ -400,12 +400,30 @@ EditorLayer::EditorLayer(const std::string& name)
 
 
     // ECS test code
+    // Setup test entities, just transform data for now
     pRegistry = std::make_unique<EntityRegistry>();
-    EntityHandle e1 = pRegistry->CreateEntity();
-    pRegistry->AddComponent<TransformComponent>(e1, {{1.,0.,0.}, {2.,0.,0.}, {3,1,1}});
-    const auto& transform = pRegistry->GetComponent<TransformComponent>(e1);
+    std::vector<EntityHandle> gEntityHandles {};
+    for (int i = 0; i < 10; ++i)
+    {
+        gEntityHandles.push_back(pRegistry->CreateEntity());
+        vec3f pos   = { 1.f*i, 0.f, 0.f };
+        vec3f rot   = { 0.f  , 0.f, 0.f };
+        vec3f scale = { 1.f  , 1.f, 1.f };
+        TransformComponent T{ pos, rot, scale };
+        pRegistry->AddComponent<TransformComponent>(gEntityHandles[i], T);
 
-    std::cout << transform.position << ", " << transform.rotation << ", " << transform.scale << '\n';
+        RenderableComponent rc;
+        rc.pMesh = model.get();
+        rc.pMaterial = nullptr; //TODO
+        pRegistry->AddComponent<RenderableComponent>(gEntityHandles[i], rc);
+    }
+    
+    // Test that we can still query from the <Transform,Renderable> arch
+    // when just querying for Transform
+    // TODO reminder to move to test suite later
+    pRegistry->ForEach<TransformComponent>([](TransformComponent& t) {
+        std::cout << t.position << '\n';
+    });
 }
 
 void EditorLayer::OnUpdate(double dt)

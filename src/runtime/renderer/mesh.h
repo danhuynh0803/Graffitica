@@ -17,7 +17,6 @@ struct MeshAttributes
     // colors
 };
 
-
 // for testing api
 struct SimpleMesh
 {

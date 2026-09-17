@@ -7,16 +7,7 @@
 
 #include <filesystem>
 #include <iostream>
-
-// TODO
-// Have option to extract/store indices with U16
-struct MeshData
-{
-    std::vector<uint32_t> indices;
-    std::vector<float> positions;
-    std::vector<float> normals;
-    std::vector<float> uvs;
-};
+#include "renderer/mesh.h" // MeshAttributes
 
 // Copied just for reference on error codes
 //enum class Error : std::uint64_t {
@@ -63,9 +54,9 @@ inline const char* ToString(fastgltf::Error err)
     }
 }
 
-MeshData LoadGLTFMesh(const std::filesystem::path& path)
+MeshAttributes LoadGLTFMesh(const std::filesystem::path& path)
 {
-    MeshData outMesh;
+    MeshAttributes outMesh;
 
     // Initialize fastgltf parser
     fastgltf::Parser parser;
