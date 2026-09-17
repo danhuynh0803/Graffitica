@@ -44,3 +44,34 @@ TEST_CASE("remove component", "[ecs-remove]")
     reg.RemoveComponent<TransformComponent>(e1);
     reg.GetComponent<TransformComponent>(e1);
 }
+
+TEST_CASE("for each", "[ecs-ForEach]")
+{
+    EntityRegistry reg;
+    auto e1 = reg.CreateEntity();
+    auto e2 = reg.CreateEntity();
+
+    TransformComponent T1{ A, B, C };
+    TransformComponent T2{ A, B, C };
+    reg.AddComponent<TransformComponent>(e1, T1);
+    reg.AddComponent<TransformComponent>(e2, T2);
+
+    SECTION("Iterate through transform and multiply by increasing factors")
+    {
+        static float factor = 2.0;
+        reg.ForEach<TransformComponent>([](TransformComponent& transform)
+        {
+            transform.position *= factor;
+            // increase factor for next iteration for variety in results
+            factor++;
+            //std::cout << transform.position << '\n';
+        });
+
+        const auto& r1 = reg.GetComponent<TransformComponent>(e1);
+        const auto& r2 = reg.GetComponent<TransformComponent>(e2);
+
+        REQUIRE(r1.position == (2.0f * A));
+        REQUIRE(r2.position == (3.0f * A));
+    }
+
+}

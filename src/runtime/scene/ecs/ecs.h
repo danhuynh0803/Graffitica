@@ -117,23 +117,42 @@ public:
         return m_NextEntityHandle++;
     }
 
+    template <typename... TComponents, typename Fn>
+    void ForEach(Fn&& fn)
+    {
+        ArchetypeKey required = (TComponents::ID | ...);
+        for (auto& [key, arch] : m_KeyToArchetype)
+        {
+            if ((key & required) != required) continue;
+
+            std::tuple<TComponents*...> arrays{ arch.template GetData<TComponents>()... };
+            for (size_t i = 0; i < arch.m_Entities.size(); ++i)
+                fn(std::get<TComponents*>(arrays)[i]...);
+        }
+    }
+
     template <typename... TComponents>
     [[nodiscard]] std::vector<Archetype*> Query()
+    //[[nodiscard]] std::tuple<std::vector<TComponents...>> Query()
     {
         std::vector<Archetype*> output {};
         // Query all available archetypes that match the list of components
         ArchetypeKey requiredCompKey = (TComponents::ID | ...);
+        // Two pass approach, first get all archetypes that match
+        // Also get a running count of their entity lists so we can resize the byte arrays accordingly
+        size_t entityCount = 0;
         for (const auto& [key, arch] : m_KeyToArchetype)
         {
             if ((key & requiredCompKey) == requiredCompKey)
             {
                 output.push_back(&arch);
+                entityCount += arch.m_Entities.size();
             }
         }
-        // TODO this would return the Archetype, which we'd then iterate through.
-        // Maybe have it return just the components using some tuple
-        //std::vector<std::tuple<
-        return result;
+
+        return output;
+        
+        // TODO Now iterate through archetypes and append data list to the component byte arrays
     }
 
     template <typename TComponent>
