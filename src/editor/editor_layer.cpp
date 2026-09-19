@@ -37,11 +37,8 @@ namespace
     rhi::IGraphicsContext* pGfxContext = nullptr;
     rhi::ISwapchain* pSwapchain = nullptr;
 
-    //std::shared_ptr<Mesh> model = std::make_shared<Mesh>("../assets/models/african_head.obj");
-    //model = std::make_shared<Mesh>("../assets/models/xyzrgb_dragon.obj"),
     const std::string MODEL_PATH("../assets/gltf/2.0/");
-    //std::shared_ptr<MeshAttributes> model = std::make_shared<MeshAttributes>(LoadGLTFMesh(gModelPath + "BoxTextured/glTF/BoxTextured.gltf"));
-    std::shared_ptr<Mesh> pModel;
+    std::unique_ptr<Mesh> pModel;
 
     gr::Camera gCamera({ 0,0,5 }, { 0,0,0 });
     CameraController gCameraController(&gCamera);
@@ -61,15 +58,6 @@ namespace
     RHIBufferResource* pCameraConstantBuffer;
 
     std::unique_ptr<RenderGraphBuilder> pRenderGraphBuilder;
-
-    struct Vertex
-    {
-        vec3f position;
-        // TODO: vec4 simd 16byte alignment causing increase struct size
-        vec4f color;
-        vec3f normal;
-        vec2f uv;
-    };
 
     struct alignas(256) CameraData
     {
@@ -202,7 +190,7 @@ EditorLayer::EditorLayer(const std::string& name)
     pRHI = pGfxContext->GetRHIContext();
     gCmdlist = pRHI->CreateCommandList(rhi::CommandListType::GRAPHICS);
 
-    pModel = std::make_shared<Mesh>(MODEL_PATH + "BoxTextured/glTF/BoxTextured.gltf");
+    pModel = std::make_unique<Mesh>(MODEL_PATH + "BoxTextured/glTF/BoxTextured.gltf");
 
     BufferDesc cbufferDesc{
         .sizeInBytes = sizeof(CameraData),
@@ -438,14 +426,6 @@ void EditorLayer::OnUpdate(double dt)
     pRHI->SetScissor(gCmdlist, scissorRect);
     pRHI->SetPipeline(gCmdlist, rhi::PipelineBindPoint::Graphics, gPipelineHandle);
     pRHI->SetDescriptorTable(gCmdlist, rhi::PipelineBindPoint::Graphics, gCameraConstantBuffer, 0);
-
-    //{
-    //    BufferHandle vertexBuffers[] = { positionVB, normalVB, texcoordVB };
-    //    pRHI->SetVertexBuffers(gCmdlist, sizeof(vertexBuffers) / sizeof(vertexBuffers[0]), vertexBuffers);
-    //    pRHI->SetIndexBuffer(gCmdlist, gIndexBuffer);
-    //    pRHI->DrawIndexedInstanced(gCmdlist, model.indices.size(), 1, 0, 0, 0);
-    //}
-
 
     // Test that we can still query from the <Transform,Renderable> arch
     // when just querying for Transform
