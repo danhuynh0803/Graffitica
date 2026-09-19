@@ -32,6 +32,9 @@
 //    FileBufferAllocationFailed = 14, ///< The constructor of GltfDataBuffer failed to allocate a sufficiently large buffer.
 //};
 
+namespace gr
+{
+
 inline const char* ToString(fastgltf::Error err)
 {
     switch (err) {
@@ -126,4 +129,6 @@ MeshAttributes LoadGLTFMesh(const std::filesystem::path& path)
     }
 
     return outMesh;
+}
+
 }

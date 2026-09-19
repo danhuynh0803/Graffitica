@@ -294,14 +294,14 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
     const auto& shaderModule = cmd.shaderModule;
 
     const auto& colors = vb.m_VertexColors;
-    const auto& verts = vb.m_MeshData->GetVertices();
+    //const auto& verts = vb.m_MeshData->GetVertices();
     const int width = fb->colorView->width;
     const int height = fb->colorView->height;
 
     for (U32 tri = firstIndex; tri < indexCount; ++tri)
     {
         //GR_TRACE_SCOPED("TriangleLoop");
-        const std::vector<int>& face = vb.m_MeshData->face(tri);
+        //const std::vector<int>& face = vb.m_MeshData->face(tri);
 
         // assemble attributes for processing
         VertexAttributes inputAttributes[3];
@@ -309,7 +309,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
             for (int i = 0; i < 3; ++i)
             {
                 auto& attrib = inputAttributes[i];
-                attrib.aPos = verts[face[i]];
+                //attrib.aPos = verts[face[i]];
                 attrib.aColor = colors[(tri * 3 + i) % colors.size()];
                 attrib.aTexCoord = vec2f(0.0f, 0.0f);
             }
@@ -448,6 +448,7 @@ void DrawIndexedImmediate(const CommandBuffer& cmd, const Buffer& vb, U32 indexC
     }
 }
 
+/*
 // Draw that includes binning step
 void DrawIndexedTiled(const CommandBuffer& cmd, const Buffer& vb, U32 indexCount, U32 firstIndex, int vertexOffset)
 {
@@ -879,8 +880,8 @@ void DrawIndexedCPUImpl(const CPUCommandList& cmd, U32 indexCount, U32 instanceC
             }
         }
     }
-*/
 }
+*/
 
 void DrawIndexedTiledCPUImpl(const CPUCommandList& cmd, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
 {

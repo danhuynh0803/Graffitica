@@ -1,12 +1,10 @@
-#include "RenderGraphBuilder.h"
+#include "render_graph_builder.h"
 
 namespace gr
 {
 
 void RenderGraphBuilder::AddPass(const char* passName, const PassDesc& passDesc)
 {
-
-
 }
 
 void RenderGraphBuilder::Compile()

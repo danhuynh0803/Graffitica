@@ -3,7 +3,7 @@
 #include "rhi/rasterizer_state.h"
 #include "rhi/resource.h"
 #include "rhi/interface/rhi.h"
-#include "RenderGraphPass.h"
+#include "render_graph_pass.h"
 
 namespace gr
 {

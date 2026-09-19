@@ -25,8 +25,7 @@
 #include "rhi/interface/rhi.h"
 #include "modules/ShaderCompilerModule.h"
 #include "util/image_util.h"
-#include "util/gltf_util.h"
-#include "renderer/RenderGraphBuilder.h"
+#include "renderer/render_graph_builder.h"
 
 #include "scene/ecs/ecs.h"
 
@@ -40,8 +39,9 @@ namespace
 
     //std::shared_ptr<Mesh> model = std::make_shared<Mesh>("../assets/models/african_head.obj");
     //model = std::make_shared<Mesh>("../assets/models/xyzrgb_dragon.obj"),
-    const std::string gModelPath("../assets/gltf/2.0/");
-    std::shared_ptr<MeshAttributes> model = std::make_shared<MeshAttributes>(LoadGLTFMesh(gModelPath + "BoxTextured/glTF/BoxTextured.gltf"));
+    const std::string MODEL_PATH("../assets/gltf/2.0/");
+    //std::shared_ptr<MeshAttributes> model = std::make_shared<MeshAttributes>(LoadGLTFMesh(gModelPath + "BoxTextured/glTF/BoxTextured.gltf"));
+    std::shared_ptr<Mesh> pModel;
 
     gr::Camera gCamera({ 0,0,5 }, { 0,0,0 });
     CameraController gCameraController(&gCamera);
@@ -202,48 +202,7 @@ EditorLayer::EditorLayer(const std::string& name)
     pRHI = pGfxContext->GetRHIContext();
     gCmdlist = pRHI->CreateCommandList(rhi::CommandListType::GRAPHICS);
 
-    Debug::positionVB    = pRHI->CreateBuffer(Debug::positionDesc);
-    Debug::colorVB       = pRHI->CreateBuffer(Debug::colorDesc);
-    Debug::normalVB      = pRHI->CreateBuffer(Debug::normalDesc);
-    Debug::texcoordVB    = pRHI->CreateBuffer(Debug::texcoordDesc);
-    Debug::indexBuffer   = pRHI->CreateBuffer(Debug::indexDesc);
-
-    BufferDesc positionDesc{
-        .sizeInBytes = sizeof(float) * model->positions.size(),
-        .strideInBytes = sizeof(float) * 3,
-        .usageFlags = 0,
-        .dataSrc = (void*)model->positions.data(),
-        .eResourceType = BufferResourceType::VertexBuffer
-    };
-    positionVB = pRHI->CreateBuffer(positionDesc);
-
-    BufferDesc normalDesc{
-        .sizeInBytes = sizeof(float) * model->normals.size(),
-        .strideInBytes = sizeof(float) * 3,
-        .usageFlags = 0,
-        .dataSrc = (void*)model->normals.data(),
-        .eResourceType = BufferResourceType::VertexBuffer
-    };
-    normalVB = pRHI->CreateBuffer(normalDesc);
-
-    BufferDesc texcoordDesc{
-        .sizeInBytes = sizeof(float) * model->uvs.size(),
-        .strideInBytes = sizeof(float) * 2,
-        .usageFlags = 0,
-        .dataSrc = (void*)model->uvs.data(),
-        .eResourceType = BufferResourceType::VertexBuffer
-    };
-    texcoordVB = pRHI->CreateBuffer(texcoordDesc);
-
-    BufferDesc ModelIndexDesc{
-        .sizeInBytes = sizeof(U32) * model->indices.size(),
-        .strideInBytes = sizeof(U32),
-        .usageFlags = 0, // TODO
-        .dataSrc = (void*)model->indices.data(),
-        .eResourceType = BufferResourceType::IndexBuffer,
-        .eFormat = rhi::GrFormat::R32_UINT
-    };
-    gIndexBuffer = pRHI->CreateBuffer(ModelIndexDesc);
+    pModel = std::make_shared<Mesh>(MODEL_PATH + "BoxTextured/glTF/BoxTextured.gltf");
 
     BufferDesc cbufferDesc{
         .sizeInBytes = sizeof(CameraData),
@@ -268,6 +227,7 @@ EditorLayer::EditorLayer(const std::string& name)
     };
     gDepthBufferHndl = pRHI->CreateTexture(depthDesc);
 
+    // TODO handled by material
     ImageData imageData("../assets/uv-checker-map.png");
     TextureDesc checkerTexDesc{
         .width = (U32)imageData.width,
@@ -413,7 +373,7 @@ EditorLayer::EditorLayer(const std::string& name)
         pRegistry->AddComponent<TransformComponent>(gEntityHandles[i], T);
 
         RenderableComponent rc;
-        rc.pMesh = model.get();
+        rc.pMesh = pModel.get();
         rc.pMaterial = nullptr; //TODO
         pRegistry->AddComponent<RenderableComponent>(gEntityHandles[i], rc);
     }
@@ -433,14 +393,6 @@ void EditorLayer::OnUpdate(double dt)
     gCameraData.projection = gCamera.GetPerspectiveProjection(45, (float)pSwapchain->GetWidth() / pSwapchain->GetHeight(), 0.01, 1000.0f);
     gCameraData.viewProjection =  gCameraData.projection * gCameraData.view;
     pCameraConstantBuffer->SetData(&gCameraData, sizeof(CameraData));
-
-    // Test that we can still query from the <Transform,Renderable> arch
-    // when just querying for Transform
-    // TODO reminder to move to test suite later
-    pRegistry->ForEach<TransformComponent>([=](TransformComponent& t) {
-        t.position += vec3f(sin(totalTime), cos(totalTime), 0.f);
-        std::cout << t.position << '\n';
-    });
 
     auto backBufferHndl = pSwapchain->GetCurrentFrameResourceHandle();
     
@@ -487,28 +439,37 @@ void EditorLayer::OnUpdate(double dt)
     pRHI->SetPipeline(gCmdlist, rhi::PipelineBindPoint::Graphics, gPipelineHandle);
     pRHI->SetDescriptorTable(gCmdlist, rhi::PipelineBindPoint::Graphics, gCameraConstantBuffer, 0);
 
-    {
-        BufferHandle vertexBuffers[] = { positionVB, normalVB, texcoordVB };
-        pRHI->SetVertexBuffers(gCmdlist, sizeof(vertexBuffers) / sizeof(vertexBuffers[0]), vertexBuffers);
-        pRHI->SetIndexBuffer(gCmdlist, gIndexBuffer);
-        pRHI->DrawIndexedInstanced(gCmdlist, model->indices.size(), 1, 0, 0, 0);
-    }
+    //{
+    //    BufferHandle vertexBuffers[] = { positionVB, normalVB, texcoordVB };
+    //    pRHI->SetVertexBuffers(gCmdlist, sizeof(vertexBuffers) / sizeof(vertexBuffers[0]), vertexBuffers);
+    //    pRHI->SetIndexBuffer(gCmdlist, gIndexBuffer);
+    //    pRHI->DrawIndexedInstanced(gCmdlist, model.indices.size(), 1, 0, 0, 0);
+    //}
+
+
+    // Test that we can still query from the <Transform,Renderable> arch
+    // when just querying for Transform
+    // TODO reminder to move to test suite later
+    //pRegistry->ForEach<TransformComponent>([=](TransformComponent& t) {
+    //    t.position += vec3f(sin(totalTime), cos(totalTime), 0.f);
+    //    std::cout << t.position << '\n';
+    //});
 
     pRegistry->ForEach<TransformComponent, RenderableComponent>([=]
-    (const TransformComponent& t, const RenderableComponent& r) {
-        // TODO
+    (TransformComponent& t, const RenderableComponent& r) {
+        // translate each instance
+        t.position += vec3f(sin(totalTime), cos(totalTime), 0.f);
+
+        auto pMesh = r.pMesh;
+        auto position = pMesh->GetBuffer(MeshAttribute::POSITION);
+        auto normal = pMesh->GetBuffer(MeshAttribute::NORMAL);
+        auto texcoord = pMesh->GetBuffer(MeshAttribute::TEXCOORD);
+        BufferHandle vertexBuffers[] = { position, normal, texcoord };
+        pRHI->SetVertexBuffers(gCmdlist, sizeof(vertexBuffers)/sizeof(vertexBuffers[0]), vertexBuffers);
+        pRHI->SetIndexBuffer(gCmdlist, pMesh->GetBuffer(MeshAttribute::INDICES));
+        pRHI->DrawIndexedInstanced(gCmdlist, pMesh->GetMeshAttributes().indices.size(), 1, 0, 0, 0);
     });
 
-
-    // =======================================================================
-    // Uncomment to Draw the debug quad (TODO move to debug utilities later)
-    // =======================================================================
-    //{
-    //    BufferHandle vertexBuffers[] = { Debug::positionVB, Debug::normalVB, Debug::texcoordVB };
-    //    pRHI->SetVertexBuffers(gCmdlist, sizeof(vertexBuffers) / sizeof(vertexBuffers[0]), vertexBuffers);
-    //    pRHI->SetIndexBuffer(gCmdlist, Debug::indexBuffer);
-    //    pRHI->DrawIndexedInstanced(gCmdlist, Debug::indices.size(), 1, 0, 0, 0);
-    //}
     pRHI->EndRenderPass(gCmdlist);
 
     pRHI->TransitionResource(gCmdlist, backBufferHndl, ResourceState::RenderTarget, ResourceState::Present);
