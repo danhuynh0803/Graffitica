@@ -15,6 +15,14 @@ CPUGraphicsPipeline::CPUGraphicsPipeline(void*, const GraphicsPipelineDesc& desc
 {
     fnVert = reinterpret_cast<pfnVS>(desc.VS.pShaderFn);
     fnPixel = reinterpret_cast<pfnPS>(desc.PS.pShaderFn);
+
+    // TODO works with just separated vertex streams and no interleaved data atm
+    // Add that support later
+    for (const auto& input : m_InputLayoutStates)
+    {
+        m_InputTypeToBufferIdx[input.eInputType] = input.inputSlot;
+    }
+
 }
 
 } // namespace gr::rhi

@@ -17,7 +17,9 @@ public:
           eResourceType(desc.eResourceType)
     {
         m_Data.resize(m_SizeInBytes);
-        memcpy(m_Data.data(), desc.dataSrc, desc.sizeInBytes);
+        if (desc.dataSrc) {
+            memcpy(m_Data.data(), desc.dataSrc, desc.sizeInBytes);
+        }
     }
 
     CPUBufferResource(void* data, U32 size, U32 stride)
@@ -109,6 +111,7 @@ struct CPUTextureResource
         m_FormatSize(FormatToByteSize(desc.eFormat)),
         m_Data(m_Width * m_Height * FormatToByteSize(desc.eFormat))
     {
+        //std::cout << m_FormatSize << '\n';
     }
 
     // delegating constructor
@@ -118,55 +121,13 @@ struct CPUTextureResource
     }
 
     // move constructor
-    CPUTextureResource(CPUTextureResource&& other) noexcept
-      : m_Width(other.m_Width),
-        m_Height(other.m_Height),
-        m_Format(other.m_Format),
-        m_Data(std::move(other.m_Data))
-    {
-        other.m_Format = GrFormat::UNDEFINED;
-        other.m_Width = 0;
-        other.m_Height = 0;
-    }
-
+    CPUTextureResource(CPUTextureResource&& other) noexcept = default;
     // copy constructor
-    CPUTextureResource(const CPUTextureResource& other)
-      : m_Width(other.m_Width),
-        m_Height(other.m_Height),
-        m_Format(other.m_Format),
-        m_Data(other.m_Data)
-    {
-    }
-
+    CPUTextureResource(const CPUTextureResource& other) = default;
     // move assignment
-    CPUTextureResource& operator=(CPUTextureResource&& other) noexcept
-    {
-        if (this != &other)
-        {
-            m_Width = other.m_Width;
-            m_Height = other.m_Height;
-            m_Format = other.m_Format;
-            m_Data = std::move(other.m_Data);
-
-            other.m_Format = GrFormat::UNDEFINED;
-            other.m_Width = 0;
-            other.m_Height = 0;
-        }
-        return *this;
-    }
-
+    CPUTextureResource& operator=(CPUTextureResource&& other) noexcept = default;
     // copy assignment
-    CPUTextureResource& operator=(const CPUTextureResource& other)
-    {
-        if (this != &other)
-        {
-            m_Width = other.m_Width;
-            m_Height = other.m_Height;
-            m_Format = other.m_Format;
-            m_Data = other.m_Data;
-        }
-        return *this;
-    }
+    CPUTextureResource& operator=(const CPUTextureResource& other) = default;
 
     void* At(U32 x, U32 y)
     {

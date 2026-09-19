@@ -268,8 +268,8 @@ EditorLayer::EditorLayer(const std::string& name)
         //float intensity = std::max(0.0f, dot(vec3f(input.normal.xyz()), lightDir));
         //return input.normal;
         //return vec4f(input.texcoord, 0.0f, 1.0f);
-        //return vec4f(1.0, 0.0f, 1.0f, 1.0f);
-        return inVarying.color;
+        return vec4f(1.0, 0.0f, 1.0f, 1.0f);
+        //return inVarying.color;
     };
     pipelineDesc.PS.pShaderFn = ps;
     
@@ -351,7 +351,7 @@ EditorLayer::EditorLayer(const std::string& name)
     // Setup test entities, just transform data for now
     pRegistry = std::make_unique<EntityRegistry>();
     std::vector<EntityHandle> gEntityHandles {};
-    for (int i = 0; i < 10; ++i)
+    for (int i = 0; i < 1 /*10*/; ++i)
     {
         gEntityHandles.push_back(pRegistry->CreateEntity());
         vec3f pos   = { 1.f + (i*5.0f), 0.f, 0.f };
@@ -426,14 +426,6 @@ void EditorLayer::OnUpdate(double dt)
     pRHI->SetScissor(gCmdlist, scissorRect);
     pRHI->SetPipeline(gCmdlist, rhi::PipelineBindPoint::Graphics, gPipelineHandle);
     pRHI->SetDescriptorTable(gCmdlist, rhi::PipelineBindPoint::Graphics, gCameraConstantBuffer, 0);
-
-    // Test that we can still query from the <Transform,Renderable> arch
-    // when just querying for Transform
-    // TODO reminder to move to test suite later
-    //pRegistry->ForEach<TransformComponent>([=](TransformComponent& t) {
-    //    t.position += vec3f(sin(totalTime), cos(totalTime), 0.f);
-    //    std::cout << t.position << '\n';
-    //});
 
     pRegistry->ForEach<TransformComponent, RenderableComponent>([=]
     (TransformComponent& t, const RenderableComponent& r) {

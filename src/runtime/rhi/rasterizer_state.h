@@ -82,7 +82,8 @@ enum class InputType
     POSITIONT,       // float4 (transformed)
     PSIZE,           // float
     TANGENT,         // float4
-    TEXCOORD         // float4
+    TEXCOORD,        // float4
+    COUNT
 };
 
 inline const char* InputTypeToString(InputType type)

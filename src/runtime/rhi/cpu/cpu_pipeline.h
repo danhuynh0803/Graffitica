@@ -30,6 +30,9 @@ private:
     RasterizerState m_RasterizerState;
     DepthStencilState m_DepthStencilState;
     std::vector<InputLayoutState> m_InputLayoutStates;
+
+    std::unordered_map<InputType, U32> m_InputTypeToBufferIdx;
+
     // Shader functions
     // TODO replace with slang
     std::function<Varyings(VertexAttributes)> fnVert;

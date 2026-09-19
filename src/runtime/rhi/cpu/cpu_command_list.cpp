@@ -291,28 +291,29 @@ void CPUCommandList::DrawIndexedInstancedImpl(U32 indexCount, U32 instanceCount,
     const auto& inputState = m_GraphicsPipeline->m_InputLayoutStates;
     const auto& vsShaderFunc = m_GraphicsPipeline->fnVert;
     const auto& psShaderFunc = m_GraphicsPipeline->fnPixel;
-    
-    //const auto& colors = vb.m_VertexColors;
-    //const auto& verts = vb.m_MeshData->GetVertices();
+    const auto& inputToBufferIdx = m_GraphicsPipeline->m_InputTypeToBufferIdx;
+    int posIdx = inputToBufferIdx.at(InputType::POSITION);
     const int width = colorView->m_Width;
     const int height = colorView->m_Height;
 
-    const auto vb = m_VertexBuffers[0];
+    const auto positionVB = m_VertexBuffers[posIdx];
     const auto ib = m_IndexBuffer;
     const int topologyIncrement = 3;
     
-    const U32 positionOffset = inputState[0].alignedByteOffset;
-    const U32 positionSizeInBytes = FormatToByteSize(inputState[0].format);
+    const U32 positionOffset = inputState[posIdx].alignedByteOffset;
+    const U32 positionSizeInBytes = FormatToByteSize(inputState[posIdx].format);
+
     const U32 colorOffset = inputState[1].alignedByteOffset;
     const U32 colorSizeInBytes = FormatToByteSize(inputState[1].format);
-    const U32 vertexStride = vb->m_StrideInBytes;
+
+    const U32 vertexStride = positionVB->m_StrideInBytes;
 
     // Per instance - TODO
     for (int currInstance = 0; currInstance < instanceCount; ++currInstance)
     for (U32 tri = startIndexLocation; tri < indexCount; tri += topologyIncrement)
     {
         //GR_TRACE_SCOPED("TriangleLoop");
-        U16 face[3] = {};
+        U32 face[3] = {};
         memcpy(face, ib->m_Data.data() + (tri*ib->m_StrideInBytes), 3*ib->m_StrideInBytes);
 
         // assemble attributes for processing
@@ -325,8 +326,8 @@ void CPUCommandList::DrawIndexedInstancedImpl(U32 indexCount, U32 instanceCount,
                 auto& attrib = inputAttributes[i];
 
                 const int offset = face[i]*vertexStride;
-                memcpy(&attrib.aPos, vb->m_Data.data() + offset, positionSizeInBytes);
-                memcpy(&attrib.aColor, vb->m_Data.data() + offset + colorOffset, colorSizeInBytes);
+                memcpy(&attrib.aPos, positionVB->m_Data.data() + offset, positionSizeInBytes);
+                memcpy(&attrib.aColor, positionVB->m_Data.data() + offset + colorOffset, colorSizeInBytes);
                 //attrib.aTexCoord = vec2f(0.0f, 0.0f);
             }
         }
@@ -373,7 +374,7 @@ void CPUCommandList::DrawIndexedInstancedImpl(U32 indexCount, U32 instanceCount,
         int maxY = static_cast<int>(std::clamp(std::max(a.y, std::max(b.y, c.y)), 0.0f, height - 1.0f));
 
         { //GR_TRACE_SCOPED("Rasterization");
-#pragma omp parallel for
+//#pragma omp parallel for
     // TODO use AVX to calculate two pixels at a time?
     // 256B wide registers can hold 8 pixels worth of data, but the area calc and edge function tests require shuffling data around which may reduce perf
             for (int y = minY; y <= static_cast<int>(maxY); ++y)
