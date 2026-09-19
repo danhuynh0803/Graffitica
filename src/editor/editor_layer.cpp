@@ -406,7 +406,7 @@ EditorLayer::EditorLayer(const std::string& name)
     for (int i = 0; i < 10; ++i)
     {
         gEntityHandles.push_back(pRegistry->CreateEntity());
-        vec3f pos   = { 1.f*i, 0.f, 0.f };
+        vec3f pos   = { 1.f + (i*5.0f), 0.f, 0.f };
         vec3f rot   = { 0.f  , 0.f, 0.f };
         vec3f scale = { 1.f  , 1.f, 1.f };
         TransformComponent T{ pos, rot, scale };
@@ -417,17 +417,14 @@ EditorLayer::EditorLayer(const std::string& name)
         rc.pMaterial = nullptr; //TODO
         pRegistry->AddComponent<RenderableComponent>(gEntityHandles[i], rc);
     }
-    
-    // Test that we can still query from the <Transform,Renderable> arch
-    // when just querying for Transform
-    // TODO reminder to move to test suite later
-    pRegistry->ForEach<TransformComponent>([](TransformComponent& t) {
-        std::cout << t.position << '\n';
-    });
+
 }
 
 void EditorLayer::OnUpdate(double dt)
 {
+    static float totalTime = 0.f;
+    totalTime += dt;
+
     GR_TRACE_START(SYS_GAME);
 
     gCameraController.OnUpdate(static_cast<float>(dt));
@@ -436,6 +433,14 @@ void EditorLayer::OnUpdate(double dt)
     gCameraData.projection = gCamera.GetPerspectiveProjection(45, (float)pSwapchain->GetWidth() / pSwapchain->GetHeight(), 0.01, 1000.0f);
     gCameraData.viewProjection =  gCameraData.projection * gCameraData.view;
     pCameraConstantBuffer->SetData(&gCameraData, sizeof(CameraData));
+
+    // Test that we can still query from the <Transform,Renderable> arch
+    // when just querying for Transform
+    // TODO reminder to move to test suite later
+    pRegistry->ForEach<TransformComponent>([=](TransformComponent& t) {
+        t.position += vec3f(sin(totalTime), cos(totalTime), 0.f);
+        std::cout << t.position << '\n';
+    });
 
     auto backBufferHndl = pSwapchain->GetCurrentFrameResourceHandle();
     
@@ -488,6 +493,13 @@ void EditorLayer::OnUpdate(double dt)
         pRHI->SetIndexBuffer(gCmdlist, gIndexBuffer);
         pRHI->DrawIndexedInstanced(gCmdlist, model->indices.size(), 1, 0, 0, 0);
     }
+
+    pRegistry->ForEach<TransformComponent, RenderableComponent>([=]
+    (const TransformComponent& t, const RenderableComponent& r) {
+        // TODO
+    });
+
+
     // =======================================================================
     // Uncomment to Draw the debug quad (TODO move to debug utilities later)
     // =======================================================================
