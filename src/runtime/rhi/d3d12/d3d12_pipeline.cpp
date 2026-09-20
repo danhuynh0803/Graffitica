@@ -82,10 +82,13 @@ D3D12GraphicsPipeline::D3D12GraphicsPipeline(D3D12_RHI* pRHI, const GraphicsPipe
     else
     {
         const U32 bindingsSize = desc.pipelineLayout.descriptorSetBindings.size();
-        std::vector<CD3DX12_DESCRIPTOR_RANGE1> ranges(bindingsSize);
+        //TODO +1 for adding modelmatrix rootconstant
+        std::vector<CD3DX12_DESCRIPTOR_RANGE1> ranges(bindingsSize+1);
         
-        std::vector<CD3DX12_ROOT_PARAMETER1> rootParameters(bindingsSize);
+        std::vector<CD3DX12_ROOT_PARAMETER1> rootParameters(bindingsSize+1);
 
+        // TODO need to rewrite the DescriptorTypes to include flexibility on whether the descriptor
+        // is a bufferview, rootconstant, descriptortable, etc
         for (U32 i = 0; i < bindingsSize; ++i)
         {
             const auto& grRootParam = desc.pipelineLayout.descriptorSetBindings[i];
@@ -106,8 +109,13 @@ D3D12GraphicsPipeline::D3D12GraphicsPipeline(D3D12_RHI* pRHI, const GraphicsPipe
                 throw std::runtime_error("Not supported ResourceType in PipelineCreation\n");
                 break;
             }
-
         }
+        // TODO hard coding the model matrix as a root constant for testing
+        // rewrite the descriptor sets to cover root constants as well
+        const U32 last = bindingsSize;
+        //ranges[last].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 1, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+        rootParameters[last].InitAsConstants(16, 1, 0, D3D12_SHADER_VISIBILITY_VERTEX);
+
 
         D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 

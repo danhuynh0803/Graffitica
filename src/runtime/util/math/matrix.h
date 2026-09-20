@@ -77,6 +77,17 @@ public:
 typedef Matrix<float, 4, 4> mat44;
 typedef Matrix<int, 4, 4> imat44;
 
+inline mat44 Mat44Identity()
+{
+    mat44 m{};
+    for (int i = 0; i < 4; ++i)
+    {
+        // Set diagonals to 1
+        m.m_Data[i][i] = 1;
+    }
+    return m;
+}
+
 template <typename T, size_t ROW, size_t COL>
 inline Matrix<T, ROW, COL> zero()
 {

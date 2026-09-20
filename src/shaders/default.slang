@@ -1,10 +1,14 @@
-
 cbuffer CameraData : register(b0)
 {
     float4x4 view;
     float4x4 proj;
     float4x4 viewProj;
 }
+
+cbuffer ObjectRootConstants : register(b1)
+{
+    float4x4 model;
+};
 
 struct PSInput
 {
@@ -21,7 +25,8 @@ PSInput VSMain(float4 position : POSITION, float3 normal : NORMAL, float2 uv : T
 {
     PSInput o;
 
-    o.position = mul(viewProj, float4(position.xyz, 1.0));
+    o.position = mul(model, float4(position.xyz, 1.0));
+    o.position = mul(viewProj, o.position);
     o.normal = normal;
     o.uv = uv;
 

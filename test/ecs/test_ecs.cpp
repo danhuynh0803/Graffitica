@@ -75,3 +75,11 @@ TEST_CASE("for each", "[ecs-ForEach]")
     }
 
 }
+
+// Test that we can still query from the <Transform,Renderable> arch
+// when just querying for Transform
+// TODO reminder to move to test suite later
+//pRegistry->ForEach<TransformComponent>([=](TransformComponent& t) {
+//    t.position += vec3f(sin(totalTime), cos(totalTime), 0.f);
+//    std::cout << t.position << '\n';
+//});

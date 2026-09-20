@@ -190,9 +190,17 @@ public:
         pCmdlist->m_Commands.emplace_back(SetRenderTargetsCmd{numViews, views, dsv});
     }
 
+    void SetRootConstants(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, void* pSrcData, size_t numBytes, U32 bindIndex, U32 offset)
+    {
+        GR_TRACE_START(SYS_RHI);
+        auto pCmdlist = GetNativeCommandList(cmdlist);
+        // TODO
+    }
+
     void SetDescriptorTable(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, BufferHandle bufferHandle, U32 bindIndex)
     {
         GR_TRACE_START(SYS_RHI);
+        auto pCmdlist = GetNativeCommandList(cmdlist);
         // TODO
     }
     

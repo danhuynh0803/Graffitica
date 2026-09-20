@@ -392,6 +392,15 @@ void D3D12_RHI::SetDescriptorHeaps(RHICommandList& cmdlist, const std::vector<De
     pCmdlist->SetDescriptorHeaps(descriptorTypesToBind.size(), ppHeaps);
 }
 
+void D3D12_RHI::SetRootConstants(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, void* pSrcData, size_t numBytes, U32 bindIndex, U32 offset)
+{
+    auto pCmdList = GetNativeCommandList(cmdlist);
+    if (eBindPoint == PipelineBindPoint::Graphics)
+        pCmdList->SetGraphicsRoot32BitConstants(bindIndex, numBytes, pSrcData, offset);
+    else
+        pCmdList->SetComputeRoot32BitConstants(bindIndex, numBytes, pSrcData, offset);
+}
+
 void D3D12_RHI::SetDescriptorTable(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, BufferHandle handle, U32 bindIndex)
 {
     auto pCmdlist = GetNativeCommandList(cmdlist);

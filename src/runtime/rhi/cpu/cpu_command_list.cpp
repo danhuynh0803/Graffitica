@@ -374,7 +374,7 @@ void CPUCommandList::DrawIndexedInstancedImpl(U32 indexCount, U32 instanceCount,
         int maxY = static_cast<int>(std::clamp(std::max(a.y, std::max(b.y, c.y)), 0.0f, height - 1.0f));
 
         { //GR_TRACE_SCOPED("Rasterization");
-//#pragma omp parallel for
+#pragma omp parallel for
     // TODO use AVX to calculate two pixels at a time?
     // 256B wide registers can hold 8 pixels worth of data, but the area calc and edge function tests require shuffling data around which may reduce perf
             for (int y = minY; y <= static_cast<int>(maxY); ++y)

@@ -351,10 +351,10 @@ EditorLayer::EditorLayer(const std::string& name)
     // Setup test entities, just transform data for now
     pRegistry = std::make_unique<EntityRegistry>();
     std::vector<EntityHandle> gEntityHandles {};
-    for (int i = 0; i < 1 /*10*/; ++i)
+    for (int i = 0; i < 10; ++i)
     {
         gEntityHandles.push_back(pRegistry->CreateEntity());
-        vec3f pos   = { 1.f + (i*5.0f), 0.f, 0.f };
+        vec3f pos   = { -5.0f + (i*1.1f), 0.f, 0.f};
         vec3f rot   = { 0.f  , 0.f, 0.f };
         vec3f scale = { 1.f  , 1.f, 1.f };
         TransformComponent T{ pos, rot, scale };
@@ -405,7 +405,7 @@ void EditorLayer::OnUpdate(double dt)
 
     // TODO begin renderpass should handle the clearing
     // but still keep flexibility of separate clear commands
-    pRHI->BeginRenderPass(gCmdlist, 
+    pRHI->BeginRenderPass(gCmdlist,
     {
         .numColorAttachments = 1,
         .colorAttachments = {backBufferHndl},
@@ -430,8 +430,12 @@ void EditorLayer::OnUpdate(double dt)
     pRegistry->ForEach<TransformComponent, RenderableComponent>([=]
     (TransformComponent& t, const RenderableComponent& r) {
         // translate each instance
-        t.position += vec3f(sin(totalTime), cos(totalTime), 0.f);
-
+        vec3f newPos = t.position + vec3f(sin(totalTime), cos(totalTime), 0.f);
+        //std::cout << "Entity position: " << t.position.x << ", " << t.position.y << ", " << t.position.z << std::endl;
+        mat44 modelMatrix = Mat44Identity();
+        translate(modelMatrix, newPos);
+        pRHI->SetRootConstants(gCmdlist, rhi::PipelineBindPoint::Graphics, &modelMatrix, sizeof(modelMatrix)/4, 2, 0);
+        
         auto pMesh = r.pMesh;
         auto position = pMesh->GetBuffer(MeshAttribute::POSITION);
         auto normal = pMesh->GetBuffer(MeshAttribute::NORMAL);
