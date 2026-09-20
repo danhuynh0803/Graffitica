@@ -38,7 +38,8 @@ namespace
     rhi::ISwapchain* pSwapchain = nullptr;
 
     const std::string MODEL_PATH("../assets/gltf/2.0/");
-    std::unique_ptr<Mesh> pModel;
+    std::unique_ptr<Mesh> pBoxModel;
+    std::unique_ptr<Mesh> pModel1;
 
     gr::Camera gCamera({ 0,0,5 }, { 0,0,0 });
     CameraController gCameraController(&gCamera);
@@ -190,7 +191,8 @@ EditorLayer::EditorLayer(const std::string& name)
     pRHI = pGfxContext->GetRHIContext();
     gCmdlist = pRHI->CreateCommandList(rhi::CommandListType::GRAPHICS);
 
-    pModel = std::make_unique<Mesh>(MODEL_PATH + "BoxTextured/glTF/BoxTextured.gltf");
+    pBoxModel = std::make_unique<Mesh>(MODEL_PATH + "BoxTextured/glTF/BoxTextured.gltf");
+    pModel1 = std::make_unique<Mesh>(MODEL_PATH + "DamagedHelmet/glTF/DamagedHelmet.gltf");
 
     BufferDesc cbufferDesc{
         .sizeInBytes = sizeof(CameraData),
@@ -350,22 +352,49 @@ EditorLayer::EditorLayer(const std::string& name)
     // ECS test code
     // Setup test entities, just transform data for now
     pRegistry = std::make_unique<EntityRegistry>();
-    std::vector<EntityHandle> gEntityHandles {};
-    for (int i = 0; i < 10; ++i)
+    //std::vector<EntityHandle> gEntityHandles {};
+    //for (int i = 0; i < 10; ++i)
+    //{
+    //    gEntityHandles.push_back(pRegistry->CreateEntity());
+    //    vec3f pos = { -5.0f + (i * 1.1f), 0.f, 0.f };
+    //    vec3f rot = { 0.f  , 0.f, 0.f };
+    //    vec3f scale = { 1.f  , 1.f, 1.f };
+    //    TransformComponent T{ pos, rot, scale };
+    //    pRegistry->AddComponent<TransformComponent>(gEntityHandles[i], T);
+    //
+    //    RenderableComponent rc;
+    //    rc.pMesh = pModel.get();
+    //    rc.pMaterial = nullptr; //TODO
+    //    pRegistry->AddComponent<RenderableComponent>(gEntityHandles[i], rc);
+    //}
+
     {
-        gEntityHandles.push_back(pRegistry->CreateEntity());
-        vec3f pos   = { -5.0f + (i*1.1f), 0.f, 0.f};
-        vec3f rot   = { 0.f  , 0.f, 0.f };
-        vec3f scale = { 1.f  , 1.f, 1.f };
+        auto h = pRegistry->CreateEntity();
+        vec3f pos   = { 0.f, 0.f, -5.f };
+        vec3f rot   = { 0.f, 0.f, 0.f };
+        vec3f scale = { 3.f, 3.f, 3.f };
         TransformComponent T{ pos, rot, scale };
-        pRegistry->AddComponent<TransformComponent>(gEntityHandles[i], T);
+        pRegistry->AddComponent<TransformComponent>(h, T);
 
         RenderableComponent rc;
-        rc.pMesh = pModel.get();
+        rc.pMesh = pBoxModel.get();
         rc.pMaterial = nullptr; //TODO
-        pRegistry->AddComponent<RenderableComponent>(gEntityHandles[i], rc);
+        pRegistry->AddComponent<RenderableComponent>(h, rc);
     }
 
+    {
+        auto h = pRegistry->CreateEntity();
+        vec3f pos   = { 0.f, 0.f, 0.f };
+        vec3f rot   = { 0.f, 0.f, 0.f };
+        vec3f scale = { .5f, .5f, .5f };
+        TransformComponent T{ pos, rot, scale };
+        pRegistry->AddComponent<TransformComponent>(h, T);
+
+        RenderableComponent rc;
+        rc.pMesh = pModel1.get();
+        rc.pMaterial = nullptr; //TODO
+        pRegistry->AddComponent<RenderableComponent>(h, rc);
+    }
 }
 
 void EditorLayer::OnUpdate(double dt)
@@ -433,6 +462,7 @@ void EditorLayer::OnUpdate(double dt)
         vec3f newPos = t.position + vec3f(sin(totalTime), cos(totalTime), 0.f);
         //std::cout << "Entity position: " << t.position.x << ", " << t.position.y << ", " << t.position.z << std::endl;
         mat44 modelMatrix = Mat44Identity();
+        scale(modelMatrix, t.scale);
         translate(modelMatrix, newPos);
         pRHI->SetRootConstants(gCmdlist, rhi::PipelineBindPoint::Graphics, &modelMatrix, sizeof(modelMatrix)/4, 2, 0);
         
