@@ -1,5 +1,7 @@
 #pragma once
 #include <algorithm>
+#include <cmath>
+#include <stdexcept>
 #include "util/math/vector.h"
 #include "core/types.h"
 #include "developer/profiler/profiler.h"
@@ -15,23 +17,14 @@ struct FORMAT_R8G8B8A8_UNORM final : ColorFormat
     inline static FORMAT_R8G8B8A8_UNORM to(const vec4f& c)
     {
         GR_TRACE_START(SYS_PER_PIXEL);
-        const __m128 scale  = _mm_set1_ps(255.f);
-        const __m128 minVal = _mm_set1_ps(0.f);
-        const __m128 maxVal = _mm_set1_ps(255.f);
-
-        // Apply the 255 scaling factor to convert from [0,1] to [0,255]
-        __m128 v = _mm_mul_ps(c.e128, scale);
-        // Clamping to 0, 255 range
-        v = _mm_min_ps(_mm_max_ps(v, minVal), maxVal);
-
-        // convert to int32 to prep for SDL surface format
-        __m128i i = _mm_cvtps_epi32(v);
-
         FORMAT_R8G8B8A8_UNORM o;
-        o.r = static_cast<U8>( _mm_extract_epi32(i, 0) );
-        o.g = static_cast<U8>( _mm_extract_epi32(i, 1) );
-        o.b = static_cast<U8>( _mm_extract_epi32(i, 2) );
-        o.a = static_cast<U8>( _mm_extract_epi32(i, 3) );
+        const auto toByte = [](float value) {
+            return static_cast<U8>(std::clamp(std::lrintf(value * 255.f), 0l, 255l));
+        };
+        o.r = toByte(c.r);
+        o.g = toByte(c.g);
+        o.b = toByte(c.b);
+        o.a = toByte(c.a);
         return o;
     }
     U8 r, g, b, a;
@@ -110,7 +103,7 @@ inline U32 FormatToByteSize(GrFormat format)
         break;
     }
 
-    throw std::exception("Undefined format byte size");
+    throw std::runtime_error("Undefined format byte size");
 }
 
 } // gr::rhi

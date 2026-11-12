@@ -19,6 +19,8 @@ class RHITextureResource;
 //template <typename RHI>
 class ICommandList
 {
+public:
+    virtual ~ICommandList() = default;
 };
 
 struct RHICommandList

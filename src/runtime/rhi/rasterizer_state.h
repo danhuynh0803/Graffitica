@@ -100,6 +100,7 @@ inline const char* InputTypeToString(InputType type)
     case InputType::PSIZE:           return "PSIZE";
     case InputType::TANGENT:         return "TANGENT";
     case InputType::TEXCOORD:        return "TEXCOORD";
+    case InputType::COUNT:           return "COUNT";
     }
 
     return "";

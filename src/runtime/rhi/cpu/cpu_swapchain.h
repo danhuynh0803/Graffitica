@@ -15,7 +15,9 @@ class CPUSwapchain final : public ISwapchain
 public:
     CPUSwapchain(const SwapchainProperties& props, CPU_RHI* rhiInstance);
     ~CPUSwapchain() = default;
-    void UpdateBackBuffer(SDL_Surface* surfaceToUpdate);
+    void Resize(U32 width, U32 height);
+    [[nodiscard]] CPUTextureResource& GetCurrentBackBuffer();
+    void AdvanceFrame();
 
 public:
     virtual void Present() override { /* TODO no-op on cpu because CPUGfxContext is handling it */ }

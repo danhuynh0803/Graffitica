@@ -84,6 +84,7 @@ public:
             }
             return movedEntity;
         }
+        return NullEntity;
     }
 
     bool HasComponent(U32 componentID) const
@@ -141,7 +142,7 @@ public:
         // Two pass approach, first get all archetypes that match
         // Also get a running count of their entity lists so we can resize the byte arrays accordingly
         size_t entityCount = 0;
-        for (const auto& [key, arch] : m_KeyToArchetype)
+        for (auto& [key, arch] : m_KeyToArchetype)
         {
             if ((key & requiredCompKey) == requiredCompKey)
             {

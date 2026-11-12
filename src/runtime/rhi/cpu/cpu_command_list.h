@@ -21,18 +21,10 @@ class Command;
 class CPUCommandList : public ICommandList
 {
 public:
-    CPUCommandList() noexcept
-        : m_Commands()
-        , m_VertexBuffers{}
-        , m_IndexBuffer{}
-        , m_ColorTargets{}
-        , m_DepthTarget{}
-        , m_GraphicsPipeline(nullptr)
-        , m_ComputePipeline(nullptr)
-    {
-    }
+    CPUCommandList() noexcept;
+    ~CPUCommandList() override;
 
-    void BeginRecording() { m_Commands.clear(); }
+    void BeginRecording();
 
     void EndRecording() { /* No-op for CPU RHI */ }
 

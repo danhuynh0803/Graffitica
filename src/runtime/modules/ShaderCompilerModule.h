@@ -1,22 +1,23 @@
 #pragma once
 
-#include <slang/slang.h>
-#include <slang/slang-gfx.h>
-#include <d3d12.h>
 #include <memory>
-#include <wrl.h>
 #include <vector>
 #include <wchar.h>
 #include "rhi/interface/rhi.h"
 
+#if defined(GRAFFITICA_HAS_SLANG)
+#include <slang/slang.h>
+#include <slang/slang-gfx.h>
+#include <slang/slang-com-ptr.h>
+#endif
+
 namespace gr
 {
 
-using Microsoft::WRL::ComPtr;
-
+#if defined(GRAFFITICA_HAS_SLANG)
 struct ShaderOutputs
 {
-    ComPtr<slang::IBlob> blob;
+    Slang::ComPtr<slang::IBlob> blob;
     //ComPtr<slang::IBlob> VS[RHI_BACKEND::COUNT];
     //ComPtr<slang::IBlob> PS[RHI_BACKEND::COUNT];
     //ComPtr<slang::IBlob> CS[RHI_BACKEND::COUNT];
@@ -40,5 +41,14 @@ private:
     Slang::ComPtr<slang::IGlobalSession> mGlobalSession;
     Slang::ComPtr<slang::ISession> mSession;
 };
+#else
+struct ShaderOutputs {};
+
+class ShaderCompilerModule
+{
+public:
+    ShaderOutputs CompileSlangToBlob(RHI_BACKEND, const char*, const char*) { return {}; }
+};
+#endif
 
 }

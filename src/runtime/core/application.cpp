@@ -14,7 +14,7 @@ Application* Application::m_Instance = nullptr;
 Application::Application(const ApplicationProperties& props)
 {
     // Initialize various subsystems
-    m_Window = Window::Create({ props.name, props.width, props.height });
+    m_Window = Window::Create({ props.name, props.width, props.height, props.rhi });
     m_Window->SetEventCallback(std::bind(&Application::OnEvent, this, std::placeholders::_1));
     m_Instance = this;
 }

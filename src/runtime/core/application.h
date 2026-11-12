@@ -14,6 +14,14 @@ struct ApplicationProperties
 {
     std::string name;
     uint32_t width, height;
+    RHI_BACKEND rhi =
+#if defined(_WIN32)
+        RHI_BACKEND::D3D12;
+#elif defined(__APPLE__)
+        RHI_BACKEND::METAL;
+#else
+        RHI_BACKEND::CPU;
+#endif
 };
 
 class Application
@@ -45,7 +53,5 @@ private:
     LayerStack m_LayerStack;
     bool m_IsRunning = true;
 };
-
-static Application* CreateApplication();
 
 }

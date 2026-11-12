@@ -14,6 +14,8 @@ public:
     virtual ~IGraphicsContext() = default;
     virtual void SwapBackBuffers() = 0;
     virtual void UpdateBackBuffer(SDL_Surface* surfaceToUpdate) = 0;
+    virtual void Shutdown() {}
+    virtual void Resize(U32, U32) {}
     [[nodiscard]] static IGraphicsContext* GetInstance() { return s_GraphicsContextInstance; }
 
     template <typename TGraphicsContext>

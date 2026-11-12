@@ -30,7 +30,7 @@ struct Component
 
 struct TransformComponent
 {
-    static const U32 ID = ComponentFlags::TransformBit;
+    static constexpr U32 ID = ComponentFlags::TransformBit;
     vec3f position;
     vec3f rotation;
     vec3f scale;
@@ -38,7 +38,7 @@ struct TransformComponent
 
 struct RenderableComponent
 {
-    static const U32 ID = ComponentFlags::RenderableBit;
+    static constexpr U32 ID = ComponentFlags::RenderableBit;
     Mesh* pMesh;
     Material* pMaterial;
 };

@@ -16,6 +16,7 @@ struct WindowProperties
 {
     std::string name;
     uint32_t width, height;
+    RHI_BACKEND rhi = RHI_BACKEND::CPU;
 };
 
 class Window
@@ -47,7 +48,7 @@ private:
     std::string m_Name;
     uint32_t m_Width, m_Height;
     SDL_InitFlags m_InitFlags = SDL_INIT_VIDEO;
-    SDL_Window* m_Window;
+    SDL_Window* m_Window = nullptr;
     SDL_Surface* m_PresentSurface = nullptr;
 
     struct WindowData
@@ -57,7 +58,7 @@ private:
     } m_WindowData;
 
     //std::shared_ptr<gr::rhi::IGraphicsContext> m_GraphicsContext;
-    gr::rhi::IGraphicsContext* m_GraphicsContext;
+    gr::rhi::IGraphicsContext* m_GraphicsContext = nullptr;
     //std::unique_ptr<ISwapchain> m_Swapchain;
 };
 

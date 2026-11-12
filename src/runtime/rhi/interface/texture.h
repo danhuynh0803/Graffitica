@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cfloat>
 #include "rhi/rhi_enums.h"
 
 namespace gr::rhi

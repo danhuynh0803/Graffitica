@@ -43,6 +43,8 @@ ShaderCompilerModule::ShaderCompilerModule()
     // Is a "profile" needed for compiling to CPP src? No documentation found on it
     //targetDescs[RHI_BACKEND::CPU].profile = mGlobalSession->findProfile("cpp");
 
+    targetDescs[RHI_BACKEND::METAL].format = SLANG_METAL;
+
     sessionDesc.targets = targetDescs;
     sessionDesc.targetCount = RHI_BACKEND::COUNT;
 

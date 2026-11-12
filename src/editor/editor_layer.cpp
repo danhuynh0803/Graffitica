@@ -37,7 +37,7 @@ namespace
     rhi::IGraphicsContext* pGfxContext = nullptr;
     rhi::ISwapchain* pSwapchain = nullptr;
 
-    const std::string MODEL_PATH("../assets/gltf/2.0/");
+    const std::string MODEL_PATH("../../assets/gltf/2.0/");
     std::unique_ptr<Mesh> pBoxModel;
     std::unique_ptr<Mesh> pModel1;
 
@@ -138,22 +138,22 @@ namespace Debug
 
     BufferHandle positionVB, colorVB, normalVB, texcoordVB, indexBuffer;
 
-    constexpr std::vector<UINT8> GenerateDebugTextureData(U32 width, U32 height, U32 formatSize)
+    constexpr std::vector<U8> GenerateDebugTextureData(U32 width, U32 height, U32 formatSize)
     {
-        const UINT rowPitch = width * formatSize;
-        const UINT cellPitch = rowPitch >> 3;        // The width of a cell in the checkboard texture.
-        const UINT cellHeight = width >> 3;    // The height of a cell in the checkerboard texture.
-        const UINT textureSize = rowPitch * height;
+        const U32 rowPitch = width * formatSize;
+        const U32 cellPitch = rowPitch >> 3;
+        const U32 cellHeight = width >> 3;
+        const U32 textureSize = rowPitch * height;
 
-        std::vector<UINT8> data(textureSize);
-        UINT8* pData = &data[0];
+        std::vector<U8> data(textureSize);
+        U8* pData = &data[0];
 
-        for (UINT n = 0; n < textureSize; n += formatSize)
+        for (U32 n = 0; n < textureSize; n += formatSize)
         {
-            UINT x = n % rowPitch;
-            UINT y = n / rowPitch;
-            UINT i = x / cellPitch;
-            UINT j = y / cellHeight;
+            U32 x = n % rowPitch;
+            U32 y = n / rowPitch;
+            U32 i = x / cellPitch;
+            U32 j = y / cellHeight;
 
             if (i % 2 == j % 2)
             {
@@ -218,7 +218,7 @@ EditorLayer::EditorLayer(const std::string& name)
     gDepthBufferHndl = pRHI->CreateTexture(depthDesc);
 
     // TODO handled by material
-    ImageData imageData("../assets/uv-checker-map.png");
+    ImageData imageData("../../assets/uv-checker-map.png");
     TextureDesc checkerTexDesc{
         .width = (U32)imageData.width,
         .height = (U32)imageData.height,
@@ -232,6 +232,7 @@ EditorLayer::EditorLayer(const std::string& name)
 
 
     // Pipeline creation
+#if defined(GRAFFITICA_HAS_SLANG)
     std::string shaderDir = "shaders/";
     // TODO slang cpu compilation only supports compute
     // maybe look into spirv cross and reflections later to get a true VS/PS shader-style code workflow to work on CPU rhi?
@@ -242,11 +243,13 @@ EditorLayer::EditorLayer(const std::string& name)
     ShaderOutputs psOut = (pGfxContext->GetRHIBackend() != RHI_BACKEND::CPU)
         ? gShaderCompilerModule.CompileSlangToBlob(pGfxContext->GetRHIBackend(), (shaderDir + "default.slang").c_str(), "PSMain")
         : gShaderCompilerModule.CompileSlangToBlob(pGfxContext->GetRHIBackend(), (shaderDir + "default.slang").c_str(), "cpu_PSMain");
+#endif
 
     rhi::GraphicsPipelineDesc pipelineDesc{};
-    const int backendIndex = static_cast<int>(pGfxContext->GetRHIBackend());
+#if defined(GRAFFITICA_HAS_SLANG)
     pipelineDesc.VS = rhi::RHIShader(vsOut.blob.Get());
     pipelineDesc.PS = rhi::RHIShader(psOut.blob.Get());
+#endif
 
     // TODO
     // Testing cpu-rasterization path by hard-coding the vertex/pixel ops
@@ -261,10 +264,10 @@ EditorLayer::EditorLayer(const std::string& name)
         //v2f.normal = transpose(inverse(M)) * vec4f(attribs.aNormal, 0.0f);
         return v2f;
     };
-    pipelineDesc.VS.pShaderFn = vs;
+    pipelineDesc.VS.pShaderFn = reinterpret_cast<uintptr_t>(vs);
 
     using pfnPS = vec4f(*)(const rhi::Varyings&);
-    pfnPS ps = [](const rhi::Varyings& inVarying) -> vec4f
+    pfnPS ps = []([[maybe_unused]] const rhi::Varyings& inVarying) -> vec4f
     {
         //vec3f lightDir = vec3f(0, 3, 5);
         //float intensity = std::max(0.0f, dot(vec3f(input.normal.xyz()), lightDir));
@@ -273,7 +276,7 @@ EditorLayer::EditorLayer(const std::string& name)
         return vec4f(1.0, 0.0f, 1.0f, 1.0f);
         //return inVarying.color;
     };
-    pipelineDesc.PS.pShaderFn = ps;
+    pipelineDesc.PS.pShaderFn = reinterpret_cast<uintptr_t>(ps);
     
     // TODO simplify the input layout state fields
     rhi::InputLayoutState position{

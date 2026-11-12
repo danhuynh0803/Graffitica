@@ -46,6 +46,14 @@ public:
         return m_TexturePool->Get(handle);
     }
 
+    void ResizeTexture(TextureHandle handle, U32 width, U32 height)
+    {
+        auto& texture = m_TexturePool->Get(handle);
+        texture.m_Width = width;
+        texture.m_Height = height;
+        texture.m_Data.resize(static_cast<size_t>(width) * height * texture.m_FormatSize);
+    }
+
     void BeginRecording(RHICommandList& cmdlist)
     {
         GR_TRACE_START(SYS_RHI);

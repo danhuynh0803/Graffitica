@@ -19,7 +19,3 @@ typedef char CHAR;
 typedef wchar_t WCHAR;
 typedef char* PCHAR;
 typedef wchar_t* PWCHAR;
-
-// Generic handle type for resources, can be used for buffers, textures, etc.
-// The actual meaning of the handle is determined by the context in which it is used.
-typedef uint64_t Handle;

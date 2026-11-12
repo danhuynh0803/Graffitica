@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Tracy/Tracy.hpp>
+#include <tracy/Tracy.hpp>
 
 // Developer options
 // TODO later force disable when in release build?

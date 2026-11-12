@@ -3,7 +3,9 @@
 #include <vector>
 #include "rhi/rasterizer_state.h"
 #include "rhi/resource.h"
+#if defined(GRAFFITICA_HAS_SLANG)
 #include <slang/slang-gfx.h>
+#endif
 //#include <wrl.h>
 
 namespace gr::rhi
@@ -13,16 +15,18 @@ namespace gr::rhi
 struct RHIShader
 {
     RHIShader() = default;
+#if defined(GRAFFITICA_HAS_SLANG)
     RHIShader(slang::IBlob* blob)
       : pShaderByteCode(blob->getBufferPointer()), byteCodeLength(blob->getBufferSize())
     {}
+#endif
     RHIShader(void* pInShaderByteCode, U32 inByteCodeLength)
       : pShaderByteCode(pInShaderByteCode), byteCodeLength(inByteCodeLength)
     {}
     // On CPU RHI, this will be fn pointer to shader functions
-    const void* pShaderFn;
-    const void* pShaderByteCode;
-    U32 byteCodeLength;
+    uintptr_t pShaderFn = 0;
+    const void* pShaderByteCode = nullptr;
+    U32 byteCodeLength = 0;
 };
 
 /*

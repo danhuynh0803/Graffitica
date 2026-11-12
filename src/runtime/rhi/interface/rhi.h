@@ -15,6 +15,7 @@ enum RHI_BACKEND : uint8_t
     D3D12 = 0,
     VULKAN = 1,
     CPU = 2,
+    METAL = 3,
     COUNT,
     NONE = 255
 };

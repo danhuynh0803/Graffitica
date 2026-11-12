@@ -1,37 +1,8 @@
-#include <SDL3/SDL.h>
-#include <algorithm>
 #include "cpu_swapchain.h"
 #include "developer/profiler/profiler.h"
-#include "modules/ResourceModule.h"
 
 namespace gr::rhi
 {
-
-namespace
-{
-    SDL_PixelFormat ImageFormatToSDL(GrFormat format)
-    {
-        switch (format)
-        {
-        case GrFormat::R8G8B8A8_UNORM:
-            return SDL_PIXELFORMAT_RGBA32;
-        default:
-            throw std::runtime_error("ERROR: No conversion from ImageFormat to SDLFormat for Swapchain");
-        }
-    }
-
-    GrFormat SDLToImageFormat(SDL_PixelFormat format)
-    {
-        switch (format)
-        {
-        case SDL_PIXELFORMAT_RGBA32:
-            return GrFormat::R8G8B8A8_UNORM;
-        default:
-            throw std::runtime_error("ERROR: No conversion from ImageFormat to SDLFormat for Swapchain");
-        }
-    }
-}
-
 
 CPUSwapchain::CPUSwapchain(const SwapchainProperties& props, CPU_RHI* rhiInstance)
     : ISwapchain(props)
@@ -41,8 +12,6 @@ CPUSwapchain::CPUSwapchain(const SwapchainProperties& props, CPU_RHI* rhiInstanc
     const U32 height = props.height;
     const U32 imageCount = props.imageCount;
 
-    m_PresentSurface = SDL_CreateSurface(width, height, ImageFormatToSDL(props.format));
-
     m_PresentResourceHandles.reserve(imageCount);
     for (int i = 0; i < imageCount; ++i)
     {
@@ -51,14 +20,25 @@ CPUSwapchain::CPUSwapchain(const SwapchainProperties& props, CPU_RHI* rhiInstanc
     }
 }
 
-void CPUSwapchain::UpdateBackBuffer(SDL_Surface* surfaceToUpdate)
+CPUTextureResource& CPUSwapchain::GetCurrentBackBuffer()
 {
     GR_TRACE_START(SYS_RHI);
+    return m_RHIInstance->GetTexture(m_PresentResourceHandles.at(m_CurrentFrameIndex));
+}
 
-    auto currBackBufferHandle = m_PresentResourceHandles.at(m_CurrentFrameIndex);
+void CPUSwapchain::AdvanceFrame()
+{
     m_CurrentFrameIndex = (m_CurrentFrameIndex + 1) % m_ImageCount;
+}
 
-    surfaceToUpdate->pixels = m_RHIInstance->GetTexture(currBackBufferHandle).m_Data.data();
+void CPUSwapchain::Resize(U32 width, U32 height)
+{
+    if (width == 0 || height == 0 || (width == m_Width && height == m_Height))
+        return;
+    m_Width = width;
+    m_Height = height;
+    for (TextureHandle handle : m_PresentResourceHandles)
+        m_RHIInstance->ResizeTexture(handle, width, height);
 }
 
 }

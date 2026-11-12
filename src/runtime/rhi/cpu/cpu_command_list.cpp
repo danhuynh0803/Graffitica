@@ -5,6 +5,18 @@
 namespace gr::rhi
 {
 
+CPUCommandList::CPUCommandList() noexcept
+    : m_Commands(), m_VertexBuffers{}, m_IndexBuffer{}, m_ColorTargets{}, m_DepthTarget{},
+      m_GraphicsPipeline(nullptr), m_ComputePipeline(nullptr)
+{}
+
+CPUCommandList::~CPUCommandList() = default;
+
+void CPUCommandList::BeginRecording()
+{
+    m_Commands.clear();
+}
+
 namespace
 {
     // Local function prototypes
@@ -255,7 +267,7 @@ void CPUCommandList::ClearColorImpl(CPUTextureResource& view, const vec4f& clear
         break;
     }
     default:
-        throw std::exception("undefined");
+        throw std::runtime_error("undefined");
     }
 }
 
@@ -277,7 +289,7 @@ void CPUCommandList::ClearDepthImpl(CPUTextureResource& view, float clearDepth)
     }
     default:
         // Warn instead of throw eventually
-        throw std::exception("undefined");
+        throw std::runtime_error("undefined");
     }
 }
 
@@ -374,7 +386,9 @@ void CPUCommandList::DrawIndexedInstancedImpl(U32 indexCount, U32 instanceCount,
         int maxY = static_cast<int>(std::clamp(std::max(a.y, std::max(b.y, c.y)), 0.0f, height - 1.0f));
 
         { //GR_TRACE_SCOPED("Rasterization");
+#if defined(_OPENMP)
 #pragma omp parallel for
+#endif
     // TODO use AVX to calculate two pixels at a time?
     // 256B wide registers can hold 8 pixels worth of data, but the area calc and edge function tests require shuffling data around which may reduce perf
             for (int y = minY; y <= static_cast<int>(maxY); ++y)

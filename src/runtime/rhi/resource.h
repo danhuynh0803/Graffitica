@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 #include "core/types.h"
 #include "rhi/formats.h"
