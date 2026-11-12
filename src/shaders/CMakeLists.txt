@@ -82,6 +82,18 @@
 
 #file(GLOB_RECURSE HLSL_SHADERS "src/shaders/*.hlsl")
 
+if(APPLE)
+    # Metal compiles the checked-in MSL source through MTLDevice at startup.
+    # CopyShaders places default.metal beside the app's other runtime assets.
+    add_custom_target(CompileShaders SOURCES default.metal)
+    return()
+elseif(NOT WIN32)
+    # The checked-in HLSL build currently uses the Windows DXC command-line
+    # interface. Slang shaders are compiled at runtime by the application.
+    add_custom_target(CompileShaders)
+    return()
+endif()
+
 set(HLSL_SHADERS triangle.hlsl)
 
 # Output directory for compiled shaders

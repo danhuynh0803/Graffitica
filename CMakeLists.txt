@@ -1,22 +1,18 @@
-cmake_policy(SET CMP0048 NEW)
-
-set(PROJECT_NAME graffitica)
-
-# TODO Win Platform
-# Set for using vcpkg
-set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/external/vcpkg/scripts/buildsystems/vcpkg.cmake"
-    CACHE STRING "Vcpkg toolchain file")
-
-project(${PROJECT_NAME}
-    #VERSION 0.1
-    #DESCRIPTION "Software Rasterizer"
-    #LANGUAGES CXX
-)
-
 cmake_minimum_required(VERSION 3.16)
+project(graffitica LANGUAGES CXX)
+
+if(APPLE)
+    enable_language(OBJCXX)
+    set(CMAKE_OBJCXX_STANDARD 23)
+    set(CMAKE_OBJCXX_STANDARD_REQUIRED ON)
+endif()
 
 # Set all libs to be static
-option(BUILD_SHARED_LIBS OFF)
+option(BUILD_SHARED_LIBS "Build dependencies as static libraries" OFF)
+
+# vcpkg must be selected before project() by the user (for example with
+# -DCMAKE_TOOLCHAIN_FILE=...). Do not force the bundled Windows-oriented
+# toolchain on macOS.
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -28,6 +24,12 @@ endif()
 
 # TODO clean up and split cmakelists between modules later
 file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.h")
+
+# The D3D12 implementation is Windows-only. Keep its files out of the
+# macOS target while retaining the complete implementation on Windows.
+if(APPLE)
+    list(FILTER SOURCES EXCLUDE REGEX "/rhi/d3d12/|/modules/ShaderCompilerModule.cpp$")
+endif()
 
     foreach(SOURCE_FILE ${SOURCES})
         # Extract the relative path from the source directory
@@ -46,6 +48,18 @@ file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.h")
 add_executable(${PROJECT_NAME}
     ${SOURCES}
 )
+
+if(APPLE)
+    target_sources(${PROJECT_NAME} PRIVATE
+        src/runtime/rhi/metal/metal_rhi.mm
+        src/runtime/rhi/metal/metal_graphics_context.mm)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE
+        GRAFFITICA_METAL_SHADER_PATH="${CMAKE_BINARY_DIR}/Shaders/default.metal")
+    set_source_files_properties(
+        src/runtime/rhi/metal/metal_rhi.mm
+        src/runtime/rhi/metal/metal_graphics_context.mm
+        PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+endif()
 
 #file(GLOB_RECURSE SOURCES "src/*.hlsl")
 #
@@ -77,10 +91,9 @@ if (MSVC)
 endif()
 
 # TODO split to different cmake?
-find_package(Vulkan COMPONENTS  glslc
-                                shaderc_combined
-                                dxc
-)
+if(NOT APPLE)
+    find_package(Vulkan REQUIRED COMPONENTS glslc shaderc_combined dxc)
+endif()
 
 # Point to your Vulkan SDK installation
 #set(VULKAN_SDK $ENV{VULKAN_SDK})
@@ -89,14 +102,18 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/runtime"
     "${SDL3_Headers}"
-    Vulkan::Headers
     Tracy::TracyClient
 )
+
+if(NOT APPLE)
+    target_include_directories(${PROJECT_NAME} PUBLIC Vulkan::Headers)
+endif()
 
 #find_package(directx-headers CONFIG REQUIRED)
 #find_package(directx12-agility CONFIG REQUIRED)
 
 # Vulkan SDK root
+if(WIN32)
 set(VULKAN_SDK $ENV{VULKAN_SDK})
 
 # Slang paths inside Vulkan SDK
@@ -105,23 +122,13 @@ set(VULKAN_LIB_DIR  "${VULKAN_SDK}/Lib")
 
 target_include_directories(graffitica PRIVATE ${VULKAN_INCLUDE_DIR})
 target_link_directories(graffitica PRIVATE ${VULKAN_LIB_DIR})
+endif()
 
 #find_package(directx-headers CONFIG REQUIRED)
 #find_package(directx12-agility CONFIG REQUIRED)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     SDL3::SDL3
-    Vulkan::Vulkan
-    Vulkan::shaderc_combined
-
-    slang
-    slang-compiler
-
-    d3d12
-    dxgi
-    dxguid
-    d3dcompiler
-    Microsoft::DirectX-Headers
     #Microsoft::DirectX12-Agility
 
     xxHash::xxhash
@@ -130,6 +137,30 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 
     Tracy::TracyClient
 )
+
+if(NOT APPLE)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        Vulkan::Vulkan
+        Vulkan::shaderc_combined
+        slang
+        slang-compiler
+    )
+    target_compile_definitions(${PROJECT_NAME} PRIVATE GRAFFITICA_HAS_SLANG=1)
+else()
+    target_compile_definitions(${PROJECT_NAME} PRIVATE GRAFFITICA_METAL=1)
+endif()
+
+if(WIN32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        d3d12 dxgi dxguid d3dcompiler Microsoft::DirectX-Headers)
+endif()
+
+if(APPLE)
+    foreach(METAL_FRAMEWORK Metal QuartzCore Foundation)
+        find_library(${METAL_FRAMEWORK}_FRAMEWORK ${METAL_FRAMEWORK} REQUIRED)
+        target_link_libraries(${PROJECT_NAME} PRIVATE ${${METAL_FRAMEWORK}_FRAMEWORK})
+    endforeach()
+endif()
 
 if(TARGET Microsoft::DirectX12-Agility)
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
@@ -151,13 +182,17 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 )
 
 # OpenMP
-find_package(OpenMP REQUIRED)
+if(APPLE)
+    # AppleClang does not ship OpenMP runtime support by default. The current
+    # CPU rasterizer remains usable without OpenMP on macOS.
+    find_package(OpenMP QUIET)
+else()
+    find_package(OpenMP REQUIRED)
+endif()
 if (OPENMP_FOUND)
     target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
     target_compile_options(${PROJECT_NAME} PRIVATE
         ${OpenMP_CXX_FLAGS} # Or OpenMP_C_FLAGS, OpenMP_Fortran_FLAGS
-        /W4     # level 4 warnings
-        #/WX    # warnings as errors
     )
 endif()
 

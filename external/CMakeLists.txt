@@ -30,7 +30,9 @@ add_subdirectory(Catch2)
 
 add_subdirectory(tracy)
 
-add_subdirectory(DirectX-Headers)
+if(WIN32)
+    add_subdirectory(DirectX-Headers)
+endif()
 
 # xxHash
 # Optional: Configure xxHash before adding
