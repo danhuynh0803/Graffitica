@@ -3,6 +3,7 @@
 #include <random>
 #include <numbers>
 #include <functional>
+#include <SDL3/SDL.h>
 
 #include "rhi/resource.h"
 #include "rhi/rasterizer_state.h"
@@ -233,7 +234,10 @@ EditorLayer::EditorLayer(const std::string& name)
 
     // Pipeline creation
 #if defined(GRAFFITICA_HAS_SLANG)
-    std::string shaderDir = "shaders/";
+    const char* executableDir = SDL_GetBasePath();
+    if (!executableDir)
+        throw std::runtime_error(std::string("Unable to find executable directory for shaders: ") + SDL_GetError());
+    const std::string shaderDir = std::string(executableDir) + "shaders/";
     // TODO slang cpu compilation only supports compute
     // maybe look into spirv cross and reflections later to get a true VS/PS shader-style code workflow to work on CPU rhi?
     ShaderOutputs vsOut = (pGfxContext->GetRHIBackend() != RHI_BACKEND::CPU)

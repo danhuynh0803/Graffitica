@@ -82,6 +82,20 @@
 
 #file(GLOB_RECURSE HLSL_SHADERS "src/shaders/*.hlsl")
 
+# Copy runtime sources every build, even when only a shader changed and the
+# executable itself did not need to relink. SDL_GetBasePath() resolves these
+# from beside the executable at runtime.
+add_custom_target(CopyShaders ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_CURRENT_SOURCE_DIR}
+            "${CMAKE_BINARY_DIR}/shaders"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_CURRENT_SOURCE_DIR}
+            "${CMAKE_BINARY_DIR}/$<CONFIG>/shaders"
+    COMMENT "Copying runtime shader sources beside ${PROJECT_NAME}"
+    VERBATIM
+)
+
 if(APPLE)
     # Metal compiles the checked-in MSL source through MTLDevice at startup.
     # CopyShaders places default.metal beside the app's other runtime assets.

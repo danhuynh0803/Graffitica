@@ -53,8 +53,6 @@ if(APPLE)
     target_sources(${PROJECT_NAME} PRIVATE
         src/runtime/rhi/metal/metal_rhi.mm
         src/runtime/rhi/metal/metal_graphics_context.mm)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        GRAFFITICA_METAL_SHADER_PATH="${CMAKE_BINARY_DIR}/Shaders/default.metal")
     set_source_files_properties(
         src/runtime/rhi/metal/metal_rhi.mm
         src/runtime/rhi/metal/metal_graphics_context.mm
@@ -202,14 +200,6 @@ add_subdirectory(external)
 add_subdirectory(test)
 add_subdirectory(src/shaders)
 add_dependencies(${PROJECT_NAME} CompileShaders)
-
-# Copy over all shaders for runtime level compiling
-add_custom_target(CopyShaders ALL
-    #TARGET ${PROJECT_NAME} POST-BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_SOURCE_DIR}/src/shaders
-            ${CMAKE_BINARY_DIR}/Shaders
-)
 
 add_dependencies(${PROJECT_NAME} CopyShaders)
 
