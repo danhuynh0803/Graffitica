@@ -32,7 +32,7 @@ struct FeatureSupportData
     bool supportsRaytracing;
 };
 
-class D3D12_RHI
+class D3D12_RHI : public RHIContext
 {
 public:
     D3D12_RHI();

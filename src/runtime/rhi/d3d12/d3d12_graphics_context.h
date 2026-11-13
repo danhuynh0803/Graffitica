@@ -23,14 +23,13 @@ public:
     [[nodiscard]] virtual ISwapchain* GetSwapchain() override { return m_Swapchain.get(); }
     virtual void SwapBackBuffers() override {};
     virtual void UpdateBackBuffer(SDL_Surface* surfaceToUpdate) override;
-    [[nodiscard]] virtual RHIContext* GetRHIContext() override { return m_RHIContext.get(); }
+    [[nodiscard]] virtual RHIContext* GetRHIContext() override { return m_D3D12RHIInstance.get(); }
     [[nodiscard]] ID3D12Device* GetD3D12Device() const { return m_D3D12RHIInstance->GetDevice(); }
     [[nodiscard]] virtual RHI_BACKEND GetRHIBackend() const override { return RHI_BACKEND::D3D12; }
 
 private:
     inline static std::unique_ptr<D3D12GraphicsContext> s_GraphicsContextInstance;
     std::unique_ptr<D3D12_RHI> m_D3D12RHIInstance;
-    std::unique_ptr<RHIContext> m_RHIContext;
     std::unique_ptr<D3D12Swapchain> m_Swapchain;
 };
 

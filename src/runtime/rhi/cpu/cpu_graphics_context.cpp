@@ -31,7 +31,6 @@ CPUGraphicsContext::CPUGraphicsContext(SDL_Window* window)
     };
 
     m_CPURHIInstance = std::make_unique<CPU_RHI>();
-    m_RHIContext = std::make_unique<RHIContext>(m_CPURHIInstance.get());
     m_Swapchain = std::make_unique<CPUSwapchain>(props, m_CPURHIInstance.get());
     m_PresentTexture = SDL_CreateTexture(m_Renderer, SDL_PIXELFORMAT_RGBA32,
         SDL_TEXTUREACCESS_STREAMING, width, height);

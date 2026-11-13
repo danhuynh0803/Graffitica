@@ -26,8 +26,6 @@ D3D12GraphicsContext* D3D12GraphicsContext::CreateInstance(SDL_Window* window)
 D3D12GraphicsContext::D3D12GraphicsContext(SDL_Window* window)
 {
     m_D3D12RHIInstance = std::make_unique<D3D12_RHI>();
-    m_RHIContext = std::make_unique<RHIContext>(m_D3D12RHIInstance.get());
-
     // Create the swap chain
     SDL_Surface* surface = SDL_GetWindowSurface(window);
     SDL_PropertiesID props = SDL_GetWindowProperties(window);

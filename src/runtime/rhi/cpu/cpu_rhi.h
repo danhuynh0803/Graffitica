@@ -16,7 +16,7 @@ inline CPUCommandList* GetNativeCommandList(RHICommandList& cmdlist)
     return static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
 }
 
-class CPU_RHI
+class CPU_RHI : public RHIContext
 {
 public:
     CPU_RHI()
