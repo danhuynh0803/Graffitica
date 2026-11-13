@@ -54,20 +54,6 @@ public:
         texture.m_Data.resize(static_cast<size_t>(width) * height * texture.m_FormatSize);
     }
 
-    void BeginRecording(RHICommandList& cmdlist)
-    {
-        GR_TRACE_START(SYS_RHI);
-        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
-        pCmdlist->BeginRecording();
-    }
-
-    void EndRecording(RHICommandList& cmdlist)
-    {
-        GR_TRACE_START(SYS_RHI);
-        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
-        pCmdlist->EndRecording();
-    }
-
     GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
     {
         GR_TRACE_START(SYS_RHI);
@@ -86,8 +72,7 @@ public:
     {
         GR_TRACE_START(SYS_RHI);
         RHICommandList cmdList;
-        cmdList.pNativeCmdList = std::make_unique<CPUCommandList>();
-        cmdList.pContext = this;
+        cmdList.pNativeCmdList = std::make_unique<CPUCommandList>(*this);
         return cmdList;
     }
 
@@ -139,138 +124,6 @@ public:
         }
     }
     
-    void BeginRenderPass(RHICommandList& cmdlist, const RenderPassDesc& desc)
-    {
-        GR_TRACE_START(SYS_RHI);
-        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
-
-        // Have the begin renderpass set the rendertargets + depth
-        // instead of the individual calls, though keep that option as well
-        // to help simplify the higher-level rendering code later on
-        pCmdlist->m_DepthTarget = &m_TexturePool->Get(desc.depthAttachment);
-    }
-
-    void EndRenderPass(RHICommandList& cmdlist)
-    {
-        GR_TRACE_START(SYS_RHI);
-        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
-    }
-
-    void SetViewport(RHICommandList& cmdlist, const ViewportDesc& desc)
-    {
-        GR_TRACE_START(SYS_RHI);
-        // TODO
-    }
-
-    void SetScissor(RHICommandList& cmdlist, const Rect2D& desc)
-    {
-        GR_TRACE_START(SYS_RHI);
-        // TODO
-    }
-
-    void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[])
-    {
-        GR_TRACE_START(SYS_RHI);
-        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
-
-        pCmdlist->m_VertexBuffers[0] = &m_BufferPool->Get(views[0]);
-        //std::cout << "CPU SetVertexBuffers called with numViews: " << numViews << std::endl;
-    }
-
-    void SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer)
-    {
-        GR_TRACE_START(SYS_RHI);
-        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
-        pCmdlist->m_IndexBuffer = &m_BufferPool->Get(indexBuffer);        
-        //std::cout << "CPU SetIndexBuffer called" << std::endl;
-    }
-
-    void SetPipeline(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, U64 pipelineHandle)
-    {
-        GR_TRACE_START(SYS_RHI);
-        auto pCmdlist = GetNativeCommandList(cmdlist);
-        pCmdlist->m_GraphicsPipeline = &m_GraphicsPipelinePool->Get(pipelineHandle);
-    }
-
-    void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[], TextureHandle dsv)
-    {
-        GR_TRACE_START(SYS_RHI);
-        auto pCmdlist = GetNativeCommandList(cmdlist);
-        pCmdlist->m_Commands.emplace_back(SetRenderTargetsCmd{numViews, views, dsv});
-    }
-
-    void SetRootConstants(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, void* pSrcData, size_t numBytes, U32 bindIndex, U32 offset)
-    {
-        GR_TRACE_START(SYS_RHI);
-        auto pCmdlist = GetNativeCommandList(cmdlist);
-        // TODO
-    }
-
-    void SetDescriptorTable(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, BufferHandle bufferHandle, U32 bindIndex)
-    {
-        GR_TRACE_START(SYS_RHI);
-        auto pCmdlist = GetNativeCommandList(cmdlist);
-        // TODO
-    }
-    
-    void ClearColor(RHICommandList& cmdlist, TextureHandle handle, const vec4f& color)
-    {
-        //GR_TRACE_START(SYS_RHI);
-        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
-        //auto& resource = m_TexturePool.Get(handle);
-        //pCmdlist->ClearColorImpl(resource, color);
-        pCmdlist->m_Commands.emplace_back(ClearColorCmd{ handle, color });
-    }
-
-    void ClearDepth(RHICommandList& cmdlist, TextureHandle handle, float clearDepth)
-    {
-        GR_TRACE_START(SYS_RHI);
-        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
-        //auto& resource = m_TexturePool.Get(handle);
-        //pCmdlist->ClearDepthImpl(resource, clearDepth);
-
-        pCmdlist->m_Commands.emplace_back(ClearDepthCmd{ handle, clearDepth });
-    }
-
-    void DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation)
-    {
-        GR_TRACE_START(SYS_RHI);
-        CPUCommandList* pCmdlist = GetNativeCommandList(cmdlist);
-
-        pCmdlist->m_Commands.emplace_back(DrawIndexedInstancedCmd{ indexCount, instanceCount, startIndexLocation, baseVertexLocation, startIndexLocation });
-    }
-
-    void Dispatch(RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ)
-    {
-        GR_TRACE_START(SYS_RHI);
-        // TODO
-    }
-
-    void DispatchRays(RHICommandList& cmdlist, U32 width, U32 height, U32 depth)
-    {
-        GR_TRACE_START(SYS_RHI);
-
-        // RayGen function invoked for each pixel in the dispatch dimensions
-        for (U32 z = 0; z < depth; ++z)
-        {
-            for (U32 y = 0; y < height; ++y)
-            {
-                for (U32 x = 0; x < width; ++x)
-                {
-                    // TODO invoke ray generation shader function here
-                    // e.g. pCmdlist->shaderModule->raygen({x, y, z});
-                }
-            }
-        }
-
-        std::cout << "DispatchRays_CPU\n";
-    }
-
-    void TransitionResource(RHICommandList& cmdlist, TextureHandle handle, ResourceState oldState, ResourceState newState)
-    {
-        // no-op
-    }
-
     void WaitForQueueCompletion(void*, void*)
     {
         // no-op
@@ -286,6 +139,7 @@ public:
     //CPUTextureResourcePool& GetTexturePool() { return m_TexturePool; }
 
 private:
+    friend class CPUCommandList;
     std::unique_ptr< ResourcePool<CPU_RHI, CPUBufferResource, BufferDesc > > m_BufferPool;
     std::unique_ptr< ResourcePool<CPU_RHI, CPUTextureResource, TextureDesc> > m_TexturePool;
     // TODO have a singular pipeline handle for both graphics and compute

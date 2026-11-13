@@ -54,33 +54,12 @@ public:
     [[nodiscard]] GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& desc);
     [[nodiscard]] ComputePipelineHandle CreateComputePipeline(const ComputePipelineDesc& desc);
 
-    // TODO replace with a RESULT return later?
-    void BeginRecording(RHICommandList& cmdlist);
-    void EndRecording(RHICommandList& cmdlist);
-    void BeginRenderPass(RHICommandList& cmdlist, const RenderPassDesc& desc);
-    void EndRenderPass(RHICommandList& cmdlist);
     void ExecuteCommandList(const RHICommandList& cmdlist);
     void ExecuteCommandLists(const RHICommandList rhiCommandLists[], U32 numCommandLists);
 
-    void SetViewport(RHICommandList& cmdlist, const ViewportDesc& desc);
-    void SetScissor(RHICommandList& cmdlist, const Rect2D& desc);
-    void SetVertexBuffers(RHICommandList& cmdlist, U32 numViews, BufferHandle views[]);
-    void SetIndexBuffer(RHICommandList& cmdlist, BufferHandle indexBuffer);
-    // RHI owns the descriptor heaps so we just specify the types of the heaps we wish to bind
-    void SetDescriptorTable(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, BufferHandle bufferHandle, U32 bindIndex);
-    void SetDescriptorHeaps(RHICommandList& cmdlist, const std::vector<DescriptorResourceType>& descriptorTypesToBind);
-    void SetRootConstants(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, void* pSrcData, size_t numBytes, U32 bindIndex, U32 offset);
     //void SetConstantBuffer(RHICommandList& cmdlist, BufferHandle bufferHandle, U32 bindIndex);
     //void SetConstantBuffer(RHICommandList& cmdlist, BufferHandle bufferHandle, U32 bindIndex);
     //void SetResourceHeaps(RHICommandList& cmdlist, const std::vector<DescriptorResourceType>& descriptorTypesToBind);
-    void SetPipeline(RHICommandList& cmdlist, PipelineBindPoint eBindPoint, U64 pipelineHandle);
-    void SetRenderTargets(RHICommandList& cmdlist, U32 numViews, TextureHandle views[], TextureHandle depthStencilView);
-    void ClearColor(RHICommandList& cmdlist, TextureHandle handle, const vec4f& color);
-    void ClearDepth(RHICommandList& cmdlist, TextureHandle handle, float clearDepth);
-    void DrawIndexedInstanced(RHICommandList& cmdlist, U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation);
-    void Dispatch(RHICommandList& cmdlist, U32 groupCountX, U32 groupCountY, U32 groupCountZ);
-
-    void TransitionResource(RHICommandList& cmdlist, TextureHandle handle, ResourceState oldState, ResourceState newState);
     void Present(D3D12Swapchain* pSwapchain);
 
     // Not passing a queue or fence will prompt usage of the backend queue and fence resources
@@ -88,6 +67,7 @@ public:
     void WaitForQueueCompletion(void* pQueue = nullptr, void* pFence = nullptr);
 
     friend class D3D12TextureResource;
+    friend class D3D12CommandList;
 
 private:
     FeatureSupportData m_FeatureSupportData;

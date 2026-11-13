@@ -16,17 +16,39 @@ static constexpr U32 MAX_COLOR_TARGETS = 8;
 
 class CPUBufferResource;
 class CPUTextureResource;
+class CPU_RHI;
 class Command;
 
 class CPUCommandList : public ICommandList
 {
 public:
-    CPUCommandList() noexcept;
+    explicit CPUCommandList(CPU_RHI& rhi) noexcept;
     ~CPUCommandList() override;
 
-    void BeginRecording();
+    void BeginRecording() override;
+    void EndRecording() override;
 
-    void EndRecording() { /* No-op for CPU RHI */ }
+    void BeginRenderPass(const RenderPassDesc& desc) override;
+    void EndRenderPass() override;
+
+    void SetViewport(const ViewportDesc& desc) override;
+    void SetScissor(const Rect2D& rect) override;
+    void SetRenderTargets(U32 numViews, TextureHandle views[], TextureHandle depth) override;
+
+    void SetVertexBuffers(U32 numViews, BufferHandle views[]) override;
+    void SetIndexBuffer(BufferHandle indexBuffer) override;
+    void SetPipeline(PipelineBindPoint point, U64 handle) override;
+    void SetRootConstants(PipelineBindPoint point, void* data, size_t numBytes, U32 bindIndex, U32 offset) override;
+    void SetDescriptorTable(PipelineBindPoint point, BufferHandle bufferHandle, U32 bindIndex) override;
+
+    void ClearColor(TextureHandle resource, const vec4f& color) override;
+    void ClearDepth(TextureHandle resource, float clearDepth) override;
+    void DrawIndexedInstanced(U32 indexCount, U32 instanceCount, U32 startIndexLocation, int baseVertexLocation, U32 startInstanceLocation) override;
+
+    void Dispatch(U32 groupCountX, U32 groupCountY, U32 groupCountZ) override;
+    void DispatchRays(U32 width, U32 height, U32 depth) override;
+
+    void TransitionResource(TextureHandle resource, ResourceState oldState, ResourceState newState) override;
 
     void ClearColorImpl(CPUTextureResource& view, const vec4f& clearColor);
 
@@ -56,6 +78,7 @@ public:
 
 private:
     std::vector<Command> m_Commands;
+    CPU_RHI* m_RHI;
 
     CPUBufferResource* m_VertexBuffers[MAX_VERTEX_STREAMS];
     CPUBufferResource* m_IndexBuffer;

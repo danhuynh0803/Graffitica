@@ -5,8 +5,8 @@
 namespace gr::rhi
 {
 
-CPUCommandList::CPUCommandList() noexcept
-    : m_Commands(), m_VertexBuffers{}, m_IndexBuffer{}, m_ColorTargets{}, m_DepthTarget{},
+CPUCommandList::CPUCommandList(CPU_RHI& rhi) noexcept
+    : m_Commands(), m_RHI(&rhi), m_VertexBuffers{}, m_IndexBuffer{}, m_ColorTargets{}, m_DepthTarget{},
       m_GraphicsPipeline(nullptr), m_ComputePipeline(nullptr)
 {}
 
@@ -16,6 +16,81 @@ void CPUCommandList::BeginRecording()
 {
     m_Commands.clear();
 }
+
+void CPUCommandList::EndRecording() {}
+
+void CPUCommandList::BeginRenderPass(const RenderPassDesc& desc)
+{
+    m_DepthTarget = &m_RHI->m_TexturePool->Get(desc.depthAttachment);
+}
+
+void CPUCommandList::EndRenderPass() {}
+
+void CPUCommandList::SetViewport(const ViewportDesc&) {}
+
+void CPUCommandList::SetScissor(const Rect2D&) {}
+
+void CPUCommandList::SetRenderTargets(U32 count, TextureHandle views[], TextureHandle depth)
+{
+    m_Commands.emplace_back(SetRenderTargetsCmd{count, views, depth});
+}
+
+void CPUCommandList::SetVertexBuffers(U32 count, BufferHandle views[])
+{
+    if (count)
+    {
+        m_VertexBuffers[0] = &m_RHI->m_BufferPool->Get(views[0]);
+    }
+}
+
+void CPUCommandList::SetIndexBuffer(BufferHandle handle)
+{
+    m_IndexBuffer = &m_RHI->m_BufferPool->Get(handle);
+}
+
+void CPUCommandList::SetPipeline(PipelineBindPoint, U64 handle)
+{
+    m_GraphicsPipeline = &m_RHI->m_GraphicsPipelinePool->Get(handle);
+}
+
+void CPUCommandList::SetRootConstants(PipelineBindPoint, void*, size_t, U32, U32) {}
+
+void CPUCommandList::SetDescriptorTable(PipelineBindPoint, BufferHandle, U32) {}
+
+void CPUCommandList::ClearColor(TextureHandle handle, const vec4f& color)
+{
+    m_Commands.emplace_back(ClearColorCmd{handle, color});
+}
+
+void CPUCommandList::ClearDepth(TextureHandle handle, float depth)
+{
+    m_Commands.emplace_back(ClearDepthCmd{handle, depth});
+}
+
+void CPUCommandList::DrawIndexedInstanced(U32 count, U32 instances, U32 start, int base, U32 startInstance)
+{
+    m_Commands.emplace_back(DrawIndexedInstancedCmd{count, instances, start, base, startInstance});
+}
+
+void CPUCommandList::Dispatch(U32, U32, U32) {}
+
+void CPUCommandList::DispatchRays(U32 width, U32 height, U32 depth)
+{
+    for (U32 z = 0; z < depth; ++z)
+    {
+        for (U32 y = 0; y < height; ++y)
+        {
+            for (U32 x = 0; x < width; ++x)
+            {
+                (void)x;
+                (void)y;
+                (void)z;
+            }
+        }
+    }
+}
+
+void CPUCommandList::TransitionResource(TextureHandle, ResourceState, ResourceState) {}
 
 namespace
 {

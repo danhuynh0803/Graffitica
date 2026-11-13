@@ -18,13 +18,36 @@ enum class CommandListType : U8
 };
 
 class RHITextureResource;
-class RHIContext;
 
-//template <typename RHI>
 class ICommandList
 {
 public:
     virtual ~ICommandList() = default;
+
+    virtual void BeginRecording() = 0;
+    virtual void EndRecording() = 0;
+
+    virtual void BeginRenderPass(const RenderPassDesc&) = 0;
+    virtual void EndRenderPass() = 0;
+
+    virtual void SetViewport(const ViewportDesc&) = 0;
+    virtual void SetScissor(const Rect2D&) = 0;
+    virtual void SetRenderTargets(U32, TextureHandle[], TextureHandle) = 0;
+
+    virtual void SetVertexBuffers(U32, BufferHandle[]) = 0;
+    virtual void SetIndexBuffer(BufferHandle) = 0;
+    virtual void SetPipeline(PipelineBindPoint, U64) = 0;
+    virtual void SetRootConstants(PipelineBindPoint, void*, size_t, U32, U32) = 0;
+    virtual void SetDescriptorTable(PipelineBindPoint, BufferHandle, U32) = 0;
+
+    virtual void ClearColor(TextureHandle, const vec4f&) = 0;
+    virtual void ClearDepth(TextureHandle, float) = 0;
+    virtual void DrawIndexedInstanced(U32, U32, U32, int, U32) = 0;
+
+    virtual void Dispatch(U32, U32, U32) = 0;
+    virtual void DispatchRays(U32, U32, U32) = 0;
+
+    virtual void TransitionResource(TextureHandle, ResourceState, ResourceState) = 0;
 };
 
 struct RHICommandList
@@ -32,30 +55,8 @@ struct RHICommandList
     // contains the real backend commandlist/commandbuffer object,
     // e.g. ID3D12GraphicsCommandList for D3D12, VkCommandBuffer for Vulkan, or a custom CPU command list implementation
     std::unique_ptr<ICommandList> pNativeCmdList;
-    RHIContext* pContext = nullptr;
-
-    // Recording is initiated from the command-list handle. The backend context
-    // remains responsible for translating these portable calls to native API
-    // commands and for submitting the finished list.
-    void BeginRecording();
-    void EndRecording();
-    void BeginRenderPass(const RenderPassDesc& desc);
-    void EndRenderPass();
-    void SetViewport(const ViewportDesc& desc);
-    void SetScissor(const Rect2D& rect);
-    void SetRenderTargets(U32 numViews, TextureHandle views[], TextureHandle depth);
-    void SetVertexBuffers(U32 numViews, BufferHandle views[]);
-    void SetIndexBuffer(BufferHandle indexBuffer);
-    void SetPipeline(PipelineBindPoint point, U64 handle);
-    void SetRootConstants(PipelineBindPoint point, void* data, size_t numBytes, U32 bindIndex, U32 offset);
-    void SetDescriptorTable(PipelineBindPoint point, BufferHandle bufferHandle, U32 bindIndex);
-    void ClearColor(TextureHandle resource, const vec4f& color);
-    void ClearDepth(TextureHandle resource, float clearDepth);
-    void DrawIndexedInstanced(U32 indexCount, U32 instanceCount, U32 startIndexLocation,
-                              int baseVertexLocation, U32 startInstanceLocation);
-    void Dispatch(U32 groupCountX, U32 groupCountY, U32 groupCountZ);
-    void DispatchRays(U32 width, U32 height, U32 depth);
-    void TransitionResource(TextureHandle resource, ResourceState oldState, ResourceState newState);
+    ICommandList* operator->() { return pNativeCmdList.get(); }
+    const ICommandList* operator->() const { return pNativeCmdList.get(); }
 };
 
 } // namespace gr::rhi
