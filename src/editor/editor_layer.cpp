@@ -437,31 +437,31 @@ void EditorLayer::OnUpdate(double dt)
     };
 
     // TODO later replace with RenderGraph/RenderPass
-    pRHI->BeginRecording(gCmdlist);
+    gCmdlist.BeginRecording();
 
     // TODO begin renderpass should handle the clearing
     // but still keep flexibility of separate clear commands
-    pRHI->BeginRenderPass(gCmdlist,
+    gCmdlist.BeginRenderPass(
     {
         .numColorAttachments = 1,
         .colorAttachments = {backBufferHndl},
         .depthAttachment = gDepthBufferHndl
     });
 
-    pRHI->TransitionResource(gCmdlist, backBufferHndl, ResourceState::Present, ResourceState::RenderTarget);
+    gCmdlist.TransitionResource(backBufferHndl, ResourceState::Present, ResourceState::RenderTarget);
 
-    pRHI->SetRenderTargets(gCmdlist, 1, &backBufferHndl, gDepthBufferHndl);
+    gCmdlist.SetRenderTargets(1, &backBufferHndl, gDepthBufferHndl);
 
-    //pRHI->ClearColor(gCmdlist, backBufferHndl, { .4, .5, .7, 1.0 });
-    pRHI->ClearColor(gCmdlist, backBufferHndl, { .7, .7, .7, 1.0 });
+    //gCmdlist.ClearColor(backBufferHndl, { .4, .5, .7, 1.0 });
+    gCmdlist.ClearColor(backBufferHndl, { .7, .7, .7, 1.0 });
 
-    pRHI->ClearDepth(gCmdlist, gDepthBufferHndl, 1.0f);
+    gCmdlist.ClearDepth(gDepthBufferHndl, 1.0f);
     // TODO Separate rootsig/pipelinelayout setting from SetPipeline call
     //m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-    pRHI->SetViewport(gCmdlist, viewportDesc);
-    pRHI->SetScissor(gCmdlist, scissorRect);
-    pRHI->SetPipeline(gCmdlist, rhi::PipelineBindPoint::Graphics, gPipelineHandle);
-    pRHI->SetDescriptorTable(gCmdlist, rhi::PipelineBindPoint::Graphics, gCameraConstantBuffer, 0);
+    gCmdlist.SetViewport(viewportDesc);
+    gCmdlist.SetScissor(scissorRect);
+    gCmdlist.SetPipeline(rhi::PipelineBindPoint::Graphics, gPipelineHandle);
+    gCmdlist.SetDescriptorTable(rhi::PipelineBindPoint::Graphics, gCameraConstantBuffer, 0);
 
     pRegistry->ForEach<TransformComponent, RenderableComponent>([=]
     (TransformComponent& t, const RenderableComponent& r) {
@@ -471,28 +471,28 @@ void EditorLayer::OnUpdate(double dt)
         mat44 modelMatrix = Mat44Identity();
         scale(modelMatrix, t.scale);
         translate(modelMatrix, newPos);
-        pRHI->SetRootConstants(gCmdlist, rhi::PipelineBindPoint::Graphics, &modelMatrix, sizeof(modelMatrix)/4, 2, 0);
+        gCmdlist.SetRootConstants(rhi::PipelineBindPoint::Graphics, &modelMatrix, sizeof(modelMatrix)/4, 2, 0);
         
         auto pMesh = r.pMesh;
         auto position = pMesh->GetBuffer(MeshAttribute::POSITION);
         auto normal = pMesh->GetBuffer(MeshAttribute::NORMAL);
         auto texcoord = pMesh->GetBuffer(MeshAttribute::TEXCOORD);
         BufferHandle vertexBuffers[] = { position, normal, texcoord };
-        pRHI->SetVertexBuffers(gCmdlist, sizeof(vertexBuffers)/sizeof(vertexBuffers[0]), vertexBuffers);
-        pRHI->SetIndexBuffer(gCmdlist, pMesh->GetBuffer(MeshAttribute::INDICES));
-        pRHI->DrawIndexedInstanced(gCmdlist, pMesh->GetMeshAttributes().indices.size(), 1, 0, 0, 0);
+        gCmdlist.SetVertexBuffers(sizeof(vertexBuffers)/sizeof(vertexBuffers[0]), vertexBuffers);
+        gCmdlist.SetIndexBuffer(pMesh->GetBuffer(MeshAttribute::INDICES));
+        gCmdlist.DrawIndexedInstanced(pMesh->GetMeshAttributes().indices.size(), 1, 0, 0, 0);
     });
 
-    pRHI->EndRenderPass(gCmdlist);
+    gCmdlist.EndRenderPass();
 
-    pRHI->TransitionResource(gCmdlist, backBufferHndl, ResourceState::RenderTarget, ResourceState::Present);
+    gCmdlist.TransitionResource(backBufferHndl, ResourceState::RenderTarget, ResourceState::Present);
 
-    pRHI->EndRecording(gCmdlist);
+    gCmdlist.EndRecording();
     
     pRHI->ExecuteCommandList(gCmdlist);
     
     //rhi::DispatchRays(gCmdlist, pSwapchain->GetWidth(), pSwapchain->GetHeight(), 1);
-    //pRHI->DrawIndexedInstanced(gCmdlist, model.m_MeshData->GetIndices().size(), 1, 0, 0, 0);
+    //gCmdlist.DrawIndexedInstanced(model.m_MeshData->GetIndices().size(), 1, 0, 0, 0);
 
     pRHI->Present(pSwapchain);
 

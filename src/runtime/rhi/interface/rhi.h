@@ -81,4 +81,26 @@ public:
     }
 };
 
+// Command recording is exposed on RHICommandList so callers cannot confuse
+// list-local recording with context-level resource management or submission.
+// Backends keep the translation details in their context implementation.
+inline void RHICommandList::BeginRecording() { pContext->BeginRecording(*this); }
+inline void RHICommandList::EndRecording() { pContext->EndRecording(*this); }
+inline void RHICommandList::BeginRenderPass(const RenderPassDesc& desc) { pContext->BeginRenderPass(*this, desc); }
+inline void RHICommandList::EndRenderPass() { pContext->EndRenderPass(*this); }
+inline void RHICommandList::SetViewport(const ViewportDesc& desc) { pContext->SetViewport(*this, desc); }
+inline void RHICommandList::SetScissor(const Rect2D& rect) { pContext->SetScissor(*this, rect); }
+inline void RHICommandList::SetRenderTargets(U32 n, TextureHandle views[], TextureHandle depth) { pContext->SetRenderTargets(*this, n, views, depth); }
+inline void RHICommandList::SetVertexBuffers(U32 n, BufferHandle views[]) { pContext->SetVertexBuffers(*this, n, views); }
+inline void RHICommandList::SetIndexBuffer(BufferHandle handle) { pContext->SetIndexBuffer(*this, handle); }
+inline void RHICommandList::SetPipeline(PipelineBindPoint point, U64 handle) { pContext->SetPipeline(*this, point, handle); }
+inline void RHICommandList::SetRootConstants(PipelineBindPoint point, void* data, size_t bytes, U32 index, U32 offset) { pContext->SetRootConstants(*this, point, data, bytes, index, offset); }
+inline void RHICommandList::SetDescriptorTable(PipelineBindPoint point, BufferHandle handle, U32 index) { pContext->SetDescriptorTable(*this, point, handle, index); }
+inline void RHICommandList::ClearColor(TextureHandle handle, const vec4f& color) { pContext->ClearColor(*this, handle, color); }
+inline void RHICommandList::ClearDepth(TextureHandle handle, float depth) { pContext->ClearDepth(*this, handle, depth); }
+inline void RHICommandList::DrawIndexedInstanced(U32 count, U32 instances, U32 start, int base, U32 startInstance) { pContext->DrawIndexedInstanced(*this, count, instances, start, base, startInstance); }
+inline void RHICommandList::Dispatch(U32 x, U32 y, U32 z) { pContext->Dispatch(*this, x, y, z); }
+inline void RHICommandList::DispatchRays(U32 x, U32 y, U32 z) { pContext->DispatchRays(*this, x, y, z); }
+inline void RHICommandList::TransitionResource(TextureHandle handle, ResourceState oldState, ResourceState newState) { pContext->TransitionResource(*this, handle, oldState, newState); }
+
 } // namespace gr::rhi

@@ -87,6 +87,7 @@ public:
         GR_TRACE_START(SYS_RHI);
         RHICommandList cmdList;
         cmdList.pNativeCmdList = std::make_unique<CPUCommandList>();
+        cmdList.pContext = this;
         return cmdList;
     }
 

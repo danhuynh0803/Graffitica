@@ -274,6 +274,7 @@ RHICommandList D3D12_RHI::CreateCommandList(CommandListType type)
     GR_TRACE_START(SYS_RHI);
     RHICommandList cmdlist;
     cmdlist.pNativeCmdList = std::make_unique<D3D12CommandList>(type);
+    cmdlist.pContext = this;
     return cmdlist;
 }
 
