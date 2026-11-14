@@ -113,16 +113,24 @@ Vulkan_RHI::Vulkan_RHI(SDL_Window* window)
             vkGetPhysicalDeviceProperties(candidate, &candidateProperties);
             if (candidateProperties.apiVersion < VK_API_VERSION_1_3)
                 continue;
-
+            
+            // Enable VK Features
+            // Start with timeline sempahores, dynamicRendering, and Synch2 for now
             VkPhysicalDeviceVulkan13Features candidateFeatures13{
                 VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES
+            };
+            VkPhysicalDeviceVulkan12Features candidateFeatures12{
+                VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES
             };
             VkPhysicalDeviceFeatures2 candidateFeatures{
                 VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2
             };
-            candidateFeatures.pNext = &candidateFeatures13;
+            candidateFeatures.pNext = &candidateFeatures12;
+            candidateFeatures12.pNext = &candidateFeatures13;
             vkGetPhysicalDeviceFeatures2(candidate, &candidateFeatures);
-            if (!candidateFeatures13.dynamicRendering || !candidateFeatures13.synchronization2)
+            if (!candidateFeatures12.timelineSemaphore ||
+                !candidateFeatures13.dynamicRendering  ||
+                !candidateFeatures13.synchronization2)
                 continue;
 
             U32 queueFamilyCount = 0;
@@ -155,6 +163,7 @@ Vulkan_RHI::Vulkan_RHI(SDL_Window* window)
             m_GraphicsQueueFamilyIndex = *graphicsFamily;
             m_PresentQueueFamilyIndex = *presentFamily;
 
+            // TODO create async compute queue later
             enabledDeviceExtensions.insert(enabledDeviceExtensions.end(),
                 deviceExtensionNames.begin(), deviceExtensionNames.end());
             for (const char* optionalExtension : GetOptionalVulkanDeviceExtensions())
@@ -199,9 +208,14 @@ Vulkan_RHI::Vulkan_RHI(SDL_Window* window)
         features13.dynamicRendering = VK_TRUE;
         features13.synchronization2 = VK_TRUE;
         features13.maintenance4 = VK_TRUE;
+        VkPhysicalDeviceVulkan12Features features12{
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES
+        };
+        features12.timelineSemaphore = VK_TRUE;
+        features12.pNext = &features13;
 
         VkDeviceCreateInfo deviceInfo{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
-        deviceInfo.pNext = &features13;
+        deviceInfo.pNext = &features12;
         deviceInfo.queueCreateInfoCount = static_cast<U32>(queueInfos.size());
         deviceInfo.pQueueCreateInfos = queueInfos.data();
         deviceInfo.pEnabledFeatures = &features;
