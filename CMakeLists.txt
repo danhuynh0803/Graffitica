@@ -23,7 +23,7 @@ if (EXISTS "${LOC_PATH}")
 endif()
 
 # TODO clean up and split cmakelists between modules later
-file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.h")
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.cpp" "src/*.h")
 
 # The D3D12 implementation is Windows-only. Keep its files out of the
 # macOS target while retaining the complete implementation on Windows.
@@ -92,6 +92,21 @@ endif()
 # Keep the platform-specific shader tools as requirements only where the
 # current shader build uses them.
 if(APPLE)
+    # The SDK's setup-env.sh exports VULKAN_SDK, but make the usual per-user
+    # installation work even when CMake is launched without that environment.
+    if(NOT DEFINED Vulkan_ROOT AND NOT "$ENV{VULKAN_SDK}" STREQUAL "")
+        set(Vulkan_ROOT "$ENV{VULKAN_SDK}")
+    endif()
+
+    if(NOT Vulkan_ROOT)
+        file(GLOB _VULKAN_SDK_ROOTS LIST_DIRECTORIES TRUE
+            "$ENV{HOME}/VulkanSDK/*/macOS")
+        list(SORT _VULKAN_SDK_ROOTS COMPARE NATURAL ORDER DESCENDING)
+        if(_VULKAN_SDK_ROOTS)
+            list(GET _VULKAN_SDK_ROOTS 0 Vulkan_ROOT)
+        endif()
+    endif()
+
     find_package(Vulkan 1.4 REQUIRED)
 else()
     find_package(Vulkan REQUIRED COMPONENTS glslc shaderc_combined dxc)
@@ -118,6 +133,7 @@ if(APPLE)
         find_file(GRAFFITICA_KOSMICKRISP_ICD_FOUND
             NAMES libkosmickrisp_icd.json
             HINTS
+                "${Vulkan_ROOT}/share/vulkan/icd.d"
                 "$ENV{VULKAN_SDK}/share/vulkan/icd.d"
                 "$ENV{VULKAN_SDK}/macOS/share/vulkan/icd.d"
                 "/usr/local/share/vulkan/icd.d"

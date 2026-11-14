@@ -36,6 +36,12 @@ bool ParseBackend(const std::string& value, RHI_BACKEND& backend)
         return true;
     }
 
+    if (name == "vulkan")
+    {
+        backend = RHI_BACKEND::VULKAN;
+        return true;
+    }
+
 #if defined(__APPLE__)
     if (name == "metal")
     {
@@ -57,11 +63,11 @@ bool ParseBackend(const std::string& value, RHI_BACKEND& backend)
 void PrintUsage(const char* program)
 {
 #if defined(_WIN32)
-    constexpr const char* choices = "cpu|d3d12";
+    constexpr const char* choices = "cpu|d3d12|vulkan";
 #elif defined(__APPLE__)
-    constexpr const char* choices = "cpu|metal";
+    constexpr const char* choices = "cpu|metal|vulkan";
 #else
-    constexpr const char* choices = "cpu";
+    constexpr const char* choices = "cpu|vulkan";
 #endif
     std::cout << "Usage: " << program << " [-rhi <" << choices << ">]\n";
 }

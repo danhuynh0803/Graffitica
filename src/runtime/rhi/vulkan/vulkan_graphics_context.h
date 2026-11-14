@@ -4,6 +4,7 @@
 
 #include "rhi/interface/graphics_context.h"
 #include "vulkan_rhi.h"
+#include "vulkan_swapchain.h"
 
 namespace gr::rhi
 {
@@ -30,7 +31,7 @@ private:
     static std::unique_ptr<VulkanGraphicsContext> s_Instance;
 
     std::unique_ptr<Vulkan_RHI> m_VulkanRHI;
-    std::unique_ptr<ISwapchain> m_Swapchain;
+    std::unique_ptr<VulkanSwapchain> m_Swapchain;
 };
 
 } // namespace gr::rhi

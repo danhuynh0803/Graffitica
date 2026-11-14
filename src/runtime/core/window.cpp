@@ -2,6 +2,7 @@
 #include "core/window.h"
 #include "rhi/interface/rhi.h"
 #include "rhi/cpu/cpu_graphics_context.h"
+#include "rhi/vulkan/vulkan_graphics_context.h"
 #if defined(_WIN32)
 #include "rhi/d3d12/d3d12_graphics_context.h"
 #elif defined(__APPLE__)
@@ -26,8 +27,7 @@ gr::rhi::IGraphicsContext* CreateRHI(RHI_BACKEND backend, SDL_Window* window)
         return rhi::IGraphicsContext::Create<rhi::MetalGraphicsContext>(window);
 #endif
     case RHI_BACKEND::VULKAN:
-        //return rhi::IGraphicsContext::Create<rhi::VulkanGraphicsContext>(window);
-        break;
+        return rhi::IGraphicsContext::Create<rhi::VulkanGraphicsContext>(window);
     case RHI_BACKEND::CPU:
         return rhi::IGraphicsContext::Create<rhi::CPUGraphicsContext>(window);
     default:
@@ -62,6 +62,8 @@ Window::Window(const WindowProperties& props)
     const RHI_BACKEND rhi = props.rhi;
 
     SDL_WindowFlags flags = SDL_WINDOW_RESIZABLE;
+    if (rhi == RHI_BACKEND::VULKAN)
+        flags |= SDL_WINDOW_VULKAN;
 #if defined(__APPLE__)
     if (rhi == RHI_BACKEND::METAL)
         flags |= SDL_WINDOW_METAL;
@@ -156,9 +158,11 @@ void Window::OnUpdate()
 {
     GR_TRACE_START(SYS_RHI);
 
-    if (m_GraphicsContext->GetRHIBackend() == RHI_BACKEND::METAL)
+    if (m_GraphicsContext->GetRHIBackend() == RHI_BACKEND::METAL ||
+        m_GraphicsContext->GetRHIBackend() == RHI_BACKEND::VULKAN)
     {
-        m_GraphicsContext->SwapBackBuffers();
+        if (m_GraphicsContext->GetRHIBackend() == RHI_BACKEND::METAL)
+            m_GraphicsContext->SwapBackBuffers();
         return;
     }
 
