@@ -460,7 +460,7 @@ void EditorLayer::OnUpdate(double dt)
     //m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
     gCmdlist->SetViewport(viewportDesc);
     gCmdlist->SetScissor(scissorRect);
-    gCmdlist->SetPipeline(rhi::PipelineBindPoint::Graphics, gPipelineHandle);
+    gCmdlist->SetPipeline(gPipelineHandle);
     gCmdlist->SetDescriptorTable(rhi::PipelineBindPoint::Graphics, gCameraConstantBuffer, 0);
 
     pRegistry->ForEach<TransformComponent, RenderableComponent>([=]

@@ -17,13 +17,13 @@ CPUCommandList::~CPUCommandList() = default;
 void CPUCommandList::BeginRecording()
 {
     m_Commands.clear();
-    m_VertexBufferHandles.fill(0);
+    m_VertexBufferHandles.fill({});
     m_NumVertexBuffers = 0;
-    m_IndexBufferHandle = 0;
+    m_IndexBufferHandle = {};
     m_HasIndexBuffer = false;
-    m_GraphicsPipelineHandle = 0;
+    m_GraphicsPipelineHandle = {};
     m_HasGraphicsPipeline = false;
-    m_DepthTargetHandle = 0;
+    m_DepthTargetHandle = {};
     m_HasDepthTarget = false;
     std::fill(std::begin(m_VertexBuffers), std::end(m_VertexBuffers), nullptr);
     std::fill(std::begin(m_ColorTargets), std::end(m_ColorTargets), nullptr);
@@ -69,10 +69,14 @@ void CPUCommandList::SetIndexBuffer(BufferHandle handle)
     m_HasIndexBuffer = true;
 }
 
-void CPUCommandList::SetPipeline(PipelineBindPoint, U64 handle)
+void CPUCommandList::SetPipeline(GraphicsPipelineHandle handle)
 {
     m_GraphicsPipelineHandle = handle;
     m_HasGraphicsPipeline = true;
+}
+
+void CPUCommandList::SetPipeline(ComputePipelineHandle)
+{
 }
 
 void CPUCommandList::SetRootConstants(PipelineBindPoint, void*, size_t, U32, U32) {}
@@ -137,13 +141,13 @@ void CPUCommandList::Execute(CPU_RHI& rhi)
         case CommandType::ClearColor:
         {
             const auto& clear = command.clearColorCmd;
-            ClearColorImpl(rhi.m_TexturePool->Get(clear.target), clear.color);
+            ClearColorImpl(rhi.m_TexturePool->Get(clear.target.Value()), clear.color);
             break;
         }
         case CommandType::ClearDepth:
         {
             const auto& clear = command.clearDepthCmd;
-            ClearDepthImpl(rhi.m_TexturePool->Get(clear.target), clear.depth);
+            ClearDepthImpl(rhi.m_TexturePool->Get(clear.target.Value()), clear.depth);
             break;
         }
         case CommandType::SetRenderTargets:
@@ -151,9 +155,9 @@ void CPUCommandList::Execute(CPU_RHI& rhi)
             const auto& targets = command.setRenderTargetsCmd;
             for (U32 i = 0; i < targets.numViews; ++i)
             {
-                m_ColorTargets[i] = &rhi.m_TexturePool->Get(targets.targets[i]);
+                m_ColorTargets[i] = &rhi.m_TexturePool->Get(targets.targets[i].Value());
             }
-            m_DepthTarget = &rhi.m_TexturePool->Get(targets.depthStencil);
+            m_DepthTarget = &rhi.m_TexturePool->Get(targets.depthStencil.Value());
             break;
         }
         case CommandType::DrawIndexedInstanced:
@@ -162,15 +166,15 @@ void CPUCommandList::Execute(CPU_RHI& rhi)
             std::fill(std::begin(m_VertexBuffers), std::end(m_VertexBuffers), nullptr);
             for (U32 i = 0; i < draw.numVertexBuffers; ++i)
             {
-                m_VertexBuffers[i] = &rhi.m_BufferPool->Get(draw.vertexBuffers[i]);
+                m_VertexBuffers[i] = &rhi.m_BufferPool->Get(draw.vertexBuffers[i].Value());
             }
 
-            m_IndexBuffer = draw.hasIndexBuffer ? &rhi.m_BufferPool->Get(draw.indexBuffer) : nullptr;
+            m_IndexBuffer = draw.hasIndexBuffer ? &rhi.m_BufferPool->Get(draw.indexBuffer.Value()) : nullptr;
             m_GraphicsPipeline = draw.hasGraphicsPipeline
-                ? &rhi.m_GraphicsPipelinePool->Get(draw.graphicsPipeline)
+                ? &rhi.m_GraphicsPipelinePool->Get(draw.graphicsPipeline.Value())
                 : nullptr;
             m_DepthTarget = draw.hasDepthTarget
-                ? &rhi.m_TexturePool->Get(draw.depthTarget)
+                ? &rhi.m_TexturePool->Get(draw.depthTarget.Value())
                 : nullptr;
 
             DrawIndexedInstancedImpl(

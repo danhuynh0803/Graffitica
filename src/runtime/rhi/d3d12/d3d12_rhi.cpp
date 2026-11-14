@@ -160,7 +160,7 @@ D3D12_RHI::D3D12_RHI()
 [[nodiscard]] BufferHandle D3D12_RHI::CreateBuffer(const BufferDesc& desc)
 {
     GR_TRACE_START(SYS_RHI);
-    return m_BufferPool->Allocate(desc);
+    return BufferHandle{m_BufferPool->Allocate(desc)};
 }
 
 [[nodiscard]] TextureHandle D3D12_RHI::CreateTexture(const TextureDesc& desc)
@@ -198,7 +198,7 @@ D3D12_RHI::D3D12_RHI()
         
     }
     
-    return m_TexturePool->Import(std::move(res));
+    return TextureHandle{m_TexturePool->Import(std::move(res))};
 }
 
 TextureHandle D3D12_RHI::CreateTexture(ComPtr<ID3D12Resource> extResource, DescriptorResourceType eResourceType)
@@ -228,13 +228,13 @@ TextureHandle D3D12_RHI::CreateTexture(ComPtr<ID3D12Resource> extResource, Descr
         throw std::runtime_error("ResourceFormat is not valid");
     }
 
-    return m_TexturePool->Import(std::move(res));
+    return TextureHandle{m_TexturePool->Import(std::move(res))};
 }
 
 TextureHandle D3D12_RHI::ImportTexture(D3D12TextureResource&& resource)
 {
     GR_TRACE_START(SYS_RHI);
-    return m_TexturePool->Import(std::move(resource));
+    return TextureHandle{m_TexturePool->Import(std::move(resource))};
 }
 
 //D3D12BufferResource D3D12_RHI::GetBuffer(BufferHandle handle)
@@ -246,14 +246,14 @@ TextureHandle D3D12_RHI::ImportTexture(D3D12TextureResource&& resource)
 [[nodiscard]] D3D12TextureResource& D3D12_RHI::GetTexture(TextureHandle handle)
 {
     GR_TRACE_START(SYS_RHI);
-    return m_TexturePool->Get(handle);
+    return m_TexturePool->Get(handle.Value());
 }
 
 GraphicsPipelineHandle D3D12_RHI::CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
 {
     GR_TRACE_START(SYS_RHI);
 
-    return m_GraphicsPipelinePool->Allocate(desc);
+    return GraphicsPipelineHandle{m_GraphicsPipelinePool->Allocate(desc)};
 
     return {};
 }

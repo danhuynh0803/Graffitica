@@ -36,7 +36,8 @@ public:
 
     virtual void SetVertexBuffers(U32, BufferHandle[]) = 0;
     virtual void SetIndexBuffer(BufferHandle) = 0;
-    virtual void SetPipeline(PipelineBindPoint, U64) = 0;
+    virtual void SetPipeline(GraphicsPipelineHandle) = 0;
+    virtual void SetPipeline(ComputePipelineHandle) = 0;
     virtual void SetRootConstants(PipelineBindPoint, void*, size_t, U32, U32) = 0;
     virtual void SetDescriptorTable(PipelineBindPoint, BufferHandle, U32) = 0;
 

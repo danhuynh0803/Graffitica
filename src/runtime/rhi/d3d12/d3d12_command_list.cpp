@@ -128,7 +128,7 @@ void D3D12CommandList::SetVertexBuffers(U32 numViews, BufferHandle views[])
     pViews.reserve(numViews);
     // convert internal to d3d12buffers
     for (int i = 0; i < numViews; ++i) {
-        pViews.push_back(m_State->bufferPool->Get(views[i]).m_View.vertexBufferView);
+        pViews.push_back(m_State->bufferPool->Get(views[i].Value()).m_View.vertexBufferView);
     }
     pCmdlist->IASetVertexBuffers(0, numViews, pViews.data());
 
@@ -139,7 +139,7 @@ void D3D12CommandList::SetIndexBuffer(BufferHandle indexBufferHandle)
     GR_TRACE_START(SYS_RHI);
     auto pCmdlist = GetRawCommandList();
 
-    const auto& res = m_State->bufferPool->Get(indexBufferHandle);
+    const auto& res = m_State->bufferPool->Get(indexBufferHandle.Value());
     pCmdlist->IASetIndexBuffer(&res.m_View.indexBufferView);
 }
 
@@ -155,7 +155,7 @@ void D3D12CommandList::SetRootConstants(PipelineBindPoint eBindPoint, void* pSrc
 void D3D12CommandList::SetDescriptorTable(PipelineBindPoint eBindPoint, BufferHandle handle, U32 bindIndex)
 {
     auto pCmdlist = GetRawCommandList();
-    const auto& cbuffer = m_State->bufferPool->Get(handle);
+    const auto& cbuffer = m_State->bufferPool->Get(handle.Value());
 
     if (eBindPoint == PipelineBindPoint::Graphics)
         pCmdlist->SetGraphicsRootConstantBufferView(bindIndex, cbuffer.pResource->GetGPUVirtualAddress());
@@ -169,39 +169,36 @@ void D3D12CommandList::SetDescriptorTable(PipelineBindPoint eBindPoint, BufferHa
     //    pCmdlist->SetComputeRootDescriptorTable(bindIndex, cbvHeap->GetNative()->GetGPUDescriptorHandleForHeapStart());
 }
 
-void D3D12CommandList::SetPipeline(PipelineBindPoint eBindPoint, U64 pipelineHandle)
+void D3D12CommandList::SetPipeline(GraphicsPipelineHandle pipelineHandle)
 {
     GR_TRACE_START(SYS_RHI);
     auto pCmdlist = GetRawCommandList();
 
-    if (eBindPoint == PipelineBindPoint::Graphics)
-    {
-        const auto& res = m_State->graphicsPipelinePool->Get(pipelineHandle);
-        // TODO split setting root signature for slight optimization later.
-        // However I like streamlining this since pipeline state already has a rootsignature
-        // Some gains when using multiple pipelines that have the same rootsig though,
-        // where the rootsig can be set upfront for all pipelines.
-        // TODO Reminder to revisit after pipeline library and RG impl is complete
-        pCmdlist->SetGraphicsRootSignature(res.m_D3D12RootSignature.Get());
-        // Bind all shader resource heaps to the pipeline
-        // TODO eventually have a dedicated upload heap to update subresource data
-        // only a CBV/SRV/UAV heap and sampler heaps can be bound to the pipeline
+    const auto& res = m_State->graphicsPipelinePool->Get(pipelineHandle.Value());
+    // TODO split setting root signature for slight optimization later.
+    // However I like streamlining this since pipeline state already has a rootsignature
+    // Some gains when using multiple pipelines that have the same rootsig though,
+    // where the rootsig can be set upfront for all pipelines.
+    // TODO Reminder to revisit after pipeline library and RG impl is complete
+    pCmdlist->SetGraphicsRootSignature(res.m_D3D12RootSignature.Get());
+    // Bind all shader resource heaps to the pipeline
+    // TODO eventually have a dedicated upload heap to update subresource data
+    // only a CBV/SRV/UAV heap and sampler heaps can be bound to the pipeline
 
-        ID3D12DescriptorHeap* ppHeaps[] = {
-            GetDescriptorHeap(DescriptorResourceType::ShaderResource)->GetNative(),
-            GetDescriptorHeap(DescriptorResourceType::Sampler)->GetNative()
-        };
-        pCmdlist->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-        pCmdlist->SetGraphicsRootDescriptorTable(1, GetDescriptorHeap(DescriptorResourceType::ShaderResource)->GetNative()->GetGPUDescriptorHandleForHeapStart());
-        pCmdlist->SetPipelineState(res.m_D3D12PipelineState.Get());
-        pCmdlist->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    ID3D12DescriptorHeap* ppHeaps[] = {
+        GetDescriptorHeap(DescriptorResourceType::ShaderResource)->GetNative(),
+        GetDescriptorHeap(DescriptorResourceType::Sampler)->GetNative()
+    };
+    pCmdlist->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+    pCmdlist->SetGraphicsRootDescriptorTable(1, GetDescriptorHeap(DescriptorResourceType::ShaderResource)->GetNative()->GetGPUDescriptorHandleForHeapStart());
+    pCmdlist->SetPipelineState(res.m_D3D12PipelineState.Get());
+    pCmdlist->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    }
-    else if (eBindPoint == PipelineBindPoint::Compute)
-    {
-        // TODO
-    }
-    // else if RT, etc
+}
+
+void D3D12CommandList::SetPipeline(ComputePipelineHandle)
+{
+    // Compute pipelines are not implemented in the D3D12 backend yet.
 }
 
 void D3D12CommandList::SetRenderTargets(U32 numViews, TextureHandle views[], TextureHandle depthStencilView)
@@ -214,7 +211,7 @@ void D3D12CommandList::SetRenderTargets(U32 numViews, TextureHandle views[], Tex
 
     for (int i = 0; i < numViews; ++i)
     {
-        auto& resource = m_State->texturePool->Get(views[i]);
+        auto& resource = m_State->texturePool->Get(views[i].Value());
 
         auto rtvHeap = GetDescriptorHeap(DescriptorResourceType::RenderTarget);
         CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(
@@ -226,7 +223,7 @@ void D3D12CommandList::SetRenderTargets(U32 numViews, TextureHandle views[], Tex
         nativeViews.push_back(descriptorHandle);
     }
 
-    auto& dsv = m_State->texturePool->Get(depthStencilView);
+    auto& dsv = m_State->texturePool->Get(depthStencilView.Value());
     const auto& dsvHeap = GetDescriptorHeap(DescriptorResourceType::DepthStencil);
     CD3DX12_CPU_DESCRIPTOR_HANDLE depthHandle(
         dsvHeap->GetStartHandle(),
@@ -242,7 +239,7 @@ void D3D12CommandList::ClearColor(TextureHandle handle, const vec4f& color)
 {
     GR_TRACE_START(SYS_RHI);
     D3D12CommandList* pCmdlist = this;
-    auto& resource = m_State->texturePool->Get(handle);
+    auto& resource = m_State->texturePool->Get(handle.Value());
 
     auto nativeCmdList = pCmdlist->GetRawCommandList();
     const float clearColor[] = { color.r, color.g, color.b, color.a };
@@ -261,7 +258,7 @@ void D3D12CommandList::ClearDepth(TextureHandle handle, float clearDepth)
     GR_TRACE_START(SYS_RHI);
     auto pCmdList = GetRawCommandList();
 
-    auto& resource = m_State->texturePool->Get(handle);
+    auto& resource = m_State->texturePool->Get(handle.Value());
 
     const auto& dsvHeap = GetDescriptorHeap(DescriptorResourceType::DepthStencil);
     CD3DX12_CPU_DESCRIPTOR_HANDLE depthHandle(
@@ -294,7 +291,7 @@ void D3D12CommandList::DispatchRays(U32, U32, U32)
 void D3D12CommandList::TransitionResource(TextureHandle handle, ResourceState oldState, ResourceState newState)
 {
     auto nativeCmdlist = GetRawCommandList();
-    auto& internalResource = m_State->texturePool->Get(handle);
+    auto& internalResource = m_State->texturePool->Get(handle.Value());
     CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(internalResource.pResource.Get(),
                                                                             ToD3D12ResourceState(oldState),
                                                                             ToD3D12ResourceState(newState));

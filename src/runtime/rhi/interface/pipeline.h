@@ -100,8 +100,10 @@ struct ComputePipelineDesc
     RHIShader CS;
 };
 
-typedef U64 GraphicsPipelineHandle;
-typedef U64 ComputePipelineHandle;
+struct GraphicsPipelineHandleTag;
+struct ComputePipelineHandleTag;
+using GraphicsPipelineHandle = RHIHandle<GraphicsPipelineHandleTag>;
+using ComputePipelineHandle = RHIHandle<ComputePipelineHandleTag>;
 
 struct RHIGraphicsPipeline
 {

@@ -32,7 +32,8 @@ public:
 
     void SetVertexBuffers(U32, BufferHandle[]) override;
     void SetIndexBuffer(BufferHandle) override;
-    void SetPipeline(PipelineBindPoint, U64) override;
+    void SetPipeline(GraphicsPipelineHandle) override;
+    void SetPipeline(ComputePipelineHandle) override;
     void SetRootConstants(PipelineBindPoint, void*, size_t, U32, U32) override;
     void SetDescriptorTable(PipelineBindPoint, BufferHandle, U32) override;
 

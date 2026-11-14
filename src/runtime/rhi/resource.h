@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <vector>
+#include <compare>
 #include "core/types.h"
 #include "rhi/formats.h"
 #include "developer/profiler/profiler.h"
@@ -69,7 +70,24 @@ struct ResourceHandle
     DescriptorResourceType type;
 };
 
-typedef U64 BufferHandle;
+template <typename Tag>
+class RHIHandle
+{
+public:
+    constexpr RHIHandle() = default;
+    explicit constexpr RHIHandle(U64 value) : m_Value(value) {}
+
+    [[nodiscard]] constexpr U64 Value() const { return m_Value; }
+
+    constexpr auto operator<=>(const RHIHandle&) const = default;
+
+private:
+    U64 m_Value = 0;
+};
+
+struct BufferHandleTag;
+struct TextureHandleTag;
+using BufferHandle = RHIHandle<BufferHandleTag>;
 struct BufferDesc
 {
     U64 sizeInBytes;
@@ -93,7 +111,7 @@ private:
 /*
 RHI Texture Handles
 */
-typedef U64 TextureHandle;
+using TextureHandle = RHIHandle<TextureHandleTag>;
 struct TextureDesc
 {
     U32 width;

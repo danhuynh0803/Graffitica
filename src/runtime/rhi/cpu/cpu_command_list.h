@@ -38,7 +38,8 @@ public:
 
     void SetVertexBuffers(U32 numViews, BufferHandle views[]) override;
     void SetIndexBuffer(BufferHandle indexBuffer) override;
-    void SetPipeline(PipelineBindPoint point, U64 handle) override;
+    void SetPipeline(GraphicsPipelineHandle handle) override;
+    void SetPipeline(ComputePipelineHandle handle) override;
     void SetRootConstants(PipelineBindPoint point, void* data, size_t numBytes, U32 bindIndex, U32 offset) override;
     void SetDescriptorTable(PipelineBindPoint point, BufferHandle bufferHandle, U32 bindIndex) override;
 
@@ -82,11 +83,11 @@ private:
 
     std::array<BufferHandle, MAX_VERTEX_STREAMS> m_VertexBufferHandles{};
     U32 m_NumVertexBuffers = 0;
-    BufferHandle m_IndexBufferHandle = 0;
+    BufferHandle m_IndexBufferHandle{};
     bool m_HasIndexBuffer = false;
-    U64 m_GraphicsPipelineHandle = 0;
+    GraphicsPipelineHandle m_GraphicsPipelineHandle{};
     bool m_HasGraphicsPipeline = false;
-    TextureHandle m_DepthTargetHandle = 0;
+    TextureHandle m_DepthTargetHandle{};
     bool m_HasDepthTarget = false;
 
     CPUBufferResource* m_VertexBuffers[MAX_VERTEX_STREAMS];

@@ -26,24 +26,24 @@ public:
     [[nodiscard]] BufferHandle CreateBuffer(const BufferDesc& desc)
     {
         GR_TRACE_START(SYS_RHI);
-        return m_BufferPool->Allocate(desc);
+        return BufferHandle{m_BufferPool->Allocate(desc)};
     }
 
     [[nodiscard]] TextureHandle CreateTexture(const TextureDesc& desc)
     {
         GR_TRACE_START(SYS_RHI);
-        return m_TexturePool->Allocate(desc);
+        return TextureHandle{m_TexturePool->Allocate(desc)};
     }
 
     [[nodiscard]] CPUTextureResource& GetTexture(TextureHandle handle)
     {
         GR_TRACE_START(SYS_RHI);
-        return m_TexturePool->Get(handle);
+        return m_TexturePool->Get(handle.Value());
     }
 
     void ResizeTexture(TextureHandle handle, U32 width, U32 height)
     {
-        auto& texture = m_TexturePool->Get(handle);
+        auto& texture = m_TexturePool->Get(handle.Value());
         texture.m_Width = width;
         texture.m_Height = height;
         texture.m_Data.resize(static_cast<size_t>(width) * height * texture.m_FormatSize);
@@ -52,7 +52,7 @@ public:
     GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
     {
         GR_TRACE_START(SYS_RHI);
-        return m_GraphicsPipelinePool->Allocate(desc);
+        return GraphicsPipelineHandle{m_GraphicsPipelinePool->Allocate(desc)};
     }
 
     ComputePipelineHandle CreateComputePipeline(const ComputePipelineDesc& desc)
@@ -84,7 +84,7 @@ public:
 
     CPUBufferResource* GetResource(BufferHandle handle)
     {
-        return &m_BufferPool->Get(handle);
+        return &m_BufferPool->Get(handle.Value());
     }
 
     // TODO: Expose for quick testing

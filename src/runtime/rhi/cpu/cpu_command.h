@@ -45,9 +45,9 @@ struct DrawIndexedInstancedCmd
     U32 startInstanceLocation;
     std::array<BufferHandle, 8> vertexBuffers{};
     U32 numVertexBuffers = 0;
-    BufferHandle indexBuffer = 0;
-    U64 graphicsPipeline = 0;
-    TextureHandle depthTarget = 0;
+    BufferHandle indexBuffer{};
+    GraphicsPipelineHandle graphicsPipeline{};
+    TextureHandle depthTarget{};
     bool hasIndexBuffer = false;
     bool hasGraphicsPipeline = false;
     bool hasDepthTarget = false;
