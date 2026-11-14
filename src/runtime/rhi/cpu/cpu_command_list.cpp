@@ -134,6 +134,8 @@ void CPUCommandList::TransitionResource(TextureHandle, ResourceState, ResourceSt
 
 void CPUCommandList::Execute(CPU_RHI& rhi)
 {
+    auto& resources = rhi.GetResourceManager();
+
     for (const auto& command : m_Commands)
     {
         switch (command.type)
@@ -141,13 +143,13 @@ void CPUCommandList::Execute(CPU_RHI& rhi)
         case CommandType::ClearColor:
         {
             const auto& clear = command.clearColorCmd;
-            ClearColorImpl(rhi.m_TexturePool->Get(clear.target.Value()), clear.color);
+            ClearColorImpl(resources.GetTexture(clear.target), clear.color);
             break;
         }
         case CommandType::ClearDepth:
         {
             const auto& clear = command.clearDepthCmd;
-            ClearDepthImpl(rhi.m_TexturePool->Get(clear.target.Value()), clear.depth);
+            ClearDepthImpl(resources.GetTexture(clear.target), clear.depth);
             break;
         }
         case CommandType::SetRenderTargets:
@@ -155,9 +157,9 @@ void CPUCommandList::Execute(CPU_RHI& rhi)
             const auto& targets = command.setRenderTargetsCmd;
             for (U32 i = 0; i < targets.numViews; ++i)
             {
-                m_ColorTargets[i] = &rhi.m_TexturePool->Get(targets.targets[i].Value());
+                m_ColorTargets[i] = &resources.GetTexture(targets.targets[i]);
             }
-            m_DepthTarget = &rhi.m_TexturePool->Get(targets.depthStencil.Value());
+            m_DepthTarget = &resources.GetTexture(targets.depthStencil);
             break;
         }
         case CommandType::DrawIndexedInstanced:
@@ -166,15 +168,15 @@ void CPUCommandList::Execute(CPU_RHI& rhi)
             std::fill(std::begin(m_VertexBuffers), std::end(m_VertexBuffers), nullptr);
             for (U32 i = 0; i < draw.numVertexBuffers; ++i)
             {
-                m_VertexBuffers[i] = &rhi.m_BufferPool->Get(draw.vertexBuffers[i].Value());
+                m_VertexBuffers[i] = &resources.GetBuffer(draw.vertexBuffers[i]);
             }
 
-            m_IndexBuffer = draw.hasIndexBuffer ? &rhi.m_BufferPool->Get(draw.indexBuffer.Value()) : nullptr;
+            m_IndexBuffer = draw.hasIndexBuffer ? &resources.GetBuffer(draw.indexBuffer) : nullptr;
             m_GraphicsPipeline = draw.hasGraphicsPipeline
-                ? &rhi.m_GraphicsPipelinePool->Get(draw.graphicsPipeline.Value())
+                ? &resources.GetGraphicsPipeline(draw.graphicsPipeline)
                 : nullptr;
             m_DepthTarget = draw.hasDepthTarget
-                ? &rhi.m_TexturePool->Get(draw.depthTarget.Value())
+                ? &resources.GetTexture(draw.depthTarget)
                 : nullptr;
 
             DrawIndexedInstancedImpl(

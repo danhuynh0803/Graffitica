@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <utility>
 #include <vector>
 #include "core/types.h"
 #include "rhi/interface/rhi.h"
@@ -31,12 +32,12 @@ public:
         {
             handle = m_FreeList.back();
             m_FreeList.pop_back();
-            m_Cache[handle] = resource;
+            m_Cache[handle] = std::move(resource);
         }
         else
         {
             handle = m_Cache.size();
-            m_Cache.push_back(resource);
+            m_Cache.push_back(std::move(resource));
         }
         return handle;
     }

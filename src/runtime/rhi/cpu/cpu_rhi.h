@@ -2,7 +2,7 @@
 
 #include "rhi/interface/rhi.h"
 #include "rhi/interface/pipeline.h"
-#include "rhi/resource_pool.h"
+#include "rhi/resource_manager.h"
 #include "cpu_command_list.h"
 #include "cpu_command.h"
 #include "cpu_pipeline.h"
@@ -14,36 +14,34 @@ namespace gr::rhi
 class CPU_RHI : public RHIContext
 {
 public:
-    CPU_RHI()
-    {
-        m_BufferPool  = std::make_unique< ResourcePool<CPU_RHI, CPUBufferResource, BufferDesc> >(this);
-        m_TexturePool = std::make_unique< ResourcePool<CPU_RHI, CPUTextureResource, TextureDesc> >(this);
-        m_GraphicsPipelinePool = std::make_unique< ResourcePool<CPU_RHI, CPUGraphicsPipeline, GraphicsPipelineDesc> >(this);
-    }
+    using ResourceManagerType = ResourceManager<CPU_RHI, CPUBufferResource,
+        CPUTextureResource, CPUGraphicsPipeline>;
+
+    CPU_RHI() : m_ResourceManager(this) {}
 
     void* GetDevice() { return nullptr; /* no-op */ }
 
     [[nodiscard]] BufferHandle CreateBuffer(const BufferDesc& desc)
     {
         GR_TRACE_START(SYS_RHI);
-        return BufferHandle{m_BufferPool->Allocate(desc)};
+        return m_ResourceManager.CreateBuffer(desc);
     }
 
     [[nodiscard]] TextureHandle CreateTexture(const TextureDesc& desc)
     {
         GR_TRACE_START(SYS_RHI);
-        return TextureHandle{m_TexturePool->Allocate(desc)};
+        return m_ResourceManager.CreateTexture(desc);
     }
 
     [[nodiscard]] CPUTextureResource& GetTexture(TextureHandle handle)
     {
         GR_TRACE_START(SYS_RHI);
-        return m_TexturePool->Get(handle.Value());
+        return m_ResourceManager.GetTexture(handle);
     }
 
     void ResizeTexture(TextureHandle handle, U32 width, U32 height)
     {
-        auto& texture = m_TexturePool->Get(handle.Value());
+        auto& texture = m_ResourceManager.GetTexture(handle);
         texture.m_Width = width;
         texture.m_Height = height;
         texture.m_Data.resize(static_cast<size_t>(width) * height * texture.m_FormatSize);
@@ -52,7 +50,7 @@ public:
     GraphicsPipelineHandle CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
     {
         GR_TRACE_START(SYS_RHI);
-        return GraphicsPipelineHandle{m_GraphicsPipelinePool->Allocate(desc)};
+        return m_ResourceManager.CreateGraphicsPipeline(desc);
     }
 
     ComputePipelineHandle CreateComputePipeline(const ComputePipelineDesc& desc)
@@ -84,19 +82,13 @@ public:
 
     CPUBufferResource* GetResource(BufferHandle handle)
     {
-        return &m_BufferPool->Get(handle.Value());
+        return &m_ResourceManager.GetBuffer(handle);
     }
 
-    // TODO: Expose for quick testing
-    //CPUBufferResourcePool& GetBufferPool() { return m_BufferPool; }
-    //CPUTextureResourcePool& GetTexturePool() { return m_TexturePool; }
+    [[nodiscard]] ResourceManagerType& GetResourceManager() { return m_ResourceManager; }
 
 private:
-    friend class CPUCommandList;
-    std::unique_ptr< ResourcePool<CPU_RHI, CPUBufferResource, BufferDesc > > m_BufferPool;
-    std::unique_ptr< ResourcePool<CPU_RHI, CPUTextureResource, TextureDesc> > m_TexturePool;
-    // TODO have a singular pipeline handle for both graphics and compute
-    std::unique_ptr< ResourcePool<CPU_RHI, CPUGraphicsPipeline, GraphicsPipelineDesc> > m_GraphicsPipelinePool;
+    ResourceManagerType m_ResourceManager;
 };
 
 } // namespace gr::rhi

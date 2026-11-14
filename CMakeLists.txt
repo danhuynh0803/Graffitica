@@ -88,8 +88,12 @@ if (MSVC)
     set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/PROFILE")
 endif()
 
-# TODO split to different cmake?
-if(NOT APPLE)
+# Link the Vulkan loader on macOS and select the KosmicKrisp ICD at runtime.
+# Keep the platform-specific shader tools as requirements only where the
+# current shader build uses them.
+if(APPLE)
+    find_package(Vulkan 1.4 REQUIRED)
+else()
     find_package(Vulkan REQUIRED COMPONENTS glslc shaderc_combined dxc)
 endif()
 
@@ -103,8 +107,42 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     Tracy::TracyClient
 )
 
-if(NOT APPLE)
-    target_include_directories(${PROJECT_NAME} PUBLIC Vulkan::Headers)
+target_link_libraries(${PROJECT_NAME} PRIVATE Vulkan::Vulkan)
+target_compile_definitions(${PROJECT_NAME} PRIVATE GRAFFITICA_HAS_VULKAN=1)
+
+if(APPLE)
+    set(GRAFFITICA_KOSMICKRISP_ICD "" CACHE FILEPATH
+        "Path to the Vulkan SDK libkosmickrisp_icd.json manifest")
+
+    if(NOT GRAFFITICA_KOSMICKRISP_ICD)
+        find_file(GRAFFITICA_KOSMICKRISP_ICD_FOUND
+            NAMES libkosmickrisp_icd.json
+            HINTS
+                "$ENV{VULKAN_SDK}/share/vulkan/icd.d"
+                "$ENV{VULKAN_SDK}/macOS/share/vulkan/icd.d"
+                "/usr/local/share/vulkan/icd.d"
+        )
+        if(GRAFFITICA_KOSMICKRISP_ICD_FOUND)
+            set(GRAFFITICA_KOSMICKRISP_ICD
+                "${GRAFFITICA_KOSMICKRISP_ICD_FOUND}" CACHE FILEPATH
+                "Path to the Vulkan SDK libkosmickrisp_icd.json manifest" FORCE)
+        endif()
+    endif()
+
+    if(NOT GRAFFITICA_KOSMICKRISP_ICD)
+        message(FATAL_ERROR
+            "Could not find libkosmickrisp_icd.json. Set VULKAN_SDK to the Vulkan SDK macOS directory or set GRAFFITICA_KOSMICKRISP_ICD directly.")
+    endif()
+
+    add_custom_target(run_kosmickrisp
+        COMMAND ${CMAKE_COMMAND} -E env
+            "VK_DRIVER_FILES=${GRAFFITICA_KOSMICKRISP_ICD}"
+            "$<TARGET_FILE:${PROJECT_NAME}>"
+        DEPENDS ${PROJECT_NAME}
+        USES_TERMINAL
+        COMMENT "Running ${PROJECT_NAME} with the KosmicKrisp Vulkan ICD"
+        VERBATIM
+    )
 endif()
 
 #find_package(directx-headers CONFIG REQUIRED)
@@ -138,7 +176,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 
 if(NOT APPLE)
     target_link_libraries(${PROJECT_NAME} PRIVATE
-        Vulkan::Vulkan
         Vulkan::shaderc_combined
         slang
         slang-compiler

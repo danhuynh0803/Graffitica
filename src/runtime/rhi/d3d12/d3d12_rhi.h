@@ -13,10 +13,11 @@
 //#pragma pop_macro("WIN_MACROS")
 #include <wrl.h>
 #include <directx/d3dx12.h>
+#include <memory>
 #include "d3d12_command_list.h"
 #include "d3d12_pipeline.h"
 #include "rhi/interface/rhi.h"
-#include "rhi/resource_pool.h"
+#include "rhi/resource_manager.h"
 #include "d3d12_util.h"
 #include "d3d12_resource.h"
 
@@ -24,6 +25,7 @@ namespace gr::rhi
 {
 
 class D3D12Swapchain;
+class D3D12_RHI;
 
 using Microsoft::WRL::ComPtr;
 
@@ -31,6 +33,9 @@ struct FeatureSupportData
 {
     bool supportsRaytracing;
 };
+
+using D3D12ResourceManager = ResourceManager<D3D12_RHI, D3D12BufferResource,
+    D3D12TextureResource, D3D12GraphicsPipeline>;
 
 class D3D12_RHI : public RHIContext
 {
@@ -42,7 +47,11 @@ public:
     [[nodiscard]] ComPtr<ID3D12CommandAllocator> GetGraphicsCommandAllocator() const { return m_GraphicsCommandAllocator; }
     [[nodiscard]] D3D12DescriptorHeap* GetDescriptorHeap(DescriptorResourceType eType) { return &(m_DescriptorHeaps[static_cast<I32>(eType)]); }
     [[nodiscard]] const FeatureSupportData& GetFeatureSupportData() const { return m_FeatureSupportData; }
-    [[nodiscard]] D3D12BufferResource* GetResource(BufferHandle handle) { return &m_BufferPool->Get(handle.Value()); }
+    [[nodiscard]] D3D12BufferResource* GetResource(BufferHandle handle)
+    {
+        return &m_ResourceManager->GetBuffer(handle);
+    }
+    [[nodiscard]] std::shared_ptr<D3D12ResourceManager> GetResourceManager() const { return m_ResourceManager; }
     [[nodiscard]] BufferHandle CreateBuffer(const BufferDesc& desc);
     [[nodiscard]] TextureHandle CreateTexture(const TextureDesc& desc);
     [[nodiscard]] TextureHandle CreateTexture(ComPtr<ID3D12Resource> extResource, DescriptorResourceType eResourceType);
@@ -67,7 +76,6 @@ public:
     void WaitForQueueCompletion(void* pQueue = nullptr, void* pFence = nullptr);
 
     friend class D3D12TextureResource;
-    friend class D3D12CommandList;
 
 private:
     FeatureSupportData m_FeatureSupportData;
@@ -81,12 +89,7 @@ private:
     // reference it using the DescriptorResourceType indices
     D3D12DescriptorHeap m_DescriptorHeaps[static_cast<I32>(DescriptorResourceType::COUNT)];
 
-    template <typename TResource, typename TDesc>
-    using D3D12ResourcePool = ResourcePool<D3D12_RHI, TResource, TDesc>;
-
-    std::shared_ptr<D3D12ResourcePool<D3D12BufferResource , BufferDesc >> m_BufferPool;
-    std::shared_ptr<D3D12ResourcePool<D3D12TextureResource, TextureDesc>> m_TexturePool;
-    std::shared_ptr<D3D12ResourcePool<D3D12GraphicsPipeline, GraphicsPipelineDesc>> m_GraphicsPipelinePool;
+    std::shared_ptr<D3D12ResourceManager> m_ResourceManager;
 
     ComPtr<ID3D12Fence> m_Fence;
     U64 m_FenceValue;

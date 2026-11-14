@@ -84,12 +84,10 @@ FeatureSupportData CheckFeatureSupport(const ComPtr<ID3D12Device>& device)
 
 D3D12_RHI::D3D12_RHI()
 {
-    // Init rhi instance to resource pools, which are needed to access device
+    // Initialize the resource manager, which creates backend resources through this RHI.
     // TODO or we could just query it from the context each time?
     // Would simplify needing to initialize with the instance
-    m_BufferPool  = std::make_shared< D3D12ResourcePool<D3D12BufferResource, BufferDesc> >(this);
-    m_TexturePool = std::make_shared< D3D12ResourcePool<D3D12TextureResource, TextureDesc> >(this);
-    m_GraphicsPipelinePool = std::make_shared< D3D12ResourcePool<D3D12GraphicsPipeline, GraphicsPipelineDesc> >(this);
+    m_ResourceManager = std::make_shared<D3D12ResourceManager>(this);
 
     // Adapter
     UINT dxgiFactoryFlags = 0;
@@ -160,7 +158,7 @@ D3D12_RHI::D3D12_RHI()
 [[nodiscard]] BufferHandle D3D12_RHI::CreateBuffer(const BufferDesc& desc)
 {
     GR_TRACE_START(SYS_RHI);
-    return BufferHandle{m_BufferPool->Allocate(desc)};
+    return m_ResourceManager->CreateBuffer(desc);
 }
 
 [[nodiscard]] TextureHandle D3D12_RHI::CreateTexture(const TextureDesc& desc)
@@ -198,7 +196,7 @@ D3D12_RHI::D3D12_RHI()
         
     }
     
-    return TextureHandle{m_TexturePool->Import(std::move(res))};
+    return m_ResourceManager->ImportTexture(std::move(res));
 }
 
 TextureHandle D3D12_RHI::CreateTexture(ComPtr<ID3D12Resource> extResource, DescriptorResourceType eResourceType)
@@ -228,32 +226,26 @@ TextureHandle D3D12_RHI::CreateTexture(ComPtr<ID3D12Resource> extResource, Descr
         throw std::runtime_error("ResourceFormat is not valid");
     }
 
-    return TextureHandle{m_TexturePool->Import(std::move(res))};
+    return m_ResourceManager->ImportTexture(std::move(res));
 }
 
 TextureHandle D3D12_RHI::ImportTexture(D3D12TextureResource&& resource)
 {
     GR_TRACE_START(SYS_RHI);
-    return TextureHandle{m_TexturePool->Import(std::move(resource))};
+    return m_ResourceManager->ImportTexture(std::move(resource));
 }
-
-//D3D12BufferResource D3D12_RHI::GetBuffer(BufferHandle handle)
-//{
-//    GR_TRACE_START(SYS_RHI);
-//    return m_BufferPool->Get(handle);
-//}
 
 [[nodiscard]] D3D12TextureResource& D3D12_RHI::GetTexture(TextureHandle handle)
 {
     GR_TRACE_START(SYS_RHI);
-    return m_TexturePool->Get(handle.Value());
+    return m_ResourceManager->GetTexture(handle);
 }
 
 GraphicsPipelineHandle D3D12_RHI::CreateGraphicsPipeline(const GraphicsPipelineDesc& desc)
 {
     GR_TRACE_START(SYS_RHI);
 
-    return GraphicsPipelineHandle{m_GraphicsPipelinePool->Allocate(desc)};
+    return m_ResourceManager->CreateGraphicsPipeline(desc);
 
     return {};
 }
@@ -324,7 +316,7 @@ void D3D12_RHI::ExecuteCommandLists(const RHICommandList rhiCommandLists[], U32 
 //void D3D12_RHI::SetConstantBuffer(RHICommandList& cmdlist, BufferHandle bufferHandle, U32 bindIndex)
 //{
 //    auto pCmdlist = GetNativeCommandList(cmdlist);
-//    const auto& cbuffer = m_BufferPool->Get(bufferHandle);
+//    const auto& cbuffer = m_ResourceManager->GetBuffer(bufferHandle);
 //    //const auto& cbvHeap = GetDescriptorHeap(DescriptorResourceType::ConstantBuffer);
 //    //pCmdlist->SetGraphicsRootDescriptorTable(bindIndex, cbvHeap->GetNative()->GetGPUDescriptorHandleForHeapStart());
 //    pCmdlist->SetGraphicsRootConstantBufferView(bindIndex, cbuffer.pResource->GetGPUVirtualAddress());
