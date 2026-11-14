@@ -1,4 +1,5 @@
 #include "vulkan_rhi.h"
+#include "vulkan_config.h"
 
 #include <algorithm>
 #include <optional>
@@ -22,7 +23,7 @@ void CheckVk(VkResult result, const char* operation)
     }
 }
 
-bool HasDeviceExtension(VkPhysicalDevice device, const char* extensionName)
+std::vector<VkExtensionProperties> GetDeviceExtensions(VkPhysicalDevice device)
 {
     U32 extensionCount = 0;
     CheckVk(vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr),
@@ -32,10 +33,22 @@ bool HasDeviceExtension(VkPhysicalDevice device, const char* extensionName)
     CheckVk(vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, extensions.data()),
         "vkEnumerateDeviceExtensionProperties");
 
-    return std::any_of(extensions.begin(), extensions.end(), [extensionName](const auto& extension)
-    {
-        return std::string(extension.extensionName) == extensionName;
-    });
+    return extensions;
+}
+
+bool HasDeviceExtensions(
+    const std::vector<VkExtensionProperties>& supportedExtensions,
+    std::span<const char* const> requestedExtensions)
+{
+    return std::all_of(requestedExtensions.begin(), requestedExtensions.end(),
+        [&supportedExtensions](const char* requestedExtension)
+        {
+            return std::any_of(supportedExtensions.begin(), supportedExtensions.end(),
+                [requestedExtension](const VkExtensionProperties& supportedExtension)
+                {
+                    return std::string(supportedExtension.extensionName) == requestedExtension;
+                });
+        });
 }
 
 bool HasSwapchainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
@@ -87,10 +100,29 @@ Vulkan_RHI::Vulkan_RHI(SDL_Window* window)
         CheckVk(vkEnumeratePhysicalDevices(m_Instance, &physicalDeviceCount, physicalDevices.data()),
             "vkEnumeratePhysicalDevices");
 
+        const std::span<const char* const> deviceExtensionNames = GetRequiredVulkanDeviceExtensions();
+        std::vector<const char*> enabledDeviceExtensions;
         for (VkPhysicalDevice candidate : physicalDevices)
         {
-            if (!HasDeviceExtension(candidate, VK_KHR_SWAPCHAIN_EXTENSION_NAME) ||
+            const std::vector<VkExtensionProperties> supportedExtensions = GetDeviceExtensions(candidate);
+            if (!HasDeviceExtensions(supportedExtensions, deviceExtensionNames) ||
                 !HasSwapchainSupport(candidate, m_Surface))
+                continue;
+
+            VkPhysicalDeviceProperties candidateProperties{};
+            vkGetPhysicalDeviceProperties(candidate, &candidateProperties);
+            if (candidateProperties.apiVersion < VK_API_VERSION_1_3)
+                continue;
+
+            VkPhysicalDeviceVulkan13Features candidateFeatures13{
+                VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES
+            };
+            VkPhysicalDeviceFeatures2 candidateFeatures{
+                VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2
+            };
+            candidateFeatures.pNext = &candidateFeatures13;
+            vkGetPhysicalDeviceFeatures2(candidate, &candidateFeatures);
+            if (!candidateFeatures13.dynamicRendering || !candidateFeatures13.synchronization2)
                 continue;
 
             U32 queueFamilyCount = 0;
@@ -122,11 +154,27 @@ Vulkan_RHI::Vulkan_RHI(SDL_Window* window)
             m_PhysicalDevice = candidate;
             m_GraphicsQueueFamilyIndex = *graphicsFamily;
             m_PresentQueueFamilyIndex = *presentFamily;
+
+            enabledDeviceExtensions.insert(enabledDeviceExtensions.end(),
+                deviceExtensionNames.begin(), deviceExtensionNames.end());
+            for (const char* optionalExtension : GetOptionalVulkanDeviceExtensions())
+            {
+                const char* presentIdExtension = VK_KHR_PRESENT_ID_EXTENSION_NAME;
+                if (std::string(optionalExtension) == VK_KHR_PRESENT_WAIT_EXTENSION_NAME &&
+                    !HasDeviceExtensions(supportedExtensions,
+                        std::span<const char* const>(&presentIdExtension, 1)))
+                    continue;
+
+                if (HasDeviceExtensions(supportedExtensions,
+                    std::span<const char* const>(&optionalExtension, 1)))
+                    enabledDeviceExtensions.push_back(optionalExtension);
+            }
+
             break;
         }
 
         if (m_PhysicalDevice == VK_NULL_HANDLE)
-            throw std::runtime_error("Vulkan: no device supports graphics, presentation, and VK_KHR_swapchain");
+            throw std::runtime_error("Vulkan: no device supports graphics, presentation, and all configured device extensions");
 
         const float queuePriority = 1.0f;
         std::vector<U32> uniqueQueueFamilies{m_GraphicsQueueFamilyIndex};
@@ -145,13 +193,20 @@ Vulkan_RHI::Vulkan_RHI(SDL_Window* window)
         }
 
         VkPhysicalDeviceFeatures features{};
-        const char* deviceExtensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+        VkPhysicalDeviceVulkan13Features features13{
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES
+        };
+        features13.dynamicRendering = VK_TRUE;
+        features13.synchronization2 = VK_TRUE;
+        features13.maintenance4 = VK_TRUE;
+
         VkDeviceCreateInfo deviceInfo{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
+        deviceInfo.pNext = &features13;
         deviceInfo.queueCreateInfoCount = static_cast<U32>(queueInfos.size());
         deviceInfo.pQueueCreateInfos = queueInfos.data();
         deviceInfo.pEnabledFeatures = &features;
-        deviceInfo.enabledExtensionCount = 1;
-        deviceInfo.ppEnabledExtensionNames = deviceExtensions;
+        deviceInfo.enabledExtensionCount = static_cast<U32>(enabledDeviceExtensions.size());
+        deviceInfo.ppEnabledExtensionNames = enabledDeviceExtensions.data();
 
         CheckVk(vkCreateDevice(m_PhysicalDevice, &deviceInfo, nullptr, &m_Device), "vkCreateDevice");
         vkGetDeviceQueue(m_Device, m_GraphicsQueueFamilyIndex, 0, &m_GraphicsQueue);
