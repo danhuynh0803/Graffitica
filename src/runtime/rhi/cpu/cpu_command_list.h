@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include "rhi/interface/command_list.h"
 #include "rhi/interface/framebuffer.h"
 #include "rhi/rasterizer_state.h"
@@ -22,7 +23,7 @@ class Command;
 class CPUCommandList : public ICommandList
 {
 public:
-    explicit CPUCommandList(CPU_RHI& rhi) noexcept;
+    CPUCommandList() noexcept;
     ~CPUCommandList() override;
 
     void BeginRecording() override;
@@ -50,6 +51,8 @@ public:
 
     void TransitionResource(TextureHandle resource, ResourceState oldState, ResourceState newState) override;
 
+    void Execute(CPU_RHI& rhi);
+
     void ClearColorImpl(CPUTextureResource& view, const vec4f& clearColor);
 
     void ClearDepthImpl(CPUTextureResource& view, float clearDepth);
@@ -64,8 +67,6 @@ public:
 
     void Dispatch(RHITextureResource& output, U32 groupCountX, U32 groupCountY, U32 groupCountZ);
 
-    friend class CPU_RHI;
-
 public:
     // TODO old impl - replace with RHI equivalents or
     // maybe tie to renderpass state to prepare for RG
@@ -78,7 +79,15 @@ public:
 
 private:
     std::vector<Command> m_Commands;
-    CPU_RHI* m_RHI;
+
+    std::array<BufferHandle, MAX_VERTEX_STREAMS> m_VertexBufferHandles{};
+    U32 m_NumVertexBuffers = 0;
+    BufferHandle m_IndexBufferHandle = 0;
+    bool m_HasIndexBuffer = false;
+    U64 m_GraphicsPipelineHandle = 0;
+    bool m_HasGraphicsPipeline = false;
+    TextureHandle m_DepthTargetHandle = 0;
+    bool m_HasDepthTarget = false;
 
     CPUBufferResource* m_VertexBuffers[MAX_VERTEX_STREAMS];
     CPUBufferResource* m_IndexBuffer;

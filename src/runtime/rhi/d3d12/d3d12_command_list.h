@@ -18,6 +18,7 @@ public:
 
 public:
     ID3D12GraphicsCommandList1* GetRawCommandList() { return m_pCommandList.Get(); }
+    D3D12DescriptorHeap* GetDescriptorHeap(DescriptorResourceType type);
 
     void BeginRecording() override;
     void EndRecording() override;
@@ -45,10 +46,9 @@ public:
     void TransitionResource(TextureHandle, ResourceState, ResourceState) override;
 
 private:
-    D3D12_RHI* m_RHI;
+    struct State;
+    std::shared_ptr<State> m_State;
     ComPtr<ID3D12GraphicsCommandList1> m_pCommandList;
-    ComPtr<ID3D12Device> m_pDevice;
-    ComPtr<ID3D12CommandAllocator> m_pCommandAllocator;
 };
 
 }

@@ -84,9 +84,9 @@ private:
     template <typename TResource, typename TDesc>
     using D3D12ResourcePool = ResourcePool<D3D12_RHI, TResource, TDesc>;
 
-    std::unique_ptr<D3D12ResourcePool<D3D12BufferResource , BufferDesc >> m_BufferPool;
-    std::unique_ptr<D3D12ResourcePool<D3D12TextureResource, TextureDesc>> m_TexturePool;
-    std::unique_ptr<D3D12ResourcePool<D3D12GraphicsPipeline, GraphicsPipelineDesc>> m_GraphicsPipelinePool;
+    std::shared_ptr<D3D12ResourcePool<D3D12BufferResource , BufferDesc >> m_BufferPool;
+    std::shared_ptr<D3D12ResourcePool<D3D12TextureResource, TextureDesc>> m_TexturePool;
+    std::shared_ptr<D3D12ResourcePool<D3D12GraphicsPipeline, GraphicsPipelineDesc>> m_GraphicsPipelinePool;
 
     ComPtr<ID3D12Fence> m_Fence;
     U64 m_FenceValue;

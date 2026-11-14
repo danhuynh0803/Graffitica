@@ -87,9 +87,9 @@ D3D12_RHI::D3D12_RHI()
     // Init rhi instance to resource pools, which are needed to access device
     // TODO or we could just query it from the context each time?
     // Would simplify needing to initialize with the instance
-    m_BufferPool  = std::make_unique< D3D12ResourcePool<D3D12BufferResource, BufferDesc> >(this);
-    m_TexturePool = std::make_unique< D3D12ResourcePool<D3D12TextureResource, TextureDesc> >(this);
-    m_GraphicsPipelinePool = std::make_unique< D3D12ResourcePool<D3D12GraphicsPipeline, GraphicsPipelineDesc> >(this);
+    m_BufferPool  = std::make_shared< D3D12ResourcePool<D3D12BufferResource, BufferDesc> >(this);
+    m_TexturePool = std::make_shared< D3D12ResourcePool<D3D12TextureResource, TextureDesc> >(this);
+    m_GraphicsPipelinePool = std::make_shared< D3D12ResourcePool<D3D12GraphicsPipeline, GraphicsPipelineDesc> >(this);
 
     // Adapter
     UINT dxgiFactoryFlags = 0;

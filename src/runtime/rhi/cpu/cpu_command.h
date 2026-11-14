@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include "cpu_rhi.h"
 
 namespace gr::rhi
@@ -30,9 +31,8 @@ struct ClearDepthCmd
 
 struct SetRenderTargetsCmd
 {
-    //std::vector<TextureHandle> targets;
     U32 numViews;
-    TextureHandle* targets;
+    std::array<TextureHandle, 8> targets{};
     TextureHandle depthStencil;
 };
 
@@ -43,6 +43,14 @@ struct DrawIndexedInstancedCmd
     U32 startIndexLocation;
     I32 baseVertexLocation;
     U32 startInstanceLocation;
+    std::array<BufferHandle, 8> vertexBuffers{};
+    U32 numVertexBuffers = 0;
+    BufferHandle indexBuffer = 0;
+    U64 graphicsPipeline = 0;
+    TextureHandle depthTarget = 0;
+    bool hasIndexBuffer = false;
+    bool hasGraphicsPipeline = false;
+    bool hasDepthTarget = false;
 };
 
 struct Command

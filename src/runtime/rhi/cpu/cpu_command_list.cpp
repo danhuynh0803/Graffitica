@@ -2,11 +2,13 @@
 #include "cpu_rhi.h"
 #include "cpu_command.h"
 
+#include <algorithm>
+
 namespace gr::rhi
 {
 
-CPUCommandList::CPUCommandList(CPU_RHI& rhi) noexcept
-    : m_Commands(), m_RHI(&rhi), m_VertexBuffers{}, m_IndexBuffer{}, m_ColorTargets{}, m_DepthTarget{},
+CPUCommandList::CPUCommandList() noexcept
+    : m_Commands(), m_VertexBuffers{}, m_IndexBuffer{}, m_ColorTargets{}, m_DepthTarget{},
       m_GraphicsPipeline(nullptr), m_ComputePipeline(nullptr)
 {}
 
@@ -15,13 +17,27 @@ CPUCommandList::~CPUCommandList() = default;
 void CPUCommandList::BeginRecording()
 {
     m_Commands.clear();
+    m_VertexBufferHandles.fill(0);
+    m_NumVertexBuffers = 0;
+    m_IndexBufferHandle = 0;
+    m_HasIndexBuffer = false;
+    m_GraphicsPipelineHandle = 0;
+    m_HasGraphicsPipeline = false;
+    m_DepthTargetHandle = 0;
+    m_HasDepthTarget = false;
+    std::fill(std::begin(m_VertexBuffers), std::end(m_VertexBuffers), nullptr);
+    std::fill(std::begin(m_ColorTargets), std::end(m_ColorTargets), nullptr);
+    m_IndexBuffer = nullptr;
+    m_DepthTarget = nullptr;
+    m_GraphicsPipeline = nullptr;
 }
 
 void CPUCommandList::EndRecording() {}
 
 void CPUCommandList::BeginRenderPass(const RenderPassDesc& desc)
 {
-    m_DepthTarget = &m_RHI->m_TexturePool->Get(desc.depthAttachment);
+    m_DepthTargetHandle = desc.depthAttachment;
+    m_HasDepthTarget = true;
 }
 
 void CPUCommandList::EndRenderPass() {}
@@ -32,25 +48,31 @@ void CPUCommandList::SetScissor(const Rect2D&) {}
 
 void CPUCommandList::SetRenderTargets(U32 count, TextureHandle views[], TextureHandle depth)
 {
-    m_Commands.emplace_back(SetRenderTargetsCmd{count, views, depth});
+    SetRenderTargetsCmd command{};
+    command.numViews = std::min<U32>(count, command.targets.size());
+    std::copy_n(views, command.numViews, command.targets.begin());
+    command.depthStencil = depth;
+    m_Commands.emplace_back(command);
+    m_DepthTargetHandle = depth;
+    m_HasDepthTarget = true;
 }
 
 void CPUCommandList::SetVertexBuffers(U32 count, BufferHandle views[])
 {
-    if (count)
-    {
-        m_VertexBuffers[0] = &m_RHI->m_BufferPool->Get(views[0]);
-    }
+    m_NumVertexBuffers = std::min<U32>(count, m_VertexBufferHandles.size());
+    std::copy_n(views, m_NumVertexBuffers, m_VertexBufferHandles.begin());
 }
 
 void CPUCommandList::SetIndexBuffer(BufferHandle handle)
 {
-    m_IndexBuffer = &m_RHI->m_BufferPool->Get(handle);
+    m_IndexBufferHandle = handle;
+    m_HasIndexBuffer = true;
 }
 
 void CPUCommandList::SetPipeline(PipelineBindPoint, U64 handle)
 {
-    m_GraphicsPipeline = &m_RHI->m_GraphicsPipelinePool->Get(handle);
+    m_GraphicsPipelineHandle = handle;
+    m_HasGraphicsPipeline = true;
 }
 
 void CPUCommandList::SetRootConstants(PipelineBindPoint, void*, size_t, U32, U32) {}
@@ -69,7 +91,21 @@ void CPUCommandList::ClearDepth(TextureHandle handle, float depth)
 
 void CPUCommandList::DrawIndexedInstanced(U32 count, U32 instances, U32 start, int base, U32 startInstance)
 {
-    m_Commands.emplace_back(DrawIndexedInstancedCmd{count, instances, start, base, startInstance});
+    DrawIndexedInstancedCmd command{};
+    command.indexCount = count;
+    command.instanceCount = instances;
+    command.startIndexLocation = start;
+    command.baseVertexLocation = base;
+    command.startInstanceLocation = startInstance;
+    command.vertexBuffers = m_VertexBufferHandles;
+    command.numVertexBuffers = m_NumVertexBuffers;
+    command.indexBuffer = m_IndexBufferHandle;
+    command.graphicsPipeline = m_GraphicsPipelineHandle;
+    command.depthTarget = m_DepthTargetHandle;
+    command.hasIndexBuffer = m_HasIndexBuffer;
+    command.hasGraphicsPipeline = m_HasGraphicsPipeline;
+    command.hasDepthTarget = m_HasDepthTarget;
+    m_Commands.emplace_back(command);
 }
 
 void CPUCommandList::Dispatch(U32, U32, U32) {}
@@ -91,6 +127,67 @@ void CPUCommandList::DispatchRays(U32 width, U32 height, U32 depth)
 }
 
 void CPUCommandList::TransitionResource(TextureHandle, ResourceState, ResourceState) {}
+
+void CPUCommandList::Execute(CPU_RHI& rhi)
+{
+    for (const auto& command : m_Commands)
+    {
+        switch (command.type)
+        {
+        case CommandType::ClearColor:
+        {
+            const auto& clear = command.clearColorCmd;
+            ClearColorImpl(rhi.m_TexturePool->Get(clear.target), clear.color);
+            break;
+        }
+        case CommandType::ClearDepth:
+        {
+            const auto& clear = command.clearDepthCmd;
+            ClearDepthImpl(rhi.m_TexturePool->Get(clear.target), clear.depth);
+            break;
+        }
+        case CommandType::SetRenderTargets:
+        {
+            const auto& targets = command.setRenderTargetsCmd;
+            for (U32 i = 0; i < targets.numViews; ++i)
+            {
+                m_ColorTargets[i] = &rhi.m_TexturePool->Get(targets.targets[i]);
+            }
+            m_DepthTarget = &rhi.m_TexturePool->Get(targets.depthStencil);
+            break;
+        }
+        case CommandType::DrawIndexedInstanced:
+        {
+            const auto& draw = command.drawIndexedInstancedCmd;
+            std::fill(std::begin(m_VertexBuffers), std::end(m_VertexBuffers), nullptr);
+            for (U32 i = 0; i < draw.numVertexBuffers; ++i)
+            {
+                m_VertexBuffers[i] = &rhi.m_BufferPool->Get(draw.vertexBuffers[i]);
+            }
+
+            m_IndexBuffer = draw.hasIndexBuffer ? &rhi.m_BufferPool->Get(draw.indexBuffer) : nullptr;
+            m_GraphicsPipeline = draw.hasGraphicsPipeline
+                ? &rhi.m_GraphicsPipelinePool->Get(draw.graphicsPipeline)
+                : nullptr;
+            m_DepthTarget = draw.hasDepthTarget
+                ? &rhi.m_TexturePool->Get(draw.depthTarget)
+                : nullptr;
+
+            DrawIndexedInstancedImpl(
+                draw.indexCount,
+                draw.instanceCount,
+                draw.startIndexLocation,
+                draw.baseVertexLocation,
+                draw.startInstanceLocation);
+            break;
+        }
+        case CommandType::Dispatch:
+            break;
+        default:
+            throw std::runtime_error("CPUCommandList: invalid command type");
+        }
+    }
+}
 
 namespace
 {

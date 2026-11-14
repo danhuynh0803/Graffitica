@@ -11,11 +11,6 @@
 namespace gr::rhi
 {
 
-inline CPUCommandList* GetNativeCommandList(RHICommandList& cmdlist)
-{
-    return static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
-}
-
 class CPU_RHI : public RHIContext
 {
 public:
@@ -72,56 +67,14 @@ public:
     {
         GR_TRACE_START(SYS_RHI);
         RHICommandList cmdList;
-        cmdList.pNativeCmdList = std::make_unique<CPUCommandList>(*this);
+        cmdList.pNativeCmdList = std::make_unique<CPUCommandList>();
         return cmdList;
     }
 
     void ExecuteCommandList(const RHICommandList& cmdlist)
     {
-        CPUCommandList* pCmdlist = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
-
-        for (const auto& cmd : pCmdlist->m_Commands)
-        {
-            switch (cmd.type) {
-            case CommandType::ClearColor:
-            {
-                const auto& ctx = cmd.clearColorCmd;
-                auto& resource = m_TexturePool->Get(ctx.target);
-                pCmdlist->ClearColorImpl(resource, ctx.color);
-                break;
-            }
-            case CommandType::ClearDepth:
-            {
-                const auto& ctx = cmd.clearDepthCmd;
-                auto& resource = m_TexturePool->Get(ctx.target);
-                pCmdlist->ClearDepthImpl(resource, ctx.depth);
-                break;
-            }
-            case CommandType::SetRenderTargets:
-            {
-                const auto& c = cmd.setRenderTargetsCmd;
-                const U32 size = c.numViews;
-                for (int i = 0; i < size; ++i) {
-                    pCmdlist->m_ColorTargets[i] = &(m_TexturePool->Get(c.targets[i]));
-                }  
-                break;
-            }
-            case CommandType::DrawIndexedInstanced:
-            {
-                const auto& c = cmd.drawIndexedInstancedCmd;
-                pCmdlist->DrawIndexedInstancedImpl(
-                    c.indexCount, c.instanceCount, c.startIndexLocation,
-                    c.baseVertexLocation, c.startInstanceLocation);
-                break;
-            }
-            case CommandType::Dispatch:
-                break;
-            default:
-                throw std::runtime_error("CPU_RHI: Invalid CommandType");
-                break;
-            }
-        
-        }
+        auto* commandList = static_cast<CPUCommandList*>(cmdlist.pNativeCmdList.get());
+        commandList->Execute(*this);
     }
     
     void WaitForQueueCompletion(void*, void*)
