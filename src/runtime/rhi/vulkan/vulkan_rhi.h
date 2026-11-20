@@ -25,6 +25,7 @@ public:
     [[nodiscard]] VkSurfaceKHR GetSurface() const { return m_Surface; }
     [[nodiscard]] U32 GetGraphicsQueueFamilyIndex() const { return m_GraphicsQueueFamilyIndex; }
     [[nodiscard]] U32 GetPresentQueueFamilyIndex() const { return m_PresentQueueFamilyIndex; }
+    [[nodiscard]] VkCommandPool GetCommandPool() const { return m_CommandPool; }
 
     void Shutdown();
 
@@ -48,6 +49,7 @@ private:
     VkQueue m_PresentQueue = VK_NULL_HANDLE;
     U32 m_GraphicsQueueFamilyIndex = UINT32_MAX;
     U32 m_PresentQueueFamilyIndex = UINT32_MAX;
+    VkCommandPool m_CommandPool = VK_NULL_HANDLE;
 };
 
 } // namespace gr::rhi

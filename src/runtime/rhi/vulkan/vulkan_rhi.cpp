@@ -40,14 +40,14 @@ bool HasInstanceLayer(const char* layerName)
     });
 }
 
-bool HasInstanceExtension(const char* extensionName)
+bool HasInstanceExtension(const char* extensionName, const char* layerName = nullptr)
 {
     U32 extensionCount = 0;
-    CheckVk(vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr),
+    CheckVk(vkEnumerateInstanceExtensionProperties(layerName, &extensionCount, nullptr),
         "vkEnumerateInstanceExtensionProperties");
 
     std::vector<VkExtensionProperties> extensions(extensionCount);
-    CheckVk(vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data()),
+    CheckVk(vkEnumerateInstanceExtensionProperties(layerName, &extensionCount, extensions.data()),
         "vkEnumerateInstanceExtensionProperties");
 
     return std::any_of(extensions.begin(), extensions.end(), [extensionName](const VkExtensionProperties& extension)
@@ -139,15 +139,16 @@ Vulkan_RHI::Vulkan_RHI(SDL_Window* window)
 
 #ifndef NDEBUG
         constexpr const char* validationLayer = "VK_LAYER_KHRONOS_validation";
-        if (HasInstanceLayer(validationLayer))
-        {
-            enabledInstanceLayers.push_back(validationLayer);
-            std::clog << "Vulkan: enabled " << validationLayer << '\n';
-        }
-        else
-        {
-            std::clog << "Vulkan: " << validationLayer << " is unavailable; validation is disabled\n";
-        }
+        if (!HasInstanceLayer(validationLayer))
+            throw std::runtime_error(std::string("Vulkan: required debug layer is unavailable: ") + validationLayer);
+
+        enabledInstanceLayers.push_back(validationLayer);
+        std::clog << "Vulkan: enabled " << validationLayer << '\n';
+
+        if (!HasInstanceExtension(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME, validationLayer))
+            throw std::runtime_error("Vulkan: VK_EXT_validation_features is unavailable from the Khronos validation layer");
+
+        enabledInstanceExtensions.push_back(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME);
 
         if (HasInstanceExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
             enabledInstanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -171,9 +172,18 @@ Vulkan_RHI::Vulkan_RHI(SDL_Window* window)
 
 #ifndef NDEBUG
         VkDebugUtilsMessengerCreateInfoEXT debugMessengerInfo = CreateDebugMessengerInfo();
+        constexpr VkValidationFeatureEnableEXT enabledValidationFeatures[] = {
+            VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT
+        };
+        VkValidationFeaturesEXT validationFeatures{
+            VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT
+        };
+        validationFeatures.enabledValidationFeatureCount = 1;
+        validationFeatures.pEnabledValidationFeatures = enabledValidationFeatures;
         if (std::find(enabledInstanceExtensions.begin(), enabledInstanceExtensions.end(),
             VK_EXT_DEBUG_UTILS_EXTENSION_NAME) != enabledInstanceExtensions.end())
-            instanceInfo.pNext = &debugMessengerInfo;
+            validationFeatures.pNext = &debugMessengerInfo;
+        instanceInfo.pNext = &validationFeatures;
 #endif
 
         CheckVk(vkCreateInstance(&instanceInfo, nullptr, &m_Instance), "vkCreateInstance");
@@ -328,6 +338,13 @@ Vulkan_RHI::Vulkan_RHI(SDL_Window* window)
         CheckVk(vkCreateDevice(m_PhysicalDevice, &deviceInfo, nullptr, &m_Device), "vkCreateDevice");
         vkGetDeviceQueue(m_Device, m_GraphicsQueueFamilyIndex, 0, &m_GraphicsQueue);
         vkGetDeviceQueue(m_Device, m_PresentQueueFamilyIndex, 0, &m_PresentQueue);
+        
+        // CommandPool Creation
+        VkCommandPoolCreateInfo commandPoolCI{};
+        commandPoolCI.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        commandPoolCI.queueFamilyIndex = m_GraphicsQueueFamilyIndex;
+        commandPoolCI.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+        CheckVk(vkCreateCommandPool(m_Device, &commandPoolCI, nullptr, &m_CommandPool), "vkCreateCommandPool");
     }
     catch (...)
     {
